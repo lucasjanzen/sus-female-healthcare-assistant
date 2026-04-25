@@ -1,0 +1,24 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="voltarHome()" title="Voltar ao início" aria-label="Voltar">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Nova Consulta</span>
+</mat-toolbar>
+
+<div class="consulta-container" style="padding: 24px; max-width: 900px; margin: 0 auto;">
+  <mat-stepper #stepper linear orientation="horizontal">
+
+    <mat-step label="1 — Paciente" [completed]="!!idConsulta">
+      <app-step-paciente (pacienteSalva)="onPacienteSalva($event)" />
+    </mat-step>
+
+    <mat-step label="2 — Triagem" [editable]="false">
+      <p style="padding: 24px; color: #666;">Triagem — disponível em breve.</p>
+    </mat-step>
+
+    <mat-step label="3 — Análise" [editable]="false">
+      <p style="padding: 24px; color: #666;">Análise — disponível em breve.</p>
+    </mat-step>
+
+  </mat-stepper>
+</div>

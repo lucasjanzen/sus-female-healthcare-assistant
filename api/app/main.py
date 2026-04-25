@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.session import Base, engine
-from app.models import user  # noqa: F401 — registra modelos antes de create_all
-from app.routers import auth
+from app.models import paciente, user  # noqa: F401 — registra modelos antes de create_all
+from app.routers import auth, paciente as paciente_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
+app.include_router(paciente_router.router, prefix="/pacientes", tags=["Pacientes"])
 
 
 @app.get("/health", tags=["Status"])

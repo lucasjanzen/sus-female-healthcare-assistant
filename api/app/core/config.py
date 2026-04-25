@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     access_token_expire_hours: int = 8
     database_url: str = "postgresql://sfha:sfha@db:5432/sfha_db"
     cors_origin: str = "http://localhost:4200"
+    secret_salt: str = "changeme-salt-altere-isso-em-producao"
 
 
 settings = Settings()

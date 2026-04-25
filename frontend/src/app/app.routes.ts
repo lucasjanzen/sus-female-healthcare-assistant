@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { roleGuard } from './core/auth/role.guard';
 
 export const routes: Routes = [
   {
@@ -17,6 +18,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/home/home.component').then((m) => m.HomeComponent),
     canActivate: [authGuard],
+  },
+  {
+    path: 'consulta/nova',
+    loadComponent: () =>
+      import('./features/consulta/nova-consulta/nova-consulta.component').then(
+        (m) => m.NovaConsultaComponent,
+      ),
+    canActivate: [authGuard, roleGuard(['MEDICO', 'ENFERMEIRO'])],
   },
   {
     path: '**',

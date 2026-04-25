@@ -2,8 +2,9 @@ import { Component, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -15,7 +16,6 @@ import { AuthService } from '../../core/auth/auth.service';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatSnackBarModule,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
@@ -30,15 +30,11 @@ export class HomeComponent {
 
   constructor(
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private router: Router,
   ) {}
 
   iniciarNovaConsulta(): void {
-    this.snackBar.open('Funcionalidade em desenvolvimento', 'Fechar', {
-      duration: 4000,
-      horizontalPosition: 'center',
-      verticalPosition: 'bottom',
-    });
+    this.router.navigate(['/consulta/nova']);
   }
 
   logout(): void {
