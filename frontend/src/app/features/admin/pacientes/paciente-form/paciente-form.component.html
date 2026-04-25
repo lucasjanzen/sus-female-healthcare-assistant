@@ -1,13 +1,11 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button (click)="cancelar()" title="Voltar">
-    <mat-icon>arrow_back</mat-icon>
-  </button>
-  <span style="margin-left: 8px">
-    {{ modoEdicao ? 'Editar Dados da Paciente' : 'Novo Cadastro de Paciente' }}
-  </span>
-</mat-toolbar>
-
 <div class="page-container">
+  <div class="page-header">
+    <button mat-icon-button (click)="cancelar()" title="Voltar">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>{{ modoEdicao ? 'Editar Dados da Paciente' : 'Novo Cadastro de Paciente' }}</h2>
+  </div>
+
   @if (carregando) {
     <div class="spinner-container">
       <mat-spinner></mat-spinner>

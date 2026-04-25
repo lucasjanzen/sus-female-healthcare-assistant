@@ -2,7 +2,6 @@ import { Component, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router } from '@angular/router';
 import { StepPacienteComponent } from './steps/step-paciente/step-paciente.component';
 
@@ -13,7 +12,6 @@ import { StepPacienteComponent } from './steps/step-paciente/step-paciente.compo
     MatStepperModule,
     MatButtonModule,
     MatIconModule,
-    MatToolbarModule,
     StepPacienteComponent,
   ],
   templateUrl: './nova-consulta.component.html',

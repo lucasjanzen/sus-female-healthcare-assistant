@@ -1,14 +1,3 @@
-<mat-toolbar color="primary">
-  <span class="app-name">PrenaIA</span>
-  <span class="spacer"></span>
-  @if (currentUser(); as user) {
-    <span class="user-name">{{ user.nome }}</span>
-  }
-  <button mat-icon-button (click)="logout()" title="Sair da conta" aria-label="Sair">
-    <mat-icon>logout</mat-icon>
-  </button>
-</mat-toolbar>
-
 <div class="home-container">
   <mat-card class="welcome-card">
     <mat-card-header>

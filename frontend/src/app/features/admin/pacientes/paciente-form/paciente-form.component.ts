@@ -17,7 +17,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { PacienteAdminCreate, PacienteAdminUpdate } from '../../models/paciente-admin.model';
@@ -43,7 +42,6 @@ function minDigitsValidator(min: number) {
   providers: [provideNativeDateAdapter()],
   imports: [
     ReactiveFormsModule,
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
@@ -57,6 +55,8 @@ function minDigitsValidator(min: number) {
   templateUrl: './paciente-form.component.html',
   styles: [`
     .page-container { padding: 24px; max-width: 860px; margin: 0 auto; }
+    .page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .page-header h2 { margin: 0; font-size: 1.25rem; font-weight: 500; }
     .form-section { margin-top: 24px; }
     .form-grid {
       display: grid;

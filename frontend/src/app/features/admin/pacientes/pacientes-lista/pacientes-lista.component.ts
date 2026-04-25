@@ -8,7 +8,6 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router } from '@angular/router';
 
 import { PacienteListItem } from '../../models/paciente-admin.model';
@@ -19,7 +18,6 @@ import { PacienteAdminService } from '../../services/paciente-admin.service';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
     MatTableModule,
@@ -110,6 +108,10 @@ export class PacientesListaComponent implements OnInit {
     this.currentPage = event.pageIndex + 1;
     this.pageSize = event.pageSize;
     this.carregar();
+  }
+
+  voltar(): void {
+    this.router.navigate(['/home']);
   }
 
   novaPaciente(): void {

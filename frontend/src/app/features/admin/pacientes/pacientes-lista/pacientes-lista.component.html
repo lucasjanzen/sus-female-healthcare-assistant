@@ -1,10 +1,8 @@
-<mat-toolbar color="primary">
-  <mat-icon>people</mat-icon>
-  <span style="margin-left: 8px">Gerenciamento de Pacientes</span>
-</mat-toolbar>
-
 <div class="page-container">
   <div class="header-row">
+    <button mat-icon-button (click)="voltar()" title="Voltar ao início">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
     <h1>Pacientes</h1>
     <button mat-raised-button color="accent" (click)="novaPaciente()">
       <mat-icon>person_add</mat-icon>

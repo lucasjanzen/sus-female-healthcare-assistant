@@ -1,11 +1,10 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button (click)="voltarHome()" title="Voltar ao início" aria-label="Voltar">
-    <mat-icon>arrow_back</mat-icon>
-  </button>
-  <span>Nova Consulta</span>
-</mat-toolbar>
-
 <div class="consulta-container" style="padding: 24px; max-width: 900px; margin: 0 auto;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+    <button mat-icon-button (click)="voltarHome()" title="Voltar ao início" aria-label="Voltar">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Nova Consulta</h2>
+  </div>
   <mat-stepper #stepper linear orientation="horizontal">
 
     <mat-step label="1 — Paciente" [completed]="!!idConsulta">

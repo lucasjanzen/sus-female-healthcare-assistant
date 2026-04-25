@@ -2,8 +2,6 @@ import { Component, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -12,7 +10,6 @@ import { AuthService } from '../../core/auth/auth.service';
   selector: 'app-home',
   standalone: true,
   imports: [
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -28,8 +25,6 @@ export class HomeComponent {
     return role === 'MEDICO' || role === 'ENFERMEIRO';
   });
 
-  readonly isAdmin = computed(() => this.authService.getRole() === 'ADMIN');
-
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -41,9 +36,5 @@ export class HomeComponent {
 
   gerenciarPacientes(): void {
     this.router.navigate(['/admin/pacientes']);
-  }
-
-  logout(): void {
-    this.authService.logout();
   }
 }
