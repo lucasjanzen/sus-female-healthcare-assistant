@@ -1,0 +1,43 @@
+<mat-toolbar color="primary">
+  <span class="app-name">PrenaIA</span>
+  <span class="spacer"></span>
+  @if (currentUser(); as user) {
+    <span class="user-name">{{ user.nome }}</span>
+  }
+  <button mat-icon-button (click)="logout()" title="Sair da conta" aria-label="Sair">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="home-container">
+  <mat-card class="welcome-card">
+    <mat-card-header>
+      <mat-card-title>
+        Bem-vindo(a), {{ currentUser()?.nome }}!
+      </mat-card-title>
+      <mat-card-subtitle>
+        Perfil: <strong>{{ currentUser()?.role }}</strong>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (canStartConsulta()) {
+        <div class="actions">
+          <button
+            mat-raised-button
+            color="accent"
+            (click)="iniciarNovaConsulta()"
+            class="nova-consulta-btn"
+          >
+            <mat-icon>add_circle_outline</mat-icon>
+            Iniciar Nova Consulta
+          </button>
+        </div>
+      } @else {
+        <p class="admin-info">
+          Como administrador, você tem acesso ao painel de gestão do sistema.
+        </p>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

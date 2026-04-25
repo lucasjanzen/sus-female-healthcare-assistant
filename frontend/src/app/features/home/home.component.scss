@@ -1,0 +1,53 @@
+.app-name {
+  font-weight: 500;
+  font-size: 1.25rem;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-name {
+  margin-right: 12px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.home-container {
+  padding: 32px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-card {
+  padding: 8px;
+
+  mat-card-title {
+    font-size: 1.5rem;
+  }
+
+  mat-card-subtitle {
+    margin-top: 4px;
+    font-size: 0.95rem;
+  }
+}
+
+.actions {
+  margin-top: 24px;
+}
+
+.nova-consulta-btn {
+  height: 52px;
+  font-size: 1rem;
+  padding: 0 24px;
+
+  mat-icon {
+    margin-right: 8px;
+  }
+}
+
+.admin-info {
+  margin-top: 16px;
+  color: #555;
+  font-size: 0.95rem;
+}
