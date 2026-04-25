@@ -7,15 +7,15 @@
   </div>
   <mat-stepper #stepper linear orientation="horizontal">
 
-    <mat-step label="1 — Paciente" [completed]="!!idConsulta">
+    <mat-step label="Paciente" [completed]="!!idConsulta">
       <app-step-paciente (pacienteSalva)="onPacienteSalva($event)" />
     </mat-step>
 
-    <mat-step label="2 — Triagem" [editable]="false">
+    <mat-step label="Triagem" [editable]="false">
       <p style="padding: 24px; color: #666;">Triagem — disponível em breve.</p>
     </mat-step>
 
-    <mat-step label="3 — Análise" [editable]="false">
+    <mat-step label="Análise" [editable]="false">
       <p style="padding: 24px; color: #666;">Análise — disponível em breve.</p>
     </mat-step>
 
