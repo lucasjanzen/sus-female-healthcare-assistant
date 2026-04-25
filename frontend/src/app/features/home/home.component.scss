@@ -1,38 +1,79 @@
 .home-container {
-  padding: 32px 24px;
-  max-width: 800px;
+  padding: 40px 24px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
-.welcome-card {
-  padding: 8px;
-
-  mat-card-title {
-    font-size: 1.5rem;
-  }
-
-  mat-card-subtitle {
-    margin-top: 4px;
-    font-size: 0.95rem;
-  }
+.welcome-section {
+  margin-bottom: 40px;
 }
 
-.actions {
-  margin-top: 24px;
+.welcome-title {
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin: 0 0 8px;
+  color: #333;
 }
 
-.nova-consulta-btn {
-  height: 52px;
+.welcome-subtitle {
   font-size: 1rem;
-  padding: 0 24px;
+  color: #666;
+  margin: 0;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.feature-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  text-align: center;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+  }
+
+  mat-card-content {
+    padding: 32px 16px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #e8eaf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
 
   mat-icon {
-    margin-right: 8px;
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #3f51b5;
   }
 }
 
-.admin-info {
-  margin-top: 16px;
-  color: #555;
-  font-size: 0.95rem;
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
 }

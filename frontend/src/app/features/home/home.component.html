@@ -1,40 +1,20 @@
 <div class="home-container">
-  <mat-card class="welcome-card">
-    <mat-card-header>
-      <mat-card-title>
-        Bem-vindo(a), {{ currentUser()?.nome }}!
-      </mat-card-title>
-      <mat-card-subtitle>
-        Perfil: <strong>{{ currentUser()?.role }}</strong>
-      </mat-card-subtitle>
-    </mat-card-header>
+  <div class="welcome-section">
+    <h1 class="welcome-title">Bem-vindo(a), {{ currentUser()?.nome }}!</h1>
+    <p class="welcome-subtitle">Perfil: <strong>{{ currentUser()?.role }}</strong></p>
+  </div>
 
-    <mat-card-content>
-      @if (canStartConsulta()) {
-        <div class="actions">
-          <button
-            mat-raised-button
-            color="accent"
-            (click)="iniciarNovaConsulta()"
-            class="nova-consulta-btn"
-          >
-            <mat-icon>add_circle_outline</mat-icon>
-            Iniciar Nova Consulta
-          </button>
-        </div>
-      } @else {
-        <div class="actions">
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="gerenciarPacientes()"
-            class="nova-consulta-btn"
-          >
-            <mat-icon>manage_accounts</mat-icon>
-            Gerenciar Pacientes
-          </button>
-        </div>
-      }
-    </mat-card-content>
-  </mat-card>
+  <div class="features-grid">
+    @for (card of featureCards(); track card.route) {
+      <mat-card class="feature-card" (click)="navigateTo(card.route)">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>{{ card.icon }}</mat-icon>
+          </div>
+          <h2 class="card-title">{{ card.title }}</h2>
+          <p class="card-description">{{ card.description }}</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
 </div>

@@ -1,18 +1,23 @@
 import { Component, computed } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 
+interface FeatureCard {
+  icon: string;
+  title: string;
+  description: string;
+  route: string;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
-    MatButtonModule,
-    MatIconModule,
     MatCardModule,
+    MatIconModule,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
@@ -20,9 +25,26 @@ import { AuthService } from '../../core/auth/auth.service';
 export class HomeComponent {
   readonly currentUser = computed(() => this.authService.getUser());
 
-  readonly canStartConsulta = computed(() => {
+  readonly featureCards = computed((): FeatureCard[] => {
     const role = this.authService.getRole();
-    return role === 'MEDICO' || role === 'ENFERMEIRO';
+    if (role === 'MEDICO' || role === 'ENFERMEIRO') {
+      return [
+        {
+          icon: 'add_circle_outline',
+          title: 'Nova Consulta',
+          description: 'Inicie uma nova consulta para uma paciente',
+          route: '/consulta/nova',
+        },
+      ];
+    }
+    return [
+      {
+        icon: 'manage_accounts',
+        title: 'Gerenciar Pacientes',
+        description: 'Visualize e gerencie o cadastro de pacientes',
+        route: '/admin/pacientes',
+      },
+    ];
   });
 
   constructor(
@@ -30,11 +52,7 @@ export class HomeComponent {
     private router: Router,
   ) {}
 
-  iniciarNovaConsulta(): void {
-    this.router.navigate(['/consulta/nova']);
-  }
-
-  gerenciarPacientes(): void {
-    this.router.navigate(['/admin/pacientes']);
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 }
