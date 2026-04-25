@@ -25,8 +25,10 @@
         @if (buscando) {
           <mat-spinner diameter="20" style="display: inline-block;" />
         } @else {
-          <mat-icon>search</mat-icon>
-          Buscar
+          <ng-container>
+            <mat-icon>search</mat-icon>
+            Buscar
+          </ng-container>
         }
       </button>
     </div>
@@ -210,8 +212,10 @@
           @if (salvando) {
             <mat-spinner diameter="20" style="display: inline-block;" />
           } @else {
-            <mat-icon>save</mat-icon>
-            {{ pacienteSelecionada ? 'Atualizar e continuar' : 'Salvar e continuar' }}
+            <ng-container>
+              <mat-icon>save</mat-icon>
+              {{ pacienteSelecionada ? 'Atualizar e continuar' : 'Salvar e continuar' }}
+            </ng-container>
           }
         </button>
       </div>
