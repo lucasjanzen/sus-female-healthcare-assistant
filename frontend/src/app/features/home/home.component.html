@@ -34,9 +34,17 @@
           </button>
         </div>
       } @else {
-        <p class="admin-info">
-          Como administrador, você tem acesso ao painel de gestão do sistema.
-        </p>
+        <div class="actions">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="gerenciarPacientes()"
+            class="nova-consulta-btn"
+          >
+            <mat-icon>manage_accounts</mat-icon>
+            Gerenciar Pacientes
+          </button>
+        </div>
       }
     </mat-card-content>
   </mat-card>

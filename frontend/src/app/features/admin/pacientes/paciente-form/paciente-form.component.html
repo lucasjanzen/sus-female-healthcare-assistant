@@ -1,0 +1,168 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="cancelar()" title="Voltar">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span style="margin-left: 8px">
+    {{ modoEdicao ? 'Editar Dados da Paciente' : 'Novo Cadastro de Paciente' }}
+  </span>
+</mat-toolbar>
+
+<div class="page-container">
+  @if (carregando) {
+    <div class="spinner-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submeter()" class="form-section">
+      <div class="form-grid">
+
+        <!-- CPF -->
+        <mat-form-field appearance="outline">
+          <mat-label>CPF</mat-label>
+          <input matInput formControlName="cpf" placeholder="00000000000" maxlength="11" />
+          @if (form.get('cpf')?.hasError('required') && form.get('cpf')?.touched) {
+            <mat-error>CPF é obrigatório</mat-error>
+          } @else if (form.get('cpf')?.hasError('pattern') && form.get('cpf')?.touched) {
+            <mat-error>CPF deve conter exatamente 11 dígitos</mat-error>
+          }
+          @if (modoEdicao) {
+            <mat-hint>CPF não pode ser alterado após o cadastro</mat-hint>
+          }
+        </mat-form-field>
+
+        <!-- CNS -->
+        <mat-form-field appearance="outline">
+          <mat-label>CNS — Cartão Nacional de Saúde</mat-label>
+          <input matInput formControlName="cns" placeholder="000000000000000" />
+          @if (form.get('cns')?.hasError('pattern') && form.get('cns')?.touched) {
+            <mat-error>CNS deve conter entre 15 e 20 dígitos</mat-error>
+          }
+          <mat-hint>Opcional</mat-hint>
+        </mat-form-field>
+
+        <!-- Nome completo -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome completo</mat-label>
+          <input matInput formControlName="nome" />
+          @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) {
+            <mat-error>Nome é obrigatório</mat-error>
+          } @else if (form.get('nome')?.hasError('minlength') && form.get('nome')?.touched) {
+            <mat-error>Nome deve ter no mínimo 3 caracteres</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Data de nascimento -->
+        <mat-form-field appearance="outline">
+          <mat-label>Data de nascimento</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            formControlName="dataNascimento"
+            [max]="hoje"
+            placeholder="DD/MM/AAAA"
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          @if (form.get('dataNascimento')?.hasError('required') && form.get('dataNascimento')?.touched) {
+            <mat-error>Data de nascimento é obrigatória</mat-error>
+          } @else if (form.get('dataNascimento')?.hasError('futureDate') && form.get('dataNascimento')?.touched) {
+            <mat-error>Data não pode ser futura</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Telefone -->
+        <mat-form-field appearance="outline">
+          <mat-label>Telefone</mat-label>
+          <input matInput formControlName="telefone" placeholder="(00) 00000-0000" />
+          @if (form.get('telefone')?.hasError('required') && form.get('telefone')?.touched) {
+            <mat-error>Telefone é obrigatório</mat-error>
+          } @else if (form.get('telefone')?.hasError('minDigits') && form.get('telefone')?.touched) {
+            <mat-error>Telefone deve ter no mínimo 10 dígitos</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- E-mail -->
+        <mat-form-field appearance="outline">
+          <mat-label>E-mail</mat-label>
+          <input matInput formControlName="email" type="email" placeholder="exemplo@email.com" />
+          @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+            <mat-error>Informe um e-mail válido</mat-error>
+          }
+          <mat-hint>Opcional</mat-hint>
+        </mat-form-field>
+
+        <!-- Estado civil -->
+        <mat-form-field appearance="outline">
+          <mat-label>Estado civil</mat-label>
+          <mat-select formControlName="estadoCivil">
+            @for (ec of estadosCivis; track ec.value) {
+              <mat-option [value]="ec.value">{{ ec.label }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('estadoCivil')?.hasError('required') && form.get('estadoCivil')?.touched) {
+            <mat-error>Estado civil é obrigatório</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Altura -->
+        <mat-form-field appearance="outline">
+          <mat-label>Altura (cm)</mat-label>
+          <input matInput formControlName="alturaCm" type="number" min="100" max="250" />
+          @if (form.get('alturaCm')?.hasError('required') && form.get('alturaCm')?.touched) {
+            <mat-error>Altura é obrigatória</mat-error>
+          } @else if (
+            (form.get('alturaCm')?.hasError('min') || form.get('alturaCm')?.hasError('max')) &&
+            form.get('alturaCm')?.touched
+          ) {
+            <mat-error>Altura deve ser entre 100 e 250 cm</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Possui filhos -->
+        <div class="toggle-row">
+          <mat-slide-toggle
+            formControlName="possuiFilhos"
+            (change)="onPossuiFilhosChange($event.checked)"
+          >
+            Possui filhos
+          </mat-slide-toggle>
+        </div>
+
+        <!-- Quantidade de filhos (condicional) -->
+        @if (possuiFilhos) {
+          <mat-form-field appearance="outline">
+            <mat-label>Quantidade de filhos</mat-label>
+            <input matInput formControlName="quantidadeFilhos" type="number" min="1" />
+            @if (form.get('quantidadeFilhos')?.hasError('required') && form.get('quantidadeFilhos')?.touched) {
+              <mat-error>Informe a quantidade de filhos</mat-error>
+            } @else if (form.get('quantidadeFilhos')?.hasError('min') && form.get('quantidadeFilhos')?.touched) {
+              <mat-error>Quantidade deve ser ao menos 1</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <!-- Endereço -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Endereço</mat-label>
+          <input matInput formControlName="endereco" placeholder="Rua, número, bairro, cidade" />
+          <mat-hint>Opcional</mat-hint>
+        </mat-form-field>
+
+      </div>
+
+      <div class="form-actions">
+        <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="salvando">
+          @if (salvando) {
+            <span class="submit-spinner">
+              <mat-spinner diameter="18"></mat-spinner>
+              Salvando...
+            </span>
+          } @else {
+            {{ modoEdicao ? 'Salvar Alterações' : 'Cadastrar' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

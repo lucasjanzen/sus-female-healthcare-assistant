@@ -28,6 +28,12 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard(['MEDICO', 'ENFERMEIRO'])],
   },
   {
+    path: 'admin',
+    canActivate: [authGuard, roleGuard(['ADMIN'])],
+    loadChildren: () =>
+      import('./features/admin/admin.routes').then((m) => m.adminRoutes),
+  },
+  {
     path: '**',
     redirectTo: 'home',
   },

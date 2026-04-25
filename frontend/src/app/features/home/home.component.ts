@@ -28,6 +28,8 @@ export class HomeComponent {
     return role === 'MEDICO' || role === 'ENFERMEIRO';
   });
 
+  readonly isAdmin = computed(() => this.authService.getRole() === 'ADMIN');
+
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -35,6 +37,10 @@ export class HomeComponent {
 
   iniciarNovaConsulta(): void {
     this.router.navigate(['/consulta/nova']);
+  }
+
+  gerenciarPacientes(): void {
+    this.router.navigate(['/admin/pacientes']);
   }
 
   logout(): void {

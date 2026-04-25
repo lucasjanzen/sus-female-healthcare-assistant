@@ -12,6 +12,7 @@ class Paciente(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     cpf_hash = Column(String(64), nullable=False, unique=True)
+    cns = Column(String(20), nullable=True, unique=True)
     nome = Column(String(255), nullable=False)
     telefone = Column(String(20), nullable=False)
     email = Column(String(255), nullable=True)
