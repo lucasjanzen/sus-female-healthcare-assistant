@@ -1,8 +1,14 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Resolve .env relative to this file so the path is always absolute,
+# regardless of which directory uvicorn/multiprocessing sets as CWD.
+_ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=str(_ENV_FILE), env_file_encoding="utf-8")
 
     secret_key: str = "changeme-secret-key-altere-isso-em-producao"
     algorithm: str = "HS256"

@@ -36,6 +36,13 @@ Em outro terminal, após os serviços subirem:
 docker-compose exec api python seed.py
 ```
 
+> **Desenvolvimento local (sem o container `api`):** execute direto com o Python do venv:
+> ```bash
+> cd api
+> .venv\Scripts\python.exe seed.py   # Windows
+> # .venv/bin/python seed.py         # Linux/macOS
+> ```
+
 ### 4. Acesse a aplicação
 
 | Serviço | URL |
@@ -69,6 +76,16 @@ docker-compose exec api python seed.py
 
 ### Backend (FastAPI)
 
+**1. Suba apenas o banco de dados via Docker:**
+
+```bash
+docker-compose up -d db
+```
+
+O PostgreSQL ficará disponível em `localhost:5432` com usuário `sfha`, senha `sfha` e banco `sfha_db`.
+
+**2. Instale as dependências Python:**
+
 ```bash
 cd api
 python -m venv .venv
@@ -77,14 +94,20 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Configure o `.env` com `DATABASE_URL` apontando para seu PostgreSQL local:
+**3. Crie o arquivo `api/.env`** com a URL apontando para `localhost` (diferente do Docker, que usa o hostname `db`):
 
 ```
 DATABASE_URL=postgresql://sfha:sfha@localhost:5432/sfha_db
+SECRET_KEY=troque-por-uma-string-aleatoria-longa-e-segura
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_HOURS=8
 CORS_ORIGIN=http://localhost:4200
 ```
 
-Inicie o servidor:
+> **Por que `api/.env` e não o `.env` raiz?**
+> O `.env` raiz usa `db:5432` (hostname do serviço Docker Compose). Quando o backend roda fora do Docker, o hostname `db` não existe — use `localhost:5432`, que é a porta exposta pelo container.
+
+**4. Inicie o servidor:**
 
 ```bash
 uvicorn app.main:app --reload --port 8000
@@ -97,6 +120,13 @@ cd frontend
 npm install
 ng serve
 ```
+
+**4. Popule o banco com dados de teste**
+
+Em outro terminal, após os serviços subirem:
+
+```bash
+docker-compose exec api python seed.py
 
 Acesse em http://localhost:4200.
 
