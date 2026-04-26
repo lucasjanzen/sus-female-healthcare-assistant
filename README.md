@@ -1,4 +1,4 @@
-# PrenaIA — Sistema de Assistência à Saúde Feminina
+# CASF - Centro de Assistência à Saúde Feminina
 
 Assistente para auxiliar nas consultas médicas realizadas pelo SUS em mulheres, buscando detectar sinais precoces de depressão pós-parto, ansiedade gestacional e violência doméstica.
 

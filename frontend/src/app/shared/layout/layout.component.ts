@@ -12,7 +12,7 @@ import { AuthService } from '../../core/auth/auth.service';
   imports: [RouterOutlet, MatToolbarModule, MatButtonModule, MatIconModule],
   template: `
     <mat-toolbar color="primary" class="app-toolbar">
-      <span class="app-name">PrenaIA</span>
+      <span class="app-name">Centro de Assistência à Saúde Feminina</span>
       <span class="spacer"></span>
       @if (currentUser(); as user) {
         <span class="user-name">{{ user.nome }}</span>
@@ -26,7 +26,7 @@ import { AuthService } from '../../core/auth/auth.service';
   `,
   styles: [`
     .app-toolbar { position: sticky; top: 0; z-index: 100; }
-    .app-name { font-weight: 600; font-size: 1.1rem; }
+    .app-name { font-weight: 600; font-size: 0.95rem; letter-spacing: 0.02em; }
     .spacer { flex: 1 1 auto; }
     .user-name { margin-right: 12px; font-size: 0.9rem; opacity: 0.9; }
   `],

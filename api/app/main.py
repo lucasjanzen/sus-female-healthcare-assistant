@@ -45,8 +45,8 @@ Base.metadata.create_all(bind=engine)
 _run_migrations(engine)
 
 app = FastAPI(
-    title="PrenaIA API",
-    description="Sistema de Assistência à Saúde Feminina",
+    title="CASF API",
+    description="Centro de Assistência à Saúde Feminina",
     version="1.0.0",
 )
 
