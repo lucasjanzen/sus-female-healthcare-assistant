@@ -1,9 +1,14 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 import { Router } from '@angular/router';
-import { StepPacienteComponent } from './steps/step-paciente/step-paciente.component';
+import { StepIdentificacaoComponent } from './steps/step-identificacao/step-identificacao.component';
+
+export interface ConsultaAtiva {
+  idConsulta: string;
+  tipo: string;
+}
 
 @Component({
   selector: 'app-nova-consulta',
@@ -12,19 +17,19 @@ import { StepPacienteComponent } from './steps/step-paciente/step-paciente.compo
     MatStepperModule,
     MatButtonModule,
     MatIconModule,
-    StepPacienteComponent,
+    StepIdentificacaoComponent,
   ],
   templateUrl: './nova-consulta.component.html',
 })
 export class NovaConsultaComponent {
   @ViewChild('stepper') stepper!: MatStepper;
 
-  idConsulta: string | null = null;
+  readonly consultaAtiva = signal<ConsultaAtiva | null>(null);
 
   constructor(private router: Router) {}
 
-  onPacienteSalva(idConsulta: string): void {
-    this.idConsulta = idConsulta;
+  onConsultaIniciada(data: ConsultaAtiva): void {
+    this.consultaAtiva.set(data);
     this.stepper.next();
   }
 

@@ -1,0 +1,181 @@
+<!-- ─── Bloco de busca ─────────────────────────────────────────────────────── -->
+<mat-card style="margin-bottom: 16px;">
+  <mat-card-header>
+    <mat-card-title>Buscar paciente</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+
+    <div style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; margin-top: 8px;">
+      <mat-form-field appearance="outline" style="flex: 1; min-width: 260px;">
+        <mat-label>Nome, CPF (11 dígitos) ou CNS</mat-label>
+        <input
+          matInput
+          [(ngModel)]="termoBusca"
+          (keyup.enter)="buscar()"
+          placeholder="Digite para buscar"
+          [disabled]="buscando"
+        />
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="buscar()"
+        [disabled]="buscando || !termoBusca.trim()"
+        style="height: 56px;"
+      >
+        @if (buscando) {
+          <mat-spinner diameter="20" style="display: inline-block;" />
+        } @else {
+          <ng-container>
+             <mat-icon>search</mat-icon>
+             Buscar
+          </ng-container>
+        }
+      </button>
+    </div>
+
+    <!-- Resultados da busca -->
+    @if (resultados.length > 0 && !pacienteSelecionada) {
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+        @for (p of resultados; track p.id) {
+          <mat-card
+            appearance="outlined"
+            style="cursor: pointer;"
+            (click)="selecionarPaciente(p)"
+          >
+            <mat-card-content style="padding: 12px 16px;">
+              <strong>{{ p.nome }}</strong>
+              <span style="margin-left: 16px; color: #666;">
+                Nascimento: {{ p.dataNascimento | date:'dd/MM/yyyy' }}
+              </span>
+              @if (p.cns) {
+                <span style="margin-left: 16px; color: #666;">CNS: {{ p.cns }}</span>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    }
+
+    @if (resultados.length === 0 && !buscando && termoBusca.trim()) {
+      <p style="margin-top: 12px; color: #888;">Nenhuma paciente encontrada.</p>
+    }
+
+  </mat-card-content>
+</mat-card>
+
+<!-- ─── Dados da paciente selecionada ─────────────────────────────────────── -->
+@if (pacienteSelecionada) {
+  <mat-card appearance="outlined" style="margin-bottom: 16px; border-color: #1976d2;">
+    <mat-card-header>
+      <mat-card-title style="font-size: 1rem;">Paciente selecionada</mat-card-title>
+    </mat-card-header>
+    <mat-card-content style="padding-top: 8px;">
+      <p style="margin: 4px 0;"><strong>Nome:</strong> {{ pacienteSelecionada.nome }}</p>
+      <p style="margin: 4px 0;">
+        <strong>Data de nascimento:</strong>
+        {{ pacienteSelecionada.dataNascimento | date:'dd/MM/yyyy' }}
+      </p>
+      @if (pacienteSelecionada.cns) {
+        <p style="margin: 4px 0;"><strong>CNS:</strong> {{ pacienteSelecionada.cns }}</p>
+      }
+      <p style="margin: 12px 0 4px; font-size: 0.85rem; color: #666;">
+        Para atualizar os dados cadastrais, acesse a área administrativa.
+      </p>
+      <button mat-stroked-button (click)="limparSelecao()" style="margin-top: 8px;">
+        <mat-icon>close</mat-icon>
+        Limpar seleção
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ─── Dados da consulta ──────────────────────────────────────────────── -->
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Dados da consulta</mat-card-title>
+    </mat-card-header>
+    <mat-card-content style="padding-top: 8px;">
+      <form [formGroup]="form">
+
+        <!-- Tipo de consulta -->
+        <mat-form-field appearance="outline" style="width: 100%; max-width: 400px; display: block; margin-bottom: 4px;">
+          <mat-label>Tipo de consulta</mat-label>
+          <mat-select
+            formControlName="tipoConsulta"
+            (selectionChange)="onTipoConsultaChange($event.value)"
+          >
+            @for (t of tiposConsulta; track t.value) {
+              <mat-option [value]="t.value">{{ t.label }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('tipoConsulta')?.hasError('required') && form.get('tipoConsulta')?.touched) {
+            <mat-error>Tipo de consulta é obrigatório</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- DUM — exibido somente para PRENATAL -->
+        @if (tipoConsultaValue === 'PRENATAL') {
+          <mat-form-field appearance="outline" style="width: 100%; max-width: 280px; display: block; margin-bottom: 4px;">
+            <mat-label>DUM (Data da Última Menstruação)</mat-label>
+            <input
+              matInput
+              [matDatepicker]="pickerDum"
+              formControlName="dum"
+              [max]="hoje"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="pickerDum" />
+            <mat-datepicker #pickerDum />
+            @if (form.get('dum')?.hasError('required') && form.get('dum')?.touched) {
+              <mat-error>DUM é obrigatória para consultas pré-natais</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- IG calculada em tempo real -->
+          @if (igDisplay) {
+            <p style="margin: 0 0 16px; color: #1976d2; font-weight: 500;">
+              <mat-icon style="font-size: 18px; height: 18px; width: 18px; vertical-align: middle; margin-right: 4px;">
+                pregnant_woman
+              </mat-icon>
+              IG: {{ igDisplay }}
+            </p>
+          }
+        }
+
+        <!-- TCLE -->
+        <div style="margin-bottom: 20px;">
+          <mat-checkbox formControlName="tcleAssinado" color="primary">
+            A paciente leu e assinou o Termo de Consentimento Livre e Esclarecido
+            para gravação de áudio desta consulta.
+          </mat-checkbox>
+          @if (form.get('tcleAssinado')?.hasError('required') && form.get('tcleAssinado')?.touched) {
+            <p style="margin: 4px 0 0 32px; color: #f44336; font-size: 0.75rem;">
+              O consentimento da paciente é obrigatório para iniciar a consulta.
+            </p>
+          }
+        </div>
+
+        <!-- Botão avançar -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="avancar()"
+            [disabled]="!podeAvancar || salvando"
+          >
+            @if (salvando) {
+              <mat-spinner diameter="20" style="display: inline-block;" />
+            } @else {
+              <ng-container>
+                <mat-icon>arrow_forward</mat-icon>
+                Avançar para Triagem
+              </ng-container>
+            }
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

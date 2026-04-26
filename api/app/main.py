@@ -6,9 +6,10 @@ from sqlalchemy import Engine, text
 
 from app.core.config import settings
 from app.db.session import Base, engine
-from app.models import paciente, user  # noqa: F401 — registra modelos antes de create_all
+from app.models import consulta, paciente, user  # noqa: F401 — registra modelos antes de create_all
 from app.routers import admin_paciente as admin_paciente_router
-from app.routers import auth, paciente as paciente_router
+from app.routers import auth, consulta as consulta_router
+from app.routers import paciente as paciente_router
 
 _MIGRATIONS_DIR = Path(__file__).parent.parent / "migrations"
 
@@ -61,6 +62,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
 app.include_router(paciente_router.router, prefix="/pacientes", tags=["Pacientes"])
 app.include_router(admin_paciente_router.router, prefix="/admin/pacientes", tags=["Admin — Pacientes"])
+app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
 
 
 @app.get("/health", tags=["Status"])

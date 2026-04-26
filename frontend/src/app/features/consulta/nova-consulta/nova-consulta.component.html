@@ -1,22 +1,49 @@
-<div class="consulta-container" style="padding: 24px; max-width: 900px; margin: 0 auto;">
+<div class="consulta-container" style="padding: 24px; max-width: 960px; margin: 0 auto;">
   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
     <button mat-icon-button (click)="voltarHome()" title="Voltar ao início" aria-label="Voltar">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <h2 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Nova Consulta</h2>
   </div>
+
   <mat-stepper #stepper linear orientation="horizontal">
 
-    <mat-step label="Paciente" [completed]="!!idConsulta">
-      <app-step-paciente (pacienteSalva)="onPacienteSalva($event)" />
+    <!-- Step 1 — Identificação -->
+    <mat-step [completed]="!!consultaAtiva()">
+      <ng-template matStepLabel>Identificação</ng-template>
+      <app-step-identificacao (consultaIniciada)="onConsultaIniciada($event)" />
     </mat-step>
 
-    <mat-step label="Triagem" [editable]="false">
+    <!-- Step 2 — Triagem -->
+    <mat-step [editable]="false" [completed]="false">
+      <ng-template matStepLabel>
+        Triagem&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
+      </ng-template>
       <p style="padding: 24px; color: #666;">Triagem — disponível em breve.</p>
     </mat-step>
 
-    <mat-step label="Análise" [editable]="false">
-      <p style="padding: 24px; color: #666;">Análise — disponível em breve.</p>
+    <!-- Step 3 — Consulta -->
+    <mat-step [editable]="false" [completed]="false">
+      <ng-template matStepLabel>
+        Consulta&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
+      </ng-template>
+      <p style="padding: 24px; color: #666;">Consulta — disponível em breve.</p>
+    </mat-step>
+
+    <!-- Step 4 — Análise IA -->
+    <mat-step [editable]="false" [completed]="false">
+      <ng-template matStepLabel>
+        Análise IA&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
+      </ng-template>
+      <p style="padding: 24px; color: #666;">Análise IA — disponível em breve.</p>
+    </mat-step>
+
+    <!-- Step 5 — Encerramento -->
+    <mat-step [editable]="false" [completed]="false">
+      <ng-template matStepLabel>
+        Encerramento&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
+      </ng-template>
+      <p style="padding: 24px; color: #666;">Encerramento — disponível em breve.</p>
     </mat-step>
 
   </mat-stepper>
