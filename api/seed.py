@@ -14,13 +14,13 @@ def seed():
 
     usuarios = [
         {
-            "nome": "Dr. João Silva",
+            "nome": "João Silva",
             "email": "medico@sfha.dev",
             "senha_hash": hash_password("senha123"),
             "role": RoleEnum.MEDICO,
         },
         {
-            "nome": "Enf. Maria Santos",
+            "nome": "Maria Santos",
             "email": "enfermeiro@sfha.dev",
             "senha_hash": hash_password("senha123"),
             "role": RoleEnum.ENFERMEIRO,

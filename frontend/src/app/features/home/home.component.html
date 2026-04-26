@@ -1,7 +1,7 @@
 <div class="home-container">
   <div class="welcome-section">
-    <h1 class="welcome-title">Bem-vindo(a), {{ currentUser()?.nome }}!</h1>
-    <p class="welcome-subtitle">Perfil: <strong>{{ currentUser()?.role }}</strong></p>
+    <h1 class="welcome-title">Bem-vindo(a), {{ roleLabel() }} {{ currentUser()?.nome }}!</h1>
+    <p class="welcome-subtitle">Selecione uma opção abaixo para iniciar.</p>
   </div>
 
   <div class="features-grid">

@@ -25,6 +25,13 @@ interface FeatureCard {
 export class HomeComponent {
   readonly currentUser = computed(() => this.authService.getUser());
 
+  readonly roleLabel = computed((): string => {
+    const role = this.authService.getRole();
+    if (role === 'MEDICO') return 'Dr.';
+    if (role === 'ENFERMEIRO') return 'Enf.';
+    return '';
+  });
+
   readonly featureCards = computed((): FeatureCard[] => {
     const role = this.authService.getRole();
     if (role === 'MEDICO' || role === 'ENFERMEIRO') {
