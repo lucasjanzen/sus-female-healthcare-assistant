@@ -1,4 +1,4 @@
-<!-- ─── Bloco de busca ─────────────────────────────────────────────────────── -->
+<!-- ─── Busca de paciente ────────────────────────────────────────────────────── -->
 <mat-card style="margin-bottom: 16px;">
   <mat-card-header>
     <mat-card-title>Buscar paciente</mat-card-title>
@@ -28,14 +28,14 @@
           <mat-spinner diameter="20" style="display: inline-block;" />
         } @else {
           <ng-container>
-             <mat-icon>search</mat-icon>
-             Buscar
+            <mat-icon>search</mat-icon>
+            Buscar
           </ng-container>
         }
       </button>
     </div>
 
-    <!-- Resultados da busca -->
+    <!-- Resultados -->
     @if (resultados.length > 0 && !pacienteSelecionada) {
       <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
         @for (p of resultados; track p.id) {
@@ -65,7 +65,7 @@
   </mat-card-content>
 </mat-card>
 
-<!-- ─── Dados da paciente selecionada ─────────────────────────────────────── -->
+<!-- ─── Paciente selecionada ────────────────────────────────────────────────── -->
 @if (pacienteSelecionada) {
   <mat-card appearance="outlined" style="margin-bottom: 16px; border-color: #1976d2;">
     <mat-card-header>
@@ -90,7 +90,7 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- ─── Dados da consulta ──────────────────────────────────────────────── -->
+  <!-- ─── Dados da consulta ────────────────────────────────────────────────── -->
   <mat-card>
     <mat-card-header>
       <mat-card-title>Dados da consulta</mat-card-title>
@@ -114,7 +114,7 @@
           }
         </mat-form-field>
 
-        <!-- DUM — exibido somente para PRENATAL -->
+        <!-- DUM — somente para PRENATAL -->
         @if (tipoConsultaValue === 'PRENATAL') {
           <mat-form-field appearance="outline" style="width: 100%; max-width: 280px; display: block; margin-bottom: 4px;">
             <mat-label>DUM (Data da Última Menstruação)</mat-label>
@@ -131,7 +131,6 @@
             }
           </mat-form-field>
 
-          <!-- IG calculada em tempo real -->
           @if (igDisplay) {
             <p style="margin: 0 0 16px; color: #1976d2; font-weight: 500;">
               <mat-icon style="font-size: 18px; height: 18px; width: 18px; vertical-align: middle; margin-right: 4px;">
@@ -145,8 +144,7 @@
         <!-- TCLE -->
         <div style="margin-bottom: 20px;">
           <mat-checkbox formControlName="tcleAssinado" color="primary">
-            A paciente leu e assinou o Termo de Consentimento Livre e Esclarecido
-            para gravação de áudio desta consulta.
+            A paciente assinou o TCLE para gravação de áudio desta consulta.
           </mat-checkbox>
           @if (form.get('tcleAssinado')?.hasError('required') && form.get('tcleAssinado')?.touched) {
             <p style="margin: 4px 0 0 32px; color: #f44336; font-size: 0.75rem;">
@@ -155,21 +153,21 @@
           }
         </div>
 
-        <!-- Botão avançar -->
+        <!-- Botão confirmar -->
         <div style="display: flex; align-items: center; gap: 12px;">
           <button
             mat-raised-button
             color="primary"
             type="button"
-            (click)="avancar()"
+            (click)="confirmarIdentificacao()"
             [disabled]="!podeAvancar || salvando"
           >
             @if (salvando) {
               <mat-spinner diameter="20" style="display: inline-block;" />
             } @else {
               <ng-container>
-                <mat-icon>arrow_forward</mat-icon>
-                Avançar para Triagem
+                <mat-icon>check</mat-icon>
+                Confirmar Identificação
               </ng-container>
             }
           </button>

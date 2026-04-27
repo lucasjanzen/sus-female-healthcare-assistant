@@ -8,42 +8,26 @@
 
   <mat-stepper #stepper linear orientation="horizontal">
 
-    <!-- Step 1 — Identificação -->
-    <mat-step [completed]="!!consultaAtiva()">
-      <ng-template matStepLabel>Identificação</ng-template>
-      <app-step-identificacao (consultaIniciada)="onConsultaIniciada($event)" />
+    <!-- Step 1 — Recepção -->
+    <mat-step [completed]="recepcaoConcluida()">
+      <ng-template matStepLabel>Recepção</ng-template>
+      <app-step-recepcao (recepcaoConcluida)="onRecepcaoConcluida($event)" />
     </mat-step>
 
-    <!-- Step 2 — Triagem -->
-    <mat-step [editable]="false" [completed]="false">
-      <ng-template matStepLabel>
-        Triagem&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
-      </ng-template>
-      <p style="padding: 24px; color: #666;">Triagem — disponível em breve.</p>
-    </mat-step>
-
-    <!-- Step 3 — Consulta -->
+    <!-- Step 2 — Consulta (bloqueado) -->
     <mat-step [editable]="false" [completed]="false">
       <ng-template matStepLabel>
         Consulta&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
       </ng-template>
-      <p style="padding: 24px; color: #666;">Consulta — disponível em breve.</p>
+      <p style="padding: 24px; color: #666;">Consulta — disponível após a triagem.</p>
     </mat-step>
 
-    <!-- Step 4 — Análise IA -->
-    <mat-step [editable]="false" [completed]="false">
-      <ng-template matStepLabel>
-        Análise IA&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
-      </ng-template>
-      <p style="padding: 24px; color: #666;">Análise IA — disponível em breve.</p>
-    </mat-step>
-
-    <!-- Step 5 — Encerramento -->
+    <!-- Step 3 — Encerramento (bloqueado) -->
     <mat-step [editable]="false" [completed]="false">
       <ng-template matStepLabel>
         Encerramento&nbsp;<mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
       </ng-template>
-      <p style="padding: 24px; color: #666;">Encerramento — disponível em breve.</p>
+      <p style="padding: 24px; color: #666;">Encerramento — disponível ao final da consulta.</p>
     </mat-step>
 
   </mat-stepper>

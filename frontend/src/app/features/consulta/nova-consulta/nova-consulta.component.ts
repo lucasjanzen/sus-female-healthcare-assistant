@@ -3,11 +3,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 import { Router } from '@angular/router';
-import { StepIdentificacaoComponent } from './steps/step-identificacao/step-identificacao.component';
+import { Etapa1Out, TipoConsulta } from '../models/consulta.model';
+import { StepRecepcaoComponent } from './steps/step-recepcao/step-recepcao.component';
 
 export interface ConsultaAtiva {
   idConsulta: string;
-  tipo: string;
+  tipo: TipoConsulta;
 }
 
 @Component({
@@ -17,7 +18,7 @@ export interface ConsultaAtiva {
     MatStepperModule,
     MatButtonModule,
     MatIconModule,
-    StepIdentificacaoComponent,
+    StepRecepcaoComponent,
   ],
   templateUrl: './nova-consulta.component.html',
 })
@@ -25,12 +26,16 @@ export class NovaConsultaComponent {
   @ViewChild('stepper') stepper!: MatStepper;
 
   readonly consultaAtiva = signal<ConsultaAtiva | null>(null);
+  readonly recepcaoConcluida = signal(false);
 
   constructor(private router: Router) {}
 
-  onConsultaIniciada(data: ConsultaAtiva): void {
-    this.consultaAtiva.set(data);
-    this.stepper.next();
+  onRecepcaoConcluida(etapa1: Etapa1Out): void {
+    this.consultaAtiva.set({
+      idConsulta: etapa1.idConsulta,
+      tipo: etapa1.tipoConsulta,
+    });
+    this.recepcaoConcluida.set(true);
   }
 
   voltarHome(): void {
