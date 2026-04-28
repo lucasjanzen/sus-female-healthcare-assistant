@@ -153,6 +153,7 @@ def iniciar_consulta(
     consulta = ConsultaIdentidade(
         paciente_id=payload.paciente_id,
         profissional_id=current_user.id,
+        ubs_id=getattr(current_user, "ubs_id", None),
         tipo_consulta=payload.tipo_consulta.value,
         dum=payload.dum,
         ig_semanas=ig_semanas,

@@ -3,18 +3,23 @@
     <button mat-icon-button (click)="voltarHome()" title="Voltar ao início" aria-label="Voltar">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h2 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Nova Consulta</h2>
+    <h2 style="margin: 0; font-size: 1.25rem; font-weight: 500;">
+      {{ modoAssumir() ? 'Consulta Clínica' : 'Nova Consulta' }}
+    </h2>
   </div>
 
   <mat-stepper #stepper linear orientation="horizontal">
-
-    <!-- Step 1 — Recepção -->
-    <mat-step [completed]="recepcaoConcluida()">
+    <mat-step [completed]="recepcaoConcluida()" [editable]="!modoAssumir()">
       <ng-template matStepLabel>Recepção</ng-template>
-      <app-step-recepcao (recepcaoConcluida)="onRecepcaoConcluida($event)" />
+      @if (!modoAssumir()) {
+        <app-step-recepcao (recepcaoConcluida)="onRecepcaoConcluida($event)" />
+      } @else {
+        <div style="padding: 24px; color: #4b5563;">
+          Recepção concluída pelo enfermeiro.
+        </div>
+      }
     </mat-step>
 
-    <!-- Step 2 — Consulta -->
     <mat-step [completed]="consultaConcluida()" [editable]="recepcaoConcluida()">
       <ng-template matStepLabel>
         Consulta
@@ -27,12 +32,12 @@
         <app-step-consulta
           [consultaAtiva]="consultaAtiva()!"
           [etapa1]="etapa1()!"
+          [pacienteNome]="consultaAssumida()?.pacienteNome"
           (consultaConcluida)="onConsultaConcluida($event)"
         />
       }
     </mat-step>
 
-    <!-- Step 3 — Encerramento -->
     <mat-step [editable]="false" [completed]="false">
       <ng-template matStepLabel>
         Encerramento
@@ -49,6 +54,5 @@
         />
       }
     </mat-step>
-
   </mat-stepper>
 </div>

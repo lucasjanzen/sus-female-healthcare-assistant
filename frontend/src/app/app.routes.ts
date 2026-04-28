@@ -33,6 +33,22 @@ export const routes: Routes = [
         canActivate: [roleGuard(['MEDICO', 'ENFERMEIRO'])],
       },
       {
+        path: 'consulta/:id/etapa2',
+        loadComponent: () =>
+          import('./features/consulta/nova-consulta/nova-consulta.component').then(
+            (m) => m.NovaConsultaComponent,
+          ),
+        canActivate: [roleGuard(['MEDICO'])],
+      },
+      {
+        path: 'fila',
+        loadComponent: () =>
+          import('./features/fila/fila-consultas/fila-consultas.component').then(
+            (m) => m.FilaConsultasComponent,
+          ),
+        canActivate: [roleGuard(['MEDICO'])],
+      },
+      {
         path: 'admin',
         canActivate: [roleGuard(['ADMIN'])],
         loadChildren: () =>

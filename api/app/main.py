@@ -15,6 +15,7 @@ from app.routers import auth, consulta as consulta_router
 from app.routers import paciente as paciente_router
 from app.routers import consulta_clinica as consulta_clinica_router
 from app.routers import encerramento as encerramento_router
+from app.routers import fila as fila_router
 
 _MIGRATIONS_DIR = Path(__file__).parent.parent / "migrations"
 
@@ -72,6 +73,7 @@ app.include_router(admin_paciente_router.router, prefix="/admin/pacientes", tags
 app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
 app.include_router(consulta_clinica_router.router, prefix="/consulta", tags=["Consulta Clínica"])
 app.include_router(encerramento_router.router, prefix="/consulta", tags=["Encerramento"])
+app.include_router(fila_router.router, prefix="/fila", tags=["Fila de Consultas"])
 
 
 @app.get("/health", tags=["Status"])

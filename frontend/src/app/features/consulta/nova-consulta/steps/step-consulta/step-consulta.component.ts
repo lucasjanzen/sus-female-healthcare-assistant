@@ -35,6 +35,7 @@ import { PainelIaComponent } from './painel-ia/painel-ia.component';
 export class StepConsultaComponent implements OnDestroy {
   @Input() consultaAtiva!: ConsultaAtiva;
   @Input() etapa1!: Etapa1Out;
+  @Input() pacienteNome?: string | null;
   @Output() consultaConcluida = new EventEmitter<ResultadoOut>();
 
   private readonly audioSvc = inject(AudioService);

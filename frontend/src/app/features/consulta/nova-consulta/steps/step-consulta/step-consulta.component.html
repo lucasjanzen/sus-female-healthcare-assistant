@@ -7,11 +7,17 @@
         <mat-icon style="margin-right: 8px; font-size: 18px; width: 18px; height: 18px;">assignment</mat-icon>
         Triagem realizada pelo enfermeiro
       </mat-panel-title>
-      <mat-panel-description>{{ etapa1.tipoConsulta }}</mat-panel-description>
+      <mat-panel-description>{{ pacienteNome || etapa1.tipoConsulta }}</mat-panel-description>
     </mat-expansion-panel-header>
 
     @if (triagem) {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; padding: 8px 0;">
+        @if (pacienteNome) {
+          <div>
+            <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase;">Paciente</p>
+            <p style="margin: 0; font-weight: 500;">{{ pacienteNome }}</p>
+          </div>
+        }
         <div>
           <p style="margin: 0; font-size: 0.75rem; color: #888; text-transform: uppercase;">Tipo</p>
           <p style="margin: 0; font-weight: 500;">{{ etapa1.tipoConsulta }}</p>

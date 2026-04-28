@@ -9,7 +9,11 @@
       <mat-card class="feature-card" (click)="navigateTo(card.route)">
         <mat-card-content>
           <div class="card-icon">
-            <mat-icon>{{ card.icon }}</mat-icon>
+            <mat-icon
+              [matBadge]="card.badge ?? null"
+              matBadgeColor="warn"
+              [matBadgeHidden]="card.badge == null"
+            >{{ card.icon }}</mat-icon>
           </div>
           <h2 class="card-title">{{ card.title }}</h2>
           <p class="card-description">{{ card.description }}</p>
