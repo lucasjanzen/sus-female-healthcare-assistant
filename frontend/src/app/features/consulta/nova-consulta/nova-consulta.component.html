@@ -27,7 +27,7 @@
         <app-step-consulta
           [consultaAtiva]="consultaAtiva()!"
           [etapa1]="etapa1()!"
-          (consultaConcluida)="onConsultaConcluida()"
+          (consultaConcluida)="onConsultaConcluida($event)"
         />
       }
     </mat-step>
@@ -40,7 +40,14 @@
           <mat-icon style="font-size: 14px; height: 14px; width: 14px; vertical-align: middle;">lock</mat-icon>
         }
       </ng-template>
-      <p style="padding: 24px; color: #666;">Encerramento — disponível ao final da consulta.</p>
+
+      @if (consultaAtiva() && etapa1() && resultadoEtapa2()) {
+        <app-step-encerramento
+          [consultaAtiva]="consultaAtiva()!"
+          [etapa1]="etapa1()!"
+          [resultado]="resultadoEtapa2()!"
+        />
+      }
     </mat-step>
 
   </mat-stepper>

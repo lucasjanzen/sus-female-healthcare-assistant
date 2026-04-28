@@ -228,3 +228,61 @@ export interface ResultadoOut {
   confirmado: boolean;
   calculadoEm: string;
 }
+
+// ── Etapa 3 — Encerramento ────────────────────────────────────────────────────
+
+export interface VacinaAplicada {
+  vacina: string;
+  lote?: string;
+  dataAplicacao: string;
+}
+
+export interface Encaminhamento {
+  destino: string;
+  motivo: string;
+}
+
+export interface EncerramentoCreate {
+  orientacoes: string[];
+  vacinacao?: VacinaAplicada[];
+  dataProximoRetorno: string;
+  encaminhamentos?: Encaminhamento[];
+  cartaoGestanteAtualizado: boolean;
+  observacoesFinais?: string;
+}
+
+export interface EncerramentoOut {
+  idConsulta: string;
+  orientacoes: string[];
+  vacinacao?: VacinaAplicada[];
+  dataProximoRetorno: string;
+  dataProximoRetornoSugerida: string;
+  encaminhamentos?: Encaminhamento[];
+  cartaoGestanteAtualizado: boolean;
+  observacoesFinais?: string;
+  encerradoEm: string;
+}
+
+export interface SugestaoEncerramentoOut {
+  dataProximoRetornoSugerida: string;
+  orientacoesRecomendadas: string[];
+}
+
+export interface ResumoPecOut {
+  idConsulta: string;
+  tipoConsulta: string;
+  dataConsulta: string;
+  igSemanas?: number;
+  igDias?: number;
+  pesoKg: number;
+  imc: number;
+  pa: string;
+  temperatura: string;
+  scoreRisco: number;
+  faixaRisco: FaixaRisco;
+  alertasCriticos: string[];
+  orientacoes: string[];
+  encaminhamentos: string[];
+  dataProximoRetorno: string;
+  geradoEm: string;
+}

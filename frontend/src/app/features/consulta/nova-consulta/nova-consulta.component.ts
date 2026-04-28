@@ -3,9 +3,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 import { Router } from '@angular/router';
-import { ConsultaAtiva, Etapa1Out } from '../models/consulta.model';
+import { ConsultaAtiva, Etapa1Out, ResultadoOut } from '../models/consulta.model';
 import { StepRecepcaoComponent } from './steps/step-recepcao/step-recepcao.component';
 import { StepConsultaComponent } from './steps/step-consulta/step-consulta.component';
+import { StepEncerramentoComponent } from './steps/step-encerramento/step-encerramento.component';
 
 export type { ConsultaAtiva };
 
@@ -18,6 +19,7 @@ export type { ConsultaAtiva };
     MatIconModule,
     StepRecepcaoComponent,
     StepConsultaComponent,
+    StepEncerramentoComponent,
   ],
   templateUrl: './nova-consulta.component.html',
 })
@@ -26,6 +28,7 @@ export class NovaConsultaComponent {
 
   readonly consultaAtiva = signal<ConsultaAtiva | null>(null);
   readonly etapa1 = signal<Etapa1Out | null>(null);
+  readonly resultadoEtapa2 = signal<ResultadoOut | null>(null);
   readonly recepcaoConcluida = signal(false);
   readonly consultaConcluida = signal(false);
 
@@ -41,7 +44,8 @@ export class NovaConsultaComponent {
     setTimeout(() => this.stepper.next(), 100);
   }
 
-  onConsultaConcluida(): void {
+  onConsultaConcluida(resultado: ResultadoOut): void {
+    this.resultadoEtapa2.set(resultado);
     this.consultaConcluida.set(true);
     setTimeout(() => this.stepper.next(), 100);
   }
