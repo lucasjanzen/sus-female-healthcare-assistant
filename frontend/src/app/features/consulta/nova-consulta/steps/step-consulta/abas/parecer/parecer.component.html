@@ -1,0 +1,58 @@
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+
+  <form [formGroup]="form" (ngSubmit)="salvar()">
+    <mat-form-field appearance="outline" style="width: 100%;">
+      <mat-label>Impressão clínica / Parecer</mat-label>
+      <textarea matInput formControlName="parecerTexto" rows="6"
+        placeholder="Descreva a impressão clínica, diagnóstico provável, conduta e orientações..."></textarea>
+    </mat-form-field>
+
+    <!-- Gravação do parecer -->
+    <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+      @if (!gravandoParecer()) {
+        <button mat-stroked-button type="button" color="primary" (click)="iniciarGravacaoParecer()">
+          <mat-icon style="margin-right: 6px;">mic</mat-icon>
+          Gravar Parecer
+        </button>
+      } @else {
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px; color: #d32f2f;">
+            <span style="width: 10px; height: 10px; background: #d32f2f; border-radius: 50%;
+              animation: pulse 1.2s infinite;"></span>
+            Gravando parecer...
+          </div>
+          <button mat-stroked-button type="button" color="warn" (click)="encerrarGravacaoParecer()">
+            <mat-icon style="margin-right: 6px;">stop</mat-icon>
+            Encerrar Gravação
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (transcricaoParecer()) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Transcrição do parecer</mat-panel-title>
+        </mat-expansion-panel-header>
+        <p style="font-style: italic; color: #555; white-space: pre-wrap;">{{ transcricaoParecer() }}</p>
+      </mat-expansion-panel>
+    }
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+      <button mat-flat-button color="primary" type="submit" [disabled]="salvando()">
+        @if (salvando()) {
+          <mat-spinner diameter="18" style="display: inline-block; margin-right: 6px;"></mat-spinner>
+        }
+        {{ dadosSalvos() ? 'Atualizar Parecer' : 'Salvar Parecer' }}
+      </button>
+    </div>
+  </form>
+
+</div>
+
+<style>
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+</style>

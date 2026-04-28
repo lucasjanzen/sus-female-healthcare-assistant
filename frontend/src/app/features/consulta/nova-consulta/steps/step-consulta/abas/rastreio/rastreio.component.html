@@ -1,0 +1,160 @@
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+  <form [formGroup]="form" (ngSubmit)="salvar()">
+
+    <!-- EPDS -->
+    <mat-expansion-panel [expanded]="true" style="margin-bottom: 12px;">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          EPDS — Escala de Depressão Pós-Parto de Edinburgh
+        </mat-panel-title>
+        <mat-panel-description>
+          <span [style]="'font-weight: 600; color: ' + epdsColor">
+            Score: {{ epdsScore }}/30
+            @if (epdsScore >= 12) { ⚠ Acima do ponto de corte (≥12) }
+          </span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <p style="color: #666; font-size: 0.875rem; margin: 8px 0 16px;">
+        Nas últimas 7 dias — selecione a resposta que melhor descreve como se sentiu:
+        0 = Nunca / 3 = Na maioria das vezes
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        @for (item of epdsItens; track $index; let i = $index) {
+          <div [style]="i === 9 && form.value['epds_item_10'] >= 1 ? 'padding: 12px; border-radius: 6px; border: 2px solid #d32f2f; background: #ffebee;' : ''">
+            <p style="margin: 0 0 6px; font-weight: 500;">{{ i + 1 }}. {{ item }}</p>
+            <mat-radio-group [formControlName]="'epds_item_' + (i + 1)"
+              (change)="i === 9 ? onEpdsItem10Change($event.value) : null"
+              style="display: flex; gap: 16px; flex-wrap: wrap;">
+              @for (val of ESCALA_0_3; track val) {
+                <mat-radio-button [value]="val">{{ val }}</mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (i === 9) {
+              <p style="font-size: 0.8rem; color: #d32f2f; margin: 4px 0 0;">
+                Qualquer resposta acima de 0 neste item requer acolhimento imediato.
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      <div style="margin-top: 12px; padding: 10px; border-radius: 6px; background: #f5f5f5;">
+        <mat-progress-bar mode="determinate" [value]="(epdsScore / 30) * 100"
+          [color]="epdsScore >= 12 ? 'warn' : 'primary'"></mat-progress-bar>
+        <p style="margin: 4px 0 0; font-size: 0.875rem; color: #555;">
+          Score EPDS: <strong [style]="'color: ' + epdsColor">{{ epdsScore }}/30</strong>
+          — Ponto de corte: 12
+        </p>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- GAD-7 -->
+    <mat-expansion-panel style="margin-bottom: 12px;">
+      <mat-expansion-panel-header>
+        <mat-panel-title>GAD-7 — Escala de Ansiedade Generalizada</mat-panel-title>
+        <mat-panel-description>
+          <span [style]="'font-weight: 600; color: ' + gad7Color">
+            Score: {{ gad7Score }}/21
+            @if (gad7Score >= 10) { ⚠ Acima do ponto de corte (≥10) }
+          </span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <p style="color: #666; font-size: 0.875rem; margin: 8px 0 16px;">
+        Nas últimas 2 semanas, com que frequência foi incomodada pelo seguinte?
+        0 = Nenhuma vez / 3 = Quase todos os dias
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        @for (item of gad7Itens; track $index; let i = $index) {
+          <div>
+            <p style="margin: 0 0 6px; font-weight: 500;">{{ i + 1 }}. {{ item }}</p>
+            <mat-radio-group [formControlName]="'gad7_item_' + (i + 1)"
+              style="display: flex; gap: 16px; flex-wrap: wrap;">
+              @for (val of ESCALA_0_3; track val) {
+                <mat-radio-button [value]="val">{{ val }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+        }
+      </div>
+
+      <div style="margin-top: 12px; padding: 10px; border-radius: 6px; background: #f5f5f5;">
+        <mat-progress-bar mode="determinate" [value]="(gad7Score / 21) * 100"
+          [color]="gad7Score >= 10 ? 'warn' : 'primary'"></mat-progress-bar>
+        <p style="margin: 4px 0 0; font-size: 0.875rem; color: #555;">
+          Score GAD-7: <strong [style]="'color: ' + gad7Color">{{ gad7Score }}/21</strong>
+          — Ponto de corte: 10
+        </p>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- HITS -->
+    <mat-expansion-panel style="margin-bottom: 12px;">
+      <mat-expansion-panel-header>
+        <mat-panel-title>HITS — Rastreio de Violência Doméstica</mat-panel-title>
+        <mat-panel-description>
+          <span [style]="'font-weight: 600; color: ' + hitsColor">
+            Score: {{ hitsScore }}/20
+            @if (hitsScore >= 11) { ⚠ Acima do ponto de corte (≥11) }
+          </span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <p style="color: #666; font-size: 0.875rem; margin: 8px 0 16px;">
+        1 = Nunca / 5 = Sempre
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        @for (item of hitsItens; track $index; let i = $index) {
+          <div>
+            <p style="margin: 0 0 6px; font-weight: 500;">{{ i + 1 }}. {{ item }}</p>
+            <mat-radio-group [formControlName]="'hits_item_' + (i + 1)"
+              (change)="onHitsChange()"
+              style="display: flex; gap: 12px; flex-wrap: wrap;">
+              @for (opcao of hitsEscala; track opcao.value) {
+                <mat-radio-button [value]="opcao.value">{{ opcao.label }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+        }
+      </div>
+
+      <div style="margin-top: 12px; padding: 10px; border-radius: 6px; background: #f5f5f5;">
+        <mat-progress-bar mode="determinate" [value]="(hitsScore / 20) * 100"
+          [color]="hitsScore >= 11 ? 'warn' : 'primary'"></mat-progress-bar>
+        <p style="margin: 4px 0 0; font-size: 0.875rem; color: #555;">
+          Score HITS: <strong [style]="'color: ' + hitsColor">{{ hitsScore }}/20</strong>
+          — Ponto de corte: 11
+        </p>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Situação Social -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Situação Social</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 12px;">
+        @for (item of situacaoSocialItens; track $index; let i = $index) {
+          <mat-checkbox [formControlName]="'social_item_' + (i + 1)">
+            {{ item }}
+          </mat-checkbox>
+        }
+      </div>
+    </mat-expansion-panel>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+      <button mat-flat-button color="primary" type="submit" [disabled]="salvando()">
+        @if (salvando()) {
+          <mat-spinner diameter="18" style="display: inline-block; margin-right: 6px;"></mat-spinner>
+        }
+        {{ dadosSalvos() ? 'Atualizar Rastreio' : 'Salvar Rastreio' }}
+      </button>
+    </div>
+
+  </form>
+</div>

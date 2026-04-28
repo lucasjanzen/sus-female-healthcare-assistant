@@ -6,10 +6,13 @@ from sqlalchemy import Engine, text
 
 from app.core.config import settings
 from app.db.session import Base, engine
-from app.models import consulta, paciente, user  # noqa: F401 — registra modelos antes de create_all
+from app.db.session_b import BaseB, engine_b
+from app.models import consulta, paciente, user  # noqa: F401
+from app.models import consulta_clinica, consulta_banco_b  # noqa: F401
 from app.routers import admin_paciente as admin_paciente_router
 from app.routers import auth, consulta as consulta_router
 from app.routers import paciente as paciente_router
+from app.routers import consulta_clinica as consulta_clinica_router
 
 _MIGRATIONS_DIR = Path(__file__).parent.parent / "migrations"
 
@@ -43,7 +46,9 @@ def _run_migrations(eng: Engine) -> None:
 
 
 Base.metadata.create_all(bind=engine)
+BaseB.metadata.create_all(bind=engine_b)
 _run_migrations(engine)
+_run_migrations(engine_b)
 
 app = FastAPI(
     title="CASF API",
@@ -63,6 +68,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
 app.include_router(paciente_router.router, prefix="/pacientes", tags=["Pacientes"])
 app.include_router(admin_paciente_router.router, prefix="/admin/pacientes", tags=["Admin — Pacientes"])
 app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
+app.include_router(consulta_clinica_router.router, prefix="/consulta", tags=["Consulta Clínica"])
 
 
 @app.get("/health", tags=["Status"])
