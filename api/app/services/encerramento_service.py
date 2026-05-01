@@ -1,19 +1,6 @@
 from datetime import date, timedelta
 from typing import Optional
 
-_ORIENTACOES_POR_FAIXA: dict[str, list[str]] = {
-    "VERDE": ["NUTRICAO", "RETORNO_CONSULTA"],
-    "AMARELO": ["NUTRICAO", "RETORNO_CONSULTA", "VACINACAO", "SINAIS_ALARME"],
-    "LARANJA": [
-        "NUTRICAO", "RETORNO_CONSULTA", "VACINACAO", "SINAIS_ALARME",
-        "SAUDE_MENTAL", "SUPORTE_SOCIAL",
-    ],
-    "VERMELHO": [
-        "NUTRICAO", "RETORNO_CONSULTA", "VACINACAO", "SINAIS_ALARME",
-        "SAUDE_MENTAL", "SUPORTE_SOCIAL", "VIOLENCIA_DOMESTICA",
-    ],
-}
-
 
 def calcular_data_sugerida(
     ig_semanas: Optional[int],
@@ -37,7 +24,3 @@ def calcular_data_sugerida(
         prazo_dias = min(prazo_dias, 2)
 
     return data_base + timedelta(days=max(1, prazo_dias))
-
-
-def orientacoes_recomendadas(faixa_risco: str) -> list[str]:
-    return _ORIENTACOES_POR_FAIXA.get(faixa_risco, ["RETORNO_CONSULTA"])

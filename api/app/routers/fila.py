@@ -11,7 +11,7 @@ from app.db.session import get_db
 from app.models.consulta import ConsultaIdentidade, ConsultaTriagem
 from app.models.paciente import Paciente
 from app.models.user import User
-from app.schemas.consulta import AlertaTriagem, TriagemOut
+from app.schemas.consulta import TriagemOut
 from app.schemas.fila import ConsultaAssumidaOut, ConsultaFilaItem
 
 router = APIRouter()
@@ -28,48 +28,13 @@ def _filtrar_ubs(query, current_user: User):
     return query.filter(ConsultaIdentidade.ubs_id == ubs_id)
 
 
-def _alertas(triagem: Optional[ConsultaTriagem]) -> list[AlertaTriagem]:
+def _triagem_out(triagem: Optional[ConsultaTriagem]) -> Optional[TriagemOut]:
     if not triagem:
-        return []
-    return [AlertaTriagem(**a) for a in (triagem.alertas or [])]
-
-
-def _alertas_criticos(triagem: Optional[ConsultaTriagem]) -> list[str]:
-    return [
-        alerta.descricao
-        for alerta in _alertas(triagem)
-        if alerta.nivel == "CRITICO"
-    ]
-
-
-def _triagem_out(triagem: ConsultaTriagem) -> TriagemOut:
+        return None
     return TriagemOut(
         peso_kg=float(triagem.peso_kg),
-        imc=float(triagem.imc),
         pa_sistolica=triagem.pa_sistolica,
         pa_diastolica=triagem.pa_diastolica,
-        temperatura_c=float(triagem.temperatura_c),
-        queixas_texto=triagem.queixas_texto,
-        queixas_tags=triagem.queixas_tags,
-        alertas=_alertas(triagem),
-    )
-
-
-def _build_assumida_out(
-    consulta: ConsultaIdentidade,
-    paciente: Paciente,
-    triagem: ConsultaTriagem,
-) -> ConsultaAssumidaOut:
-    return ConsultaAssumidaOut(
-        id_consulta=consulta.id_consulta,
-        paciente_nome=paciente.nome,
-        paciente_data_nascimento=paciente.data_nascimento,
-        tipo_consulta=consulta.tipo_consulta,
-        ig_semanas=consulta.ig_semanas,
-        ig_dias=consulta.ig_dias,
-        triagem_resumo=_triagem_out(triagem),
-        alertas_triagem=_alertas(triagem),
-        assumida_em=consulta.assumida_em,
     )
 
 
@@ -98,10 +63,19 @@ def _carregar_assumida(
         .filter(ConsultaTriagem.id_consulta == consulta.id_consulta)
         .first()
     )
-    if not paciente or not triagem:
+    if not paciente:
         raise HTTPException(status_code=404, detail="Dados da consulta não encontrados")
 
-    return _build_assumida_out(consulta, paciente, triagem)
+    return ConsultaAssumidaOut(
+        id_consulta=consulta.id_consulta,
+        paciente_nome=paciente.nome,
+        paciente_data_nascimento=paciente.data_nascimento,
+        tipo_consulta=consulta.tipo_consulta,
+        ig_semanas=consulta.ig_semanas,
+        ig_dias=consulta.ig_dias,
+        triagem_resumo=_triagem_out(triagem),
+        assumida_em=consulta.assumida_em,
+    )
 
 
 @router.get(
@@ -127,20 +101,9 @@ def listar_consultas_fila(
     )
 
     paciente_ids = [c.paciente_id for c in consultas]
-    consulta_ids = [c.id_consulta for c in consultas]
     pacientes = (
         {p.id: p for p in db.query(Paciente).filter(Paciente.id.in_(paciente_ids)).all()}
         if paciente_ids
-        else {}
-    )
-    triagens = (
-        {
-            t.id_consulta: t
-            for t in db.query(ConsultaTriagem)
-            .filter(ConsultaTriagem.id_consulta.in_(consulta_ids))
-            .all()
-        }
-        if consulta_ids
         else {}
     )
 
@@ -149,7 +112,6 @@ def listar_consultas_fila(
         paciente = pacientes.get(consulta.paciente_id)
         if not paciente or not consulta.triagem_concluida_em:
             continue
-        criticos = _alertas_criticos(triagens.get(consulta.id_consulta))
         itens.append(
             ConsultaFilaItem(
                 id_consulta=consulta.id_consulta,
@@ -159,8 +121,7 @@ def listar_consultas_fila(
                 ig_semanas=consulta.ig_semanas,
                 ig_dias=consulta.ig_dias,
                 triagem_concluida_em=consulta.triagem_concluida_em,
-                alertas_criticos=criticos,
-                tem_alerta_critico=bool(criticos),
+                tem_alerta_critico=False,
             )
         )
     return itens
@@ -202,10 +163,7 @@ def assumir_consulta(
     result = db.execute(stmt)
     if result.rowcount == 0:
         db.rollback()
-        raise HTTPException(
-            status_code=409,
-            detail="Esta consulta foi assumida por outro médico.",
-        )
+        raise HTTPException(status_code=409, detail="Esta consulta foi assumida por outro médico.")
 
     db.commit()
     return _carregar_assumida(db, id_consulta, current_user)

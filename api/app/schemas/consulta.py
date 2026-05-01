@@ -14,12 +14,6 @@ class TipoConsultaEnum(str, enum.Enum):
     PLANEJAMENTO_FAMILIAR = "PLANEJAMENTO_FAMILIAR"
 
 
-class NivelAlertaEnum(str, enum.Enum):
-    INFO = "INFO"
-    ATENCAO = "ATENCAO"
-    CRITICO = "CRITICO"
-
-
 class PacienteConsultaOut(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
@@ -40,7 +34,6 @@ class ConsultaIniciarRequest(BaseModel):
     paciente_id: UUID
     tipo_consulta: TipoConsultaEnum
     dum: Optional[date] = None
-    tcle_assinado: bool
 
 
 class TriagemCreate(BaseModel):
@@ -49,30 +42,14 @@ class TriagemCreate(BaseModel):
     peso_kg: float = Field(..., ge=30, le=300)
     pa_sistolica: int = Field(..., ge=60, le=250)
     pa_diastolica: int = Field(..., ge=40, le=150)
-    temperatura_c: float = Field(..., ge=34.0, le=42.0)
-    queixas_texto: Optional[str] = None
-    queixas_tags: Optional[list[str]] = None
-
-
-class AlertaTriagem(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    tipo: str
-    descricao: str
-    nivel: str
 
 
 class TriagemOut(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     peso_kg: float
-    imc: float
     pa_sistolica: int
     pa_diastolica: int
-    temperatura_c: float
-    queixas_texto: Optional[str] = None
-    queixas_tags: Optional[list[str]] = None
-    alertas: list[AlertaTriagem] = []
 
 
 class Etapa1Out(BaseModel):
@@ -89,14 +66,12 @@ class Etapa1Out(BaseModel):
     dum: Optional[date] = None
     ig_semanas: Optional[int] = None
     ig_dias: Optional[int] = None
-    tcle_assinado: bool
     triagem_concluida: bool = False
     triagem: Optional[TriagemOut] = None
     aberta_em: datetime
     triagem_concluida_em: Optional[datetime] = None
 
 
-# Alias para compatibilidade com código existente
 ConsultaEtapa1Out = Etapa1Out
 
 

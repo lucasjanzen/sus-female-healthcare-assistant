@@ -3,17 +3,16 @@ from datetime import date, datetime, timezone
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.dependencies import require_role
 from app.db.session import get_db
-from app.models.consulta import ConsultaIdentidade, ConsultaTcleLog, ConsultaTriagem
+from app.models.consulta import ConsultaIdentidade, ConsultaTriagem
 from app.models.paciente import Paciente
 from app.models.user import User
 from app.schemas.consulta import (
-    AlertaTriagem,
     ConsultaEtapa1Update,
     ConsultaIniciarRequest,
     Etapa1Out,
@@ -41,17 +40,10 @@ def _build_etapa1_out(
 ) -> Etapa1Out:
     triagem_out = None
     if triagem:
-        alertas_raw = triagem.alertas or []
-        alertas = [AlertaTriagem(**a) for a in alertas_raw]
         triagem_out = TriagemOut(
             peso_kg=float(triagem.peso_kg),
-            imc=float(triagem.imc),
             pa_sistolica=triagem.pa_sistolica,
             pa_diastolica=triagem.pa_diastolica,
-            temperatura_c=float(triagem.temperatura_c),
-            queixas_texto=triagem.queixas_texto,
-            queixas_tags=triagem.queixas_tags,
-            alertas=alertas,
         )
 
     return Etapa1Out(
@@ -62,15 +54,12 @@ def _build_etapa1_out(
         dum=consulta.dum,
         ig_semanas=consulta.ig_semanas,
         ig_dias=consulta.ig_dias,
-        tcle_assinado=consulta.tcle_assinado,
         triagem_concluida=consulta.triagem_concluida,
         triagem=triagem_out,
         aberta_em=consulta.aberta_em,
         triagem_concluida_em=consulta.triagem_concluida_em,
     )
 
-
-# ── Busca de pacientes para contexto de consulta ─────────────────────────────
 
 @router.get(
     "/pacientes/buscar",
@@ -116,8 +105,6 @@ def buscar_pacientes_consulta(
     ]
 
 
-# ── Iniciar consulta (Identificação) ─────────────────────────────────────────
-
 @router.post(
     "/iniciar",
     response_model=Etapa1Out,
@@ -126,16 +113,9 @@ def buscar_pacientes_consulta(
 )
 def iniciar_consulta(
     payload: ConsultaIniciarRequest,
-    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
 ):
-    if not payload.tcle_assinado:
-        raise HTTPException(
-            status_code=422,
-            detail="O TCLE deve ser assinado para iniciar a consulta",
-        )
-
     paciente = (
         db.query(Paciente)
         .filter(Paciente.id == payload.paciente_id, Paciente.ativo.is_(True))
@@ -148,8 +128,6 @@ def iniciar_consulta(
     if payload.dum:
         ig_semanas, ig_dias = _calcular_ig(payload.dum)
 
-    agora = datetime.now(timezone.utc)
-
     consulta = ConsultaIdentidade(
         paciente_id=payload.paciente_id,
         profissional_id=current_user.id,
@@ -158,28 +136,12 @@ def iniciar_consulta(
         dum=payload.dum,
         ig_semanas=ig_semanas,
         ig_dias=ig_dias,
-        tcle_assinado=True,
-        tcle_assinado_em=agora,
     )
     db.add(consulta)
-    db.flush()
-
-    ip = request.client.host if request.client else None
-    db.add(
-        ConsultaTcleLog(
-            id_consulta=consulta.id_consulta,
-            paciente_id=payload.paciente_id,
-            profissional_id=current_user.id,
-            ip_origem=ip,
-        )
-    )
-
     db.commit()
     db.refresh(consulta)
     return _build_etapa1_out(consulta, None)
 
-
-# ── Registrar triagem ─────────────────────────────────────────────────────────
 
 @router.post(
     "/{id_consulta}/triagem",
@@ -204,32 +166,13 @@ def registrar_triagem(
     if consulta.triagem_concluida:
         raise HTTPException(status_code=409, detail="Triagem já registrada para esta consulta")
 
-    paciente = (
-        db.query(Paciente)
-        .filter(Paciente.id == consulta.paciente_id)
-        .first()
-    )
-    if not paciente:
-        raise HTTPException(status_code=404, detail="Paciente não encontrada")
-
-    altura_m = paciente.altura_cm / 100
-    imc = round(payload.peso_kg / (altura_m ** 2), 2)
-
-    alertas = gerar_alertas(payload, consulta.tipo_consulta, imc)
-    alertas_json = [a.model_dump() for a in alertas]
-
     agora = datetime.now(timezone.utc)
 
     triagem = ConsultaTriagem(
         id_consulta=id_consulta,
         peso_kg=payload.peso_kg,
-        imc=imc,
         pa_sistolica=payload.pa_sistolica,
         pa_diastolica=payload.pa_diastolica,
-        temperatura_c=payload.temperatura_c,
-        queixas_texto=payload.queixas_texto,
-        queixas_tags=payload.queixas_tags,
-        alertas=alertas_json,
         registrado_por=current_user.id,
     )
     db.add(triagem)
@@ -244,8 +187,6 @@ def registrar_triagem(
 
     return _build_etapa1_out(consulta, triagem)
 
-
-# ── Obter Etapa 1 ─────────────────────────────────────────────────────────────
 
 @router.get(
     "/{id_consulta}/etapa1",
@@ -272,11 +213,8 @@ def obter_etapa1(
         .filter(ConsultaTriagem.id_consulta == id_consulta)
         .first()
     )
-
     return _build_etapa1_out(consulta, triagem)
 
-
-# ── Atualizar Etapa 1 ─────────────────────────────────────────────────────────
 
 @router.patch(
     "/{id_consulta}/etapa1",
@@ -320,5 +258,4 @@ def atualizar_etapa1(
         .filter(ConsultaTriagem.id_consulta == id_consulta)
         .first()
     )
-
     return _build_etapa1_out(consulta, triagem)
