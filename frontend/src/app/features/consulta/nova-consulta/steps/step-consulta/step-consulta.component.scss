@@ -1,0 +1,58 @@
+.stack {
+  display: grid;
+  gap: 18px;
+}
+.triagem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+textarea {
+  min-height: 150px;
+}
+.audio-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.recording {
+  color: #c62828;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+.result-card {
+  border-left: 5px solid #2e7d32;
+}
+.VERDE {
+  border-left-color: #2e7d32;
+}
+.AMARELO {
+  border-left-color: #f9a825;
+}
+.LARANJA {
+  border-left-color: #ef6c00;
+}
+.VERMELHO {
+  border-left-color: #c62828;
+}
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.MODERADO {
+  border-left: 4px solid #ef6c00;
+}
+.ALTO {
+  border-left: 4px solid #c62828;
+}
+.disclaimer {
+  background: #fff8e1;
+  padding: 12px;
+  border-radius: 8px;
+}

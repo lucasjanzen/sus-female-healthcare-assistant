@@ -1,0 +1,56 @@
+.stack {
+  display: grid;
+  gap: 18px;
+}
+.search-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.search-row mat-form-field {
+  flex: 1;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+mat-card.selectable {
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+mat-card.selectable:hover {
+  border-color: #1976d2;
+}
+.readonly {
+  background: #f7f9fc;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.pa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 12px;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.success {
+  text-align: center;
+  padding: 36px 16px;
+}
+.success mat-icon {
+  color: #2e7d32;
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
+}
+.muted {
+  color: #666;
+  margin: 4px 0 0;
+}

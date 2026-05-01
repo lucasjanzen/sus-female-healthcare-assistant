@@ -1,0 +1,33 @@
+<div class="page">
+  <mat-stepper orientation="horizontal" linear>
+    <mat-step label="Recepção" [completed]="consultaAtiva() !== null" [editable]="modo === 'nova'">
+      @if (modo === 'nova') {
+        <app-step-recepcao />
+      }
+    </mat-step>
+
+    <mat-step [completed]="false" [editable]="modo === 'assumir'">
+      <ng-template matStepLabel>
+        <span class="locked-step">
+          Consulta
+          @if (modo === 'nova') {
+            <mat-icon>lock</mat-icon>
+          }
+        </span>
+      </ng-template>
+      @if (modo === 'assumir' && consultaAtiva()) {
+        <app-step-consulta (confirmado)="irParaEncerramento()" />
+      }
+    </mat-step>
+
+    <mat-step [editable]="false">
+      <ng-template matStepLabel>
+        <span class="locked-step">
+          Encerramento
+          <mat-icon>lock</mat-icon>
+        </span>
+      </ng-template>
+      <p>Consulta pronta para a próxima etapa.</p>
+    </mat-step>
+  </mat-stepper>
+</div>

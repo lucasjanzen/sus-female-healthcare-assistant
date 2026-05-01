@@ -1,0 +1,154 @@
+<div class="stack">
+  @if (dadosConsulta(); as dados) {
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Triagem realizada pelo enfermeiro</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="triagem-grid">
+        <div><strong>Paciente</strong><br />{{ dados.pacienteNome }}</div>
+        <div><strong>Tipo</strong><br />{{ dados.tipoConsulta }}</div>
+        @if (dados.igSemanas !== undefined) {
+          <div>
+            <strong>IG</strong><br />{{ dados.igSemanas }} semanas e
+            {{ dados.igDias }} dias
+          </div>
+        }
+        <div>
+          <strong>Peso</strong><br />{{ dados.triagemResumo.pesoKg }} kg
+        </div>
+        <div>
+          <strong>PA</strong><br />{{ dados.triagemResumo.paSistolica }}/{{
+            dados.triagemResumo.paDiastolica
+          }}
+          mmHg
+        </div>
+      </div>
+    </mat-expansion-panel>
+  }
+
+  <form class="stack" [formGroup]="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Relato da paciente</mat-label>
+      <textarea
+        matInput
+        formControlName="relatoTexto"
+        rows="7"
+        placeholder="Digite aqui o relato da paciente durante a consulta..."
+        (blur)="salvarRelato()"
+      ></textarea>
+    </mat-form-field>
+
+    <section class="audio-row">
+      @if (!gravando()) {
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="iniciarGravacao()"
+        >
+          <mat-icon>play_arrow</mat-icon>
+          Iniciar Gravação
+        </button>
+      } @else {
+        <mat-icon class="recording">mic</mat-icon>
+        <span>Gravação em andamento - {{ tempoGravacao() }}</span>
+        <button
+          mat-raised-button
+          color="warn"
+          type="button"
+          (click)="encerrarGravacao()"
+        >
+          <mat-icon>stop</mat-icon>
+          Encerrar Gravação
+        </button>
+      }
+      @if (audioStatus() !== "AGUARDANDO") {
+        <span>{{ audioStatus() }}</span>
+      }
+    </section>
+
+    <div>
+      <button
+        mat-raised-button
+        color="accent"
+        type="button"
+        [disabled]="
+          form.controls.relatoTexto.value.trim().length < 20 || analisando()
+        "
+        (click)="analisar()"
+      >
+        Analisar com IA
+      </button>
+    </div>
+
+    @if (analisando()) {
+      <div class="audio-row">
+        <mat-spinner diameter="32" />
+        <span>Analisando...</span>
+      </div>
+    }
+
+    @if (resultado(); as resultadoIa) {
+      <mat-divider />
+      <h2>Resultado da Análise IA</h2>
+      <mat-card
+        class="result-card"
+        [class.VERDE]="resultadoIa.faixaRisco === 'VERDE'"
+        [class.AMARELO]="resultadoIa.faixaRisco === 'AMARELO'"
+        [class.LARANJA]="resultadoIa.faixaRisco === 'LARANJA'"
+        [class.VERMELHO]="resultadoIa.faixaRisco === 'VERMELHO'"
+      >
+        <mat-card-header>
+          <mat-card-title
+            >Score {{ resultadoIa.scoreGeral }} -
+            {{ resultadoIa.faixaRisco }}</mat-card-title
+          >
+          <mat-card-subtitle>{{ textoFaixa(resultadoIa) }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="indicadores">
+            @for (indicador of indicadoresVisiveis(); track indicador.tipo) {
+              <mat-card
+                [class.MODERADO]="indicador.nivel === 'MODERADO'"
+                [class.ALTO]="indicador.nivel === 'ALTO'"
+              >
+                <mat-card-header>
+                  <mat-card-title>{{
+                    formatarIndicador(indicador)
+                  }}</mat-card-title>
+                  <mat-card-subtitle>{{ indicador.nivel }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>{{ indicador.descricao }}</mat-card-content>
+              </mat-card>
+            }
+          </div>
+          <p style="white-space: pre-line">{{ resultadoIa.resumoIa }}</p>
+          <p class="disclaimer">
+            Este resultado é um apoio à decisão clínica. A conduta final é
+            responsabilidade do profissional de saúde.
+          </p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Parecer do profissional</mat-label>
+        <textarea
+          matInput
+          formControlName="parecerMedico"
+          rows="6"
+          placeholder="Complemento do médico ao parecer gerado pela IA..."
+          (blur)="salvarParecer()"
+        ></textarea>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="confirmarAnalise()"
+      >
+        Confirmar Análise e Avançar
+      </button>
+    }
+  </form>
+</div>

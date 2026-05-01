@@ -1,0 +1,60 @@
+<div class="page">
+  @if (emAndamento(); as consultaAtual) {
+    <div class="banner">
+      <span>Você tem uma consulta em andamento.</span>
+      <button mat-raised-button color="primary" (click)="continuar()">Continuar atendimento</button>
+    </div>
+  }
+
+  <div class="header">
+    <div class="title">
+      <h1>Fila de Consultas</h1>
+      <span class="badge">{{ consultas().length }}</span>
+    </div>
+    <button mat-stroked-button (click)="carregar()">
+      <mat-icon>refresh</mat-icon>
+      Atualizado às {{ horaAtualizacao() }}
+    </button>
+  </div>
+
+  @if (carregando()) {
+    <mat-spinner diameter="36" />
+  } @else if (consultas().length === 0) {
+    <mat-card class="empty">
+      <mat-card-content>
+        <p>Nenhuma consulta aguardando no momento.</p>
+        <button mat-raised-button (click)="carregar()">Atualizar</button>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="list">
+      @for (consulta of consultas(); track consulta.idConsulta; let i = $index) {
+        <mat-card class="item" [class.next]="i === 0">
+          <mat-card-content>
+            <div class="row">
+              <div>
+                <div class="patient">{{ i + 1 }}. {{ consulta.pacienteNome }}</div>
+                <div class="muted">Nascimento: {{ formatarData(consulta.pacienteDataNascimento) }}</div>
+              </div>
+              <div class="row">
+                @if (i === 0) {
+                  <span class="badge">Próxima</span>
+                }
+                <mat-chip>{{ consulta.tipoConsulta }}</mat-chip>
+                @if (consulta.igSemanas !== undefined) {
+                  <mat-chip>{{ consulta.igSemanas }}s {{ consulta.igDias }}d</mat-chip>
+                }
+              </div>
+            </div>
+            <div class="row" style="margin-top: 12px">
+              <span class="muted">Aguardando há {{ tempoAguardando(consulta) }}</span>
+              @if (i === 0) {
+                <button mat-raised-button color="primary" (click)="atender(consulta)">Atender</button>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

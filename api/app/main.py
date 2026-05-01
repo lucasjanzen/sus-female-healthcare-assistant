@@ -7,6 +7,7 @@ from app.models import audit_acessos, consulta, paciente, user  # noqa: F401
 from app.routers import admin_paciente as admin_paciente_router
 from app.routers import auth
 from app.routers import consulta as consulta_router
+from app.routers import fila as fila_router
 from app.routers import paciente as paciente_router
 
 Base.metadata.create_all(bind=engine)
@@ -29,6 +30,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Autenticacao"])
 app.include_router(paciente_router.router, prefix="/pacientes", tags=["Pacientes"])
 app.include_router(admin_paciente_router.router, prefix="/admin/pacientes", tags=["Admin - Pacientes"])
 app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
+app.include_router(fila_router.router, prefix="/fila", tags=["Fila"])
 
 
 @app.get("/health", tags=["Status"])
