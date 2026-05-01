@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
 
@@ -36,23 +36,7 @@ class ConsultaIniciarRequest(BaseModel):
     dum: Optional[date] = None
 
 
-class TriagemCreate(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    peso_kg: float = Field(..., ge=30, le=300)
-    pa_sistolica: int = Field(..., ge=60, le=250)
-    pa_diastolica: int = Field(..., ge=40, le=150)
-
-
-class TriagemOut(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    peso_kg: float
-    pa_sistolica: int
-    pa_diastolica: int
-
-
-class Etapa1Out(BaseModel):
+class ConsultaIniciarOut(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
@@ -64,19 +48,4 @@ class Etapa1Out(BaseModel):
     tipo_consulta: str
     status: str
     dum: Optional[date] = None
-    ig_semanas: Optional[int] = None
-    ig_dias: Optional[int] = None
-    triagem_concluida: bool = False
-    triagem: Optional[TriagemOut] = None
     aberta_em: datetime
-    triagem_concluida_em: Optional[datetime] = None
-
-
-ConsultaEtapa1Out = Etapa1Out
-
-
-class ConsultaEtapa1Update(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    tipo_consulta: Optional[TipoConsultaEnum] = None
-    dum: Optional[date] = None

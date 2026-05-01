@@ -12,9 +12,6 @@ from app.db.session import Base  # noqa: F401 — importa Base para autogenerate
 import app.models.user  # noqa: F401
 import app.models.paciente  # noqa: F401
 import app.models.consulta  # noqa: F401
-import app.models.consulta_clinica  # noqa: F401
-import app.models.consulta_banco_b  # noqa: F401
-import app.models.consulta_encerramento  # noqa: F401
 import app.models.audit_acessos  # noqa: F401
 
 config = context.config

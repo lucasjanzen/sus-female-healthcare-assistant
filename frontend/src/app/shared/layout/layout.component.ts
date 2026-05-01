@@ -1,5 +1,5 @@
 import { Component, computed } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -9,17 +9,11 @@ import { AuthService } from '../../core/auth/auth.service';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, MatToolbarModule, MatButtonModule, MatIconModule],
+  imports: [RouterOutlet, MatToolbarModule, MatButtonModule, MatIconModule],
   template: `
     <mat-toolbar color="primary" class="app-toolbar">
       <span class="app-name">Centro de Assistência à Saúde Feminina</span>
       <span class="spacer"></span>
-      @if (isMedico()) {
-        <button mat-button routerLink="/fila">
-          <mat-icon>format_list_bulleted</mat-icon>
-          Fila de Consultas
-        </button>
-      }
       @if (currentUser(); as user) {
         <span class="user-name">{{ user.nome }}</span>
       }
@@ -39,8 +33,6 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class LayoutComponent {
   readonly currentUser = computed(() => this.authService.getUser());
-  readonly isMedico = computed(() => this.authService.getRole() === 'MEDICO');
-
   constructor(private authService: AuthService) {}
 
   logout(): void {
