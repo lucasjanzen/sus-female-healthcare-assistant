@@ -21,13 +21,10 @@
     </mat-step>
 
     <mat-step [editable]="false">
-      <ng-template matStepLabel>
-        <span class="locked-step">
-          Encerramento
-          <mat-icon>lock</mat-icon>
-        </span>
-      </ng-template>
-      <p>Consulta pronta para a próxima etapa.</p>
+      <ng-template matStepLabel>Encerramento</ng-template>
+      @if (consultaAtiva()) {
+        <app-step-encerramento [pronto]="encerramentoPronto()" />
+      }
     </mat-step>
   </mat-stepper>
 </div>

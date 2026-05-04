@@ -145,3 +145,72 @@ class AudioIniciarOut(BaseModel):
 class AudioStatusOut(BaseModel):
     status_processamento: str
     transcricao: Optional[str] = None
+
+
+_ENCAMINHAMENTOS_VALIDOS = frozenset({
+    "CAPS", "CVR", "ASSISTENCIA_SOCIAL", "PSICOLOGIA",
+    "SERVICO_SOCIAL", "DELEGACIA_MULHER", "PRE_NATAL_ALTO_RISCO", "OUTRO",
+})
+
+
+class EncerramentoCreate(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    conduta: str = Field(..., min_length=10)
+    encaminhamentos: Optional[list[str]] = None
+    data_proximo_retorno: date
+    observacoes: Optional[str] = None
+
+    @field_validator("data_proximo_retorno")
+    @classmethod
+    def validar_data_retorno(cls, v: date) -> date:
+        if v < date.today():
+            raise ValueError("Data de retorno nao pode ser no passado")
+        return v
+
+    @field_validator("encaminhamentos")
+    @classmethod
+    def validar_encaminhamentos(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+        if v:
+            invalidos = [e for e in v if e not in _ENCAMINHAMENTOS_VALIDOS]
+            if invalidos:
+                raise ValueError(f"Encaminhamentos invalidos: {invalidos}")
+        return v
+
+
+class EncerramentoOut(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    id_consulta: UUID
+    conduta: str
+    encaminhamentos: Optional[list[str]] = None
+    data_proximo_retorno: date
+    observacoes: Optional[str] = None
+    encerrado_em: datetime
+
+
+class SugestaoEncerramentoOut(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    data_sugerida: date
+    encaminhamentos_sugeridos: list[str]
+    conduta_sugerida: str
+
+
+class ResumoPecOut(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    id_consulta: UUID
+    tipo_consulta: str
+    data_consulta: date
+    ig_semanas: Optional[int] = None
+    ig_dias: Optional[int] = None
+    peso_kg: Optional[float] = None
+    pa: Optional[str] = None
+    score_risco: int
+    faixa_risco: str
+    indicadores: list[str]
+    conduta: str
+    encaminhamentos: list[str]
+    data_proximo_retorno: date
+    gerado_em: datetime

@@ -117,3 +117,20 @@ class ConsultaResultado(Base):
     )
     confirmado = Column(Boolean, nullable=False, default=False)
     confirmado_em = Column(DateTime(timezone=True), nullable=True)
+
+
+class ConsultaEncerramento(Base):
+    __tablename__ = "consulta_encerramento"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id_consulta = Column(UUID(as_uuid=True), nullable=False, unique=True)
+    conduta = Column(Text, nullable=False)
+    encaminhamentos = Column(JSON, nullable=True)
+    data_proximo_retorno = Column(Date, nullable=False)
+    observacoes = Column(Text, nullable=True)
+    encerrado_por = Column(UUID(as_uuid=True), nullable=False)
+    encerrado_em = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )

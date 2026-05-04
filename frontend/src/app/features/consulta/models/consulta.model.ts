@@ -65,3 +65,42 @@ export interface RelatoOut {
   registradoEm: string;
   atualizadoEm: string;
 }
+
+export interface SugestaoEncerramentoOut {
+  dataSugerida: string;
+  encaminhamentosSugeridos: string[];
+  condutaSugerida: string;
+}
+
+export interface EncerramentoCreate {
+  conduta: string;
+  encaminhamentos?: string[];
+  dataProximoRetorno: string;
+  observacoes?: string;
+}
+
+export interface EncerramentoOut {
+  idConsulta: string;
+  conduta: string;
+  encaminhamentos?: string[];
+  dataProximoRetorno: string;
+  observacoes?: string;
+  encerradoEm: string;
+}
+
+export interface ResumoPecOut {
+  idConsulta: string;
+  tipoConsulta: string;
+  dataConsulta: string;
+  igSemanas?: number;
+  igDias?: number;
+  pesoKg?: number;
+  pa?: string;
+  scoreRisco: number;
+  faixaRisco: FaixaRisco;
+  indicadores: string[];
+  conduta: string;
+  encaminhamentos: string[];
+  dataProximoRetorno: string;
+  geradoEm: string;
+}

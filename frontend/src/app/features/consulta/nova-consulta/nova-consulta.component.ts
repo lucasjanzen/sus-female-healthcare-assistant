@@ -1,16 +1,17 @@
-import { Component, OnInit, ViewChild, computed, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 
 import { ConsultaService } from '../services/consulta.service';
 import { StepConsultaComponent } from './steps/step-consulta/step-consulta.component';
+import { StepEncerramentoComponent } from './steps/step-encerramento/step-encerramento.component';
 import { StepRecepcaoComponent } from './steps/step-recepcao/step-recepcao.component';
 
 @Component({
   selector: 'app-nova-consulta',
   standalone: true,
-  imports: [MatStepperModule, MatIconModule, StepRecepcaoComponent, StepConsultaComponent],
+  imports: [MatStepperModule, MatIconModule, StepRecepcaoComponent, StepConsultaComponent, StepEncerramentoComponent],
   templateUrl: './nova-consulta.component.html',
   styles: [`
     .page { padding: 24px; max-width: 1120px; margin: 0 auto; }
@@ -24,6 +25,7 @@ export class NovaConsultaComponent implements OnInit {
   private readonly consultaService = inject(ConsultaService);
 
   readonly consultaAtiva = computed(() => this.consultaService.consultaAtiva());
+  readonly encerramentoPronto = signal(false);
   modo: 'nova' | 'assumir' = 'nova';
 
   ngOnInit(): void {
@@ -43,5 +45,6 @@ export class NovaConsultaComponent implements OnInit {
 
   irParaEncerramento(): void {
     if (this.stepper) this.stepper.selectedIndex = 2;
+    this.encerramentoPronto.set(true);
   }
 }
