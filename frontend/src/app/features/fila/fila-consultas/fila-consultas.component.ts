@@ -13,22 +13,16 @@ import { FilaService } from '../services/fila.service';
 @Component({
   selector: 'app-fila-consultas',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatIconModule, MatProgressSpinnerModule, MatSnackBarModule],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatChipsModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+  ],
   templateUrl: './fila-consultas.component.html',
-  styles: [`
-    .page { padding: 24px; max-width: 960px; margin: 0 auto; }
-    .banner { background: #e3f2fd; padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 20px; }
-    .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
-    .title { display: flex; align-items: center; gap: 10px; }
-    .badge { background: #1976d2; color: white; border-radius: 999px; padding: 3px 9px; font-size: 0.8rem; }
-    .list { display: grid; gap: 12px; }
-    .item { border-left: 4px solid transparent; }
-    .next { border-left-color: #1976d2; }
-    .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-    .patient { font-weight: 600; }
-    .muted { color: #666; font-size: 0.9rem; }
-    .empty { text-align: center; padding: 36px 12px; }
-  `],
+  styleUrl: './fila-consultas.component.scss',
 })
 export class FilaConsultasComponent implements OnInit, OnDestroy {
   private readonly filaService = inject(FilaService);
@@ -90,7 +84,10 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   }
 
   tempoAguardando(item: ConsultaFilaItem): string {
-    const minutos = Math.max(Math.floor((Date.now() - new Date(item.triagemConcluidaEm).getTime()) / 60000), 0);
+    const minutos = Math.max(
+      Math.floor((Date.now() - new Date(item.triagemConcluidaEm).getTime()) / 60000),
+      0,
+    );
     if (minutos < 60) return `${minutos} min`;
     return `${Math.floor(minutos / 60)}h ${minutos % 60}min`;
   }
@@ -102,6 +99,8 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
 
   horaAtualizacao(): string {
     const data = this.atualizadoEm();
-    return data ? data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+    return data
+      ? data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      : '--:--';
   }
 }

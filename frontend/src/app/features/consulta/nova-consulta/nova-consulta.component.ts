@@ -11,12 +11,15 @@ import { StepRecepcaoComponent } from './steps/step-recepcao/step-recepcao.compo
 @Component({
   selector: 'app-nova-consulta',
   standalone: true,
-  imports: [MatStepperModule, MatIconModule, StepRecepcaoComponent, StepConsultaComponent, StepEncerramentoComponent],
+  imports: [
+    MatStepperModule,
+    MatIconModule,
+    StepRecepcaoComponent,
+    StepConsultaComponent,
+    StepEncerramentoComponent,
+  ],
   templateUrl: './nova-consulta.component.html',
-  styles: [`
-    .page { padding: 24px; max-width: 1120px; margin: 0 auto; }
-    .locked-step { display: inline-flex; align-items: center; gap: 6px; }
-  `],
+  styleUrl: './nova-consulta.component.scss',
 })
 export class NovaConsultaComponent implements OnInit {
   @ViewChild(MatStepper) stepper?: MatStepper;

@@ -7,28 +7,28 @@ import {
   computed,
   inject,
   signal,
-} from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { MatButtonModule } from "@angular/material/button";
-import { MatCardModule } from "@angular/material/card";
-import { MatDividerModule } from "@angular/material/divider";
-import { MatExpansionModule } from "@angular/material/expansion";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatIconModule } from "@angular/material/icon";
-import { MatInputModule } from "@angular/material/input";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+} from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ConsultaAssumidaOut } from "../../../../fila/models/fila.model";
-import { FilaService } from "../../../../fila/services/fila.service";
-import { IndicadorIA, ResultadoIAOut } from "../../../models/consulta.model";
-import { AudioService } from "../../../services/audio.service";
-import { ConsultaService } from "../../../services/consulta.service";
-import { RelatoService } from "../../../services/relato.service";
-import { ResultadoService } from "../../../services/resultado.service";
+import { ConsultaAssumidaOut } from '../../../../fila/models/fila.model';
+import { FilaService } from '../../../../fila/services/fila.service';
+import { IndicadorIA, ResultadoIAOut } from '../../../models/consulta.model';
+import { AudioService } from '../../../services/audio.service';
+import { ConsultaService } from '../../../services/consulta.service';
+import { RelatoService } from '../../../services/relato.service';
+import { ResultadoService } from '../../../services/resultado.service';
 
 @Component({
-  selector: "app-step-consulta",
+  selector: 'app-step-consulta',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -42,8 +42,8 @@ import { ResultadoService } from "../../../services/resultado.service";
     MatProgressSpinnerModule,
     MatSnackBarModule,
   ],
-  templateUrl: "./step-consulta.component.html",
-  styleUrl: "./step-consulta.component.scss",
+  templateUrl: './step-consulta.component.html',
+  styleUrl: './step-consulta.component.scss',
 })
 export class StepConsultaComponent implements OnInit, OnDestroy {
   @Output() confirmado = new EventEmitter<void>();
@@ -61,20 +61,20 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly resultado = signal<ResultadoIAOut | null>(null);
   readonly analisando = signal(false);
   readonly gravando = signal(false);
-  readonly audioStatus = signal("AGUARDANDO");
+  readonly audioStatus = signal('AGUARDANDO');
   readonly segundosGravacao = signal(0);
 
   private timer?: number;
   private polling?: number;
 
   readonly form = this.fb.nonNullable.group({
-    relatoTexto: ["", [Validators.minLength(20)]],
-    parecerMedico: [""],
+    relatoTexto: ['', [Validators.minLength(20)]],
+    parecerMedico: [''],
   });
 
   readonly indicadoresVisiveis = computed(() => {
     return (this.resultado()?.indicadores ?? []).filter(
-      (i) => i.nivel === "MODERADO" || i.nivel === "ALTO",
+      (i) => i.nivel === 'MODERADO' || i.nivel === 'ALTO',
     );
   });
 
@@ -87,8 +87,8 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.relatoService.obter(id).subscribe({
       next: (relato) =>
         this.form.patchValue({
-          relatoTexto: relato.relatoTexto ?? "",
-          parecerMedico: relato.parecerMedico ?? "",
+          relatoTexto: relato.relatoTexto ?? '',
+          parecerMedico: relato.parecerMedico ?? '',
         }),
       error: () => undefined,
     });
@@ -115,7 +115,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       .atualizar(id, { parecerMedico: this.form.controls.parecerMedico.value })
       .subscribe({
         error: () =>
-          this.snackBar.open("Erro ao salvar parecer", "Fechar", {
+          this.snackBar.open('Erro ao salvar parecer', 'Fechar', {
             duration: 3000,
           }),
       });
@@ -128,13 +128,10 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       next: () => {
         this.gravando.set(true);
         this.segundosGravacao.set(0);
-        this.timer = window.setInterval(
-          () => this.segundosGravacao.update((v) => v + 1),
-          1000,
-        );
+        this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
       },
       error: () =>
-        this.snackBar.open("Erro ao iniciar gravação", "Fechar", {
+        this.snackBar.open('Erro ao iniciar gravação', 'Fechar', {
           duration: 3000,
         }),
     });
@@ -145,11 +142,11 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     if (!id) return;
     if (this.timer) window.clearInterval(this.timer);
     this.gravando.set(false);
-    this.audioStatus.set("PROCESSANDO");
+    this.audioStatus.set('PROCESSANDO');
     this.audioService.encerrar(id).subscribe({
       next: () => this.iniciarPollingAudio(id),
       error: () =>
-        this.snackBar.open("Erro ao encerrar gravação", "Fechar", {
+        this.snackBar.open('Erro ao encerrar gravação', 'Fechar', {
           duration: 3000,
         }),
     });
@@ -167,7 +164,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
         this.analisando.set(false);
       },
       error: () => {
-        this.snackBar.open("Erro ao analisar relato", "Fechar", {
+        this.snackBar.open('Erro ao analisar relato', 'Fechar', {
           duration: 3000,
         });
         this.analisando.set(false);
@@ -182,7 +179,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.resultadoService.confirmar(id).subscribe({
       next: () => this.confirmado.emit(),
       error: () =>
-        this.snackBar.open("Erro ao confirmar análise", "Fechar", {
+        this.snackBar.open('Erro ao confirmar análise', 'Fechar', {
           duration: 3000,
         }),
     });
@@ -190,29 +187,29 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
 
   tempoGravacao(): string {
     const segundos = this.segundosGravacao();
-    return `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
+    return `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;
   }
 
   textoFaixa(resultado: ResultadoIAOut): string {
     const textos = {
-      VERDE: "Nenhum indicador significativo",
-      AMARELO: "Indicadores leves - atenção recomendada",
-      LARANJA: "Indicadores moderados - intervenção recomendada",
-      VERMELHO: "Indicadores críticos - encaminhamento imediato",
+      VERDE: 'Nenhum indicador significativo',
+      AMARELO: 'Indicadores leves - atenção recomendada',
+      LARANJA: 'Indicadores moderados - intervenção recomendada',
+      VERMELHO: 'Indicadores críticos - encaminhamento imediato',
     };
     return textos[resultado.faixaRisco];
   }
 
   formatarIndicador(indicador: IndicadorIA): string {
-    return indicador.tipo.replaceAll("_", " ");
+    return indicador.tipo.replaceAll('_', ' ');
   }
 
   private iniciarPollingAudio(id: string): void {
-    this.audioStatus.set("Áudio enviado para transcrição...");
+    this.audioStatus.set('Áudio enviado para transcrição...');
     this.polling = window.setInterval(() => {
       this.audioService.status(id).subscribe((status) => {
         this.audioStatus.set(status.status_processamento);
-        if (status.status_processamento === "CONCLUIDO" && status.transcricao) {
+        if (status.status_processamento === 'CONCLUIDO' && status.transcricao) {
           window.clearInterval(this.polling);
           const atual = this.form.controls.relatoTexto.value;
           this.form.controls.relatoTexto.setValue(

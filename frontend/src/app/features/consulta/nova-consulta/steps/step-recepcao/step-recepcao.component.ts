@@ -1,25 +1,22 @@
-import { Component, computed, inject, signal } from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
-import { MatButtonModule } from "@angular/material/button";
-import { MatCardModule } from "@angular/material/card";
-import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatDividerModule } from "@angular/material/divider";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatIconModule } from "@angular/material/icon";
-import { MatInputModule } from "@angular/material/input";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSelectModule } from "@angular/material/select";
-import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import {
-  PacienteConsultaOut,
-  TipoConsulta,
-} from "../../../models/consulta.model";
-import { ConsultaService } from "../../../services/consulta.service";
+import { PacienteConsultaOut, TipoConsulta } from '../../../models/consulta.model';
+import { ConsultaService } from '../../../services/consulta.service';
 
 @Component({
-  selector: "app-step-recepcao",
+  selector: 'app-step-recepcao',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -34,8 +31,8 @@ import { ConsultaService } from "../../../services/consulta.service";
     MatSelectModule,
     MatSnackBarModule,
   ],
-  templateUrl: "./step-recepcao.component.html",
-  styleUrl: "./step-recepcao.component.scss",
+  templateUrl: './step-recepcao.component.html',
+  styleUrl: './step-recepcao.component.scss',
 })
 export class StepRecepcaoComponent {
   private fb = inject(FormBuilder);
@@ -49,27 +46,17 @@ export class StepRecepcaoComponent {
   triagemConcluida = signal(false);
   carregando = signal(false);
   consultaId = signal<string | null>(null);
-  tipos: TipoConsulta[] = [
-    "PRENATAL",
-    "GINECOLOGICA",
-    "PUERPERIO",
-    "PLANEJAMENTO_FAMILIAR",
-  ];
+  tipos: TipoConsulta[] = ['PRENATAL', 'GINECOLOGICA', 'PUERPERIO', 'PLANEJAMENTO_FAMILIAR'];
 
   maxDate: Date = new Date();
 
-  busca = this.fb.nonNullable.control("", [Validators.required]);
+  busca = this.fb.nonNullable.control('', [Validators.required]);
   identificacaoForm = this.fb.group({
-    tipoConsulta: this.fb.nonNullable.control<TipoConsulta>("PRENATAL", [
-      Validators.required,
-    ]),
+    tipoConsulta: this.fb.nonNullable.control<TipoConsulta>('PRENATAL', [Validators.required]),
     dum: this.fb.nonNullable.control<Date | null>(null, [Validators.required]),
   });
   triagemForm = this.fb.nonNullable.group({
-    pesoKg: [
-      null as number | null,
-      [Validators.required, Validators.min(30), Validators.max(300)],
-    ],
+    pesoKg: [null as number | null, [Validators.required, Validators.min(30), Validators.max(300)]],
     paSistolica: [
       null as number | null,
       [Validators.required, Validators.min(60), Validators.max(250)],
@@ -84,10 +71,7 @@ export class StepRecepcaoComponent {
     const dum = this.identificacaoForm.controls.dum.value;
     if (!dum) return null;
     const hoje = new Date();
-    const diff = Math.max(
-      Math.floor((hoje.getTime() - dum.getTime()) / 86400000),
-      0,
-    );
+    const diff = Math.max(Math.floor((hoje.getTime() - dum.getTime()) / 86400000), 0);
     return { semanas: Math.floor(diff / 7), dias: diff % 7 };
   });
 
@@ -101,7 +85,7 @@ export class StepRecepcaoComponent {
         this.carregando.set(false);
       },
       error: () => {
-        this.snackBar.open("Erro ao buscar pacientes", "Fechar", {
+        this.snackBar.open('Erro ao buscar pacientes', 'Fechar', {
           duration: 3000,
         });
         this.carregando.set(false);
@@ -129,14 +113,10 @@ export class StepRecepcaoComponent {
     const dum = this.identificacaoForm.controls.dum.value;
 
     if (!paciente) return;
-    if (tipo === "PRENATAL" && !dum) {
-      this.snackBar.open(
-        "Informe a Data última menstruação para consulta pre-natal",
-        "Fechar",
-        {
-          duration: 3000,
-        },
-      );
+    if (tipo === 'PRENATAL' && !dum) {
+      this.snackBar.open('Informe a Data última menstruação para consulta pre-natal', 'Fechar', {
+        duration: 3000,
+      });
       return;
     }
     this.consultaService
@@ -156,7 +136,7 @@ export class StepRecepcaoComponent {
           this.identificacaoForm.disable();
         },
         error: () =>
-          this.snackBar.open("Erro ao iniciar consulta", "Fechar", {
+          this.snackBar.open('Erro ao iniciar consulta', 'Fechar', {
             duration: 3000,
           }),
       });
@@ -175,7 +155,7 @@ export class StepRecepcaoComponent {
       .subscribe({
         next: () => this.triagemConcluida.set(true),
         error: () =>
-          this.snackBar.open("Erro ao concluir triagem", "Fechar", {
+          this.snackBar.open('Erro ao concluir triagem', 'Fechar', {
             duration: 3000,
           }),
       });
@@ -186,24 +166,24 @@ export class StepRecepcaoComponent {
     this.etapa1Concluida.set(false);
     this.triagemConcluida.set(false);
     this.consultaId.set(null);
-    this.busca.reset("");
-    this.identificacaoForm.reset({ tipoConsulta: "PRENATAL", dum: null });
+    this.busca.reset('');
+    this.identificacaoForm.reset({ tipoConsulta: 'PRENATAL', dum: null });
     this.triagemForm.reset();
   }
 
   voltarInicio(): void {
-    this.router.navigate(["/home"]);
+    this.router.navigate(['/home']);
   }
 
   formatarData(data: string): string {
-    const [ano, mes, dia] = data.split("-");
+    const [ano, mes, dia] = data.split('-');
     return `${dia}/${mes}/${ano}`;
   }
 
   private formatarDataIso(data: Date): string {
     const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
     return `${ano}-${mes}-${dia}`;
   }
 }

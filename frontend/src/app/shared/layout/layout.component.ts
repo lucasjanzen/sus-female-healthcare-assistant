@@ -24,12 +24,7 @@ import { AuthService } from '../../core/auth/auth.service';
     </mat-toolbar>
     <router-outlet />
   `,
-  styles: [`
-    .app-toolbar { position: sticky; top: 0; z-index: 100; }
-    .app-name { font-weight: 600; font-size: 0.95rem; letter-spacing: 0; }
-    .spacer { flex: 1 1 auto; }
-    .user-name { margin: 0 12px; font-size: 0.9rem; opacity: 0.9; }
-  `],
+  styleUrl: './layout.component.scss',
 })
 export class LayoutComponent {
   readonly currentUser = computed(() => this.authService.getUser());

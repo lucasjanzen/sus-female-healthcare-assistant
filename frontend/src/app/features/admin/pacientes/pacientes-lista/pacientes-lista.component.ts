@@ -28,25 +28,7 @@ import { PacienteAdminService } from '../../services/paciente-admin.service';
     MatSnackBarModule,
   ],
   templateUrl: './pacientes-lista.component.html',
-  styles: [`
-    .page-container { padding: 24px; }
-    .header-row { display: flex; align-items: center; margin-bottom: 24px; gap: 16px; }
-    .header-row h1 { margin: 0; flex: 1; font-size: 1.5rem; font-weight: 500; }
-    .search-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-    .search-row mat-form-field { flex: 1; }
-    .spinner-container { display: flex; justify-content: center; padding: 48px; }
-    .status-chip {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .status-ativo { background-color: #e8f5e9; color: #2e7d32; }
-    .status-inativo { background-color: #ffebee; color: #c62828; }
-    table { width: 100%; }
-    .empty-msg { text-align: center; padding: 32px; color: #666; }
-  `],
+  styleUrl: './pacientes-lista.component.scss',
 })
 export class PacientesListaComponent implements OnInit {
   readonly colunas = ['nome', 'dataNascimento', 'cns', 'status', 'acoes'];

@@ -15,9 +15,7 @@
 
       @if (resultado) {
         <div class="score-final">
-          <span class="num" [style.color]="corFaixa(resultado.faixaRisco)">
-            {{ resultado.scoreGeral }}/100
-          </span>
+          <span class="num" [style.color]="corFaixa(resultado.faixaRisco)">{{ resultado.scoreGeral }}/100</span>
           <span class="label" [style.color]="corFaixa(resultado.faixaRisco)">
             {{ textoFaixa(resultado.faixaRisco) }}
           </span>
@@ -45,25 +43,14 @@
   @else {
     <!-- BLOCO 0 — Resultado da IA (somente leitura) -->
     @if (resultado) {
-      <mat-card
-        class="resultado-card section"
-        [style.border-left]="'4px solid ' + corFaixa(resultado.faixaRisco)"
-      >
+      <mat-card class="resultado-card section" [style.border-left]="'4px solid ' + corFaixa(resultado.faixaRisco)">
         <mat-card-header>
           <mat-card-title>Resultado da Análise IA</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="score-display">
-            <span
-              class="score-num"
-              [style.color]="corFaixa(resultado.faixaRisco)"
-            >
-              {{ resultado.scoreGeral }}/100
-            </span>
-            <span
-              class="faixa-badge"
-              [style.background-color]="corFaixa(resultado.faixaRisco)"
-            >
+            <span class="score-num" [style.color]="corFaixa(resultado.faixaRisco)">{{ resultado.scoreGeral }}/100</span>
+            <span class="faixa-badge" [style.background-color]="corFaixa(resultado.faixaRisco)">
               {{ textoFaixa(resultado.faixaRisco) }}
             </span>
           </div>
@@ -95,8 +82,7 @@
             formControlName="conduta"
             rows="5"
             placeholder="Descreva a conduta adotada na consulta..."
-          >
-          </textarea>
+          ></textarea>
           @if (form.controls.conduta.invalid && form.controls.conduta.touched) {
             <mat-error>Conduta deve ter no mínimo 10 caracteres.</mat-error>
           }
@@ -108,23 +94,15 @@
         @if (precisaAlerta) {
           <mat-card
             class="alerta-card"
-            [style.border]="
-              faixaRisco === 'VERMELHO'
-                ? '2px solid #b71c1c'
-                : '2px solid #e65100'
-            "
+            [style.border]="faixaRisco === 'VERMELHO' ? '2px solid #b71c1c' : '2px solid #e65100'"
           >
             <mat-card-content>
-              @if (faixaRisco === "VERMELHO") {
+              @if (faixaRisco === 'VERMELHO') {
                 <mat-icon [style.color]="'#b71c1c'">priority_high</mat-icon>
-                <span [style.color]="'#b71c1c'"
-                  >Encaminhamento urgente necessário.</span
-                >
+                <span [style.color]="'#b71c1c'">Encaminhamento urgente necessário.</span>
               } @else {
                 <mat-icon [style.color]="'#e65100'">warning</mat-icon>
-                <span [style.color]="'#e65100'"
-                  >Encaminhamento recomendado.</span
-                >
+                <span [style.color]="'#e65100'">Encaminhamento recomendado.</span>
               }
             </mat-card-content>
           </mat-card>
@@ -138,10 +116,7 @@
           class="chips-wrap"
         >
           @for (enc of encaminhamentosDisponiveis; track enc.valor) {
-            <mat-chip-option
-              [value]="enc.valor"
-              [selected]="isEncSelecionado(enc.valor)"
-            >
+            <mat-chip-option [value]="enc.valor" [selected]="isEncSelecionado(enc.valor)">
               {{ enc.label }}
             </mat-chip-option>
           }
@@ -152,23 +127,12 @@
       <div class="section">
         <mat-form-field appearance="outline">
           <mat-label>Data do próximo retorno</mat-label>
-          <input
-            matInput
-            [matDatepicker]="picker"
-            formControlName="dataProximoRetorno"
-            [min]="minData"
-          />
+          <input matInput [matDatepicker]="picker" formControlName="dataProximoRetorno" [min]="minData" />
           <mat-datepicker-toggle matIconSuffix [for]="picker" />
           <mat-datepicker #picker />
           <mat-hint>Data sugerida com base no nível de risco e IG.</mat-hint>
-          @if (
-            form.controls.dataProximoRetorno.invalid &&
-            form.controls.dataProximoRetorno.touched
-          ) {
-            <mat-error
-              >Data de retorno é obrigatória e não pode ser no
-              passado.</mat-error
-            >
+          @if (form.controls.dataProximoRetorno.invalid && form.controls.dataProximoRetorno.touched) {
+            <mat-error>Data de retorno é obrigatória e não pode ser no passado.</mat-error>
           }
         </mat-form-field>
       </div>
@@ -177,24 +141,13 @@
       <div class="section">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Observações adicionais</mat-label>
-          <textarea
-            matInput
-            formControlName="observacoes"
-            rows="3"
-            placeholder="Observações opcionais..."
-          >
-          </textarea>
+          <textarea matInput formControlName="observacoes" rows="3" placeholder="Observações opcionais..."></textarea>
         </mat-form-field>
       </div>
 
       <!-- Botão encerrar -->
       <div class="actions">
-        <button
-          mat-flat-button
-          color="warn"
-          type="submit"
-          [disabled]="form.invalid || salvando()"
-        >
+        <button mat-flat-button color="warn" type="submit" [disabled]="form.invalid || salvando()">
           @if (salvando()) {
             <mat-spinner diameter="20" />
           } @else {

@@ -2,7 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ConsultaIniciada, PacienteCreate, PacienteOut, PacienteUpdate } from '../models/paciente.model';
+import {
+  ConsultaIniciada,
+  PacienteCreate,
+  PacienteOut,
+  PacienteUpdate,
+} from '../models/paciente.model';
 
 @Injectable({ providedIn: 'root' })
 export class PacienteService {

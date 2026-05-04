@@ -51,34 +51,7 @@ function minDigitsValidator(min: number) {
     MatSnackBarModule,
   ],
   templateUrl: './paciente-form.component.html',
-  styles: [`
-    .page-container { padding: 24px; max-width: 860px; margin: 0 auto; }
-    .page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .page-header h2 { margin: 0; font-size: 1.25rem; font-weight: 500; }
-    .form-section { margin-top: 24px; }
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 16px;
-    }
-    .full-width { grid-column: 1 / -1; }
-    .toggle-row {
-      grid-column: 1 / -1;
-      padding: 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .form-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-      margin-top: 24px;
-    }
-    mat-form-field { width: 100%; }
-    .spinner-container { display: flex; justify-content: center; padding: 64px; }
-    .submit-spinner { display: inline-flex; align-items: center; gap: 8px; }
-  `],
+  styleUrl: './paciente-form.component.scss',
 })
 export class PacienteFormComponent implements OnInit {
   form!: FormGroup;
@@ -172,7 +145,9 @@ export class PacienteFormComponent implements OnInit {
         this.carregando = false;
       },
       error: () => {
-        this.snackBar.open('Erro ao carregar dados da paciente', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Erro ao carregar dados da paciente', 'Fechar', {
+          duration: 3000,
+        });
         this.router.navigate(['/admin/pacientes']);
       },
     });
@@ -211,7 +186,9 @@ export class PacienteFormComponent implements OnInit {
       };
       this.service.atualizar(this.pacienteId, payload).subscribe({
         next: () => {
-          this.snackBar.open('Dados atualizados com sucesso', 'Fechar', { duration: 3000 });
+          this.snackBar.open('Dados atualizados com sucesso', 'Fechar', {
+            duration: 3000,
+          });
           this.router.navigate(['/admin/pacientes']);
         },
         error: (err) => {
@@ -236,7 +213,9 @@ export class PacienteFormComponent implements OnInit {
       };
       this.service.criar(payload).subscribe({
         next: () => {
-          this.snackBar.open('Paciente cadastrada com sucesso', 'Fechar', { duration: 3000 });
+          this.snackBar.open('Paciente cadastrada com sucesso', 'Fechar', {
+            duration: 3000,
+          });
           this.router.navigate(['/admin/pacientes']);
         },
         error: (err) => {

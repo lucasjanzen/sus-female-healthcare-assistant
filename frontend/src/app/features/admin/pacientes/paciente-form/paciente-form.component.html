@@ -13,7 +13,6 @@
   } @else {
     <form [formGroup]="form" (ngSubmit)="submeter()" class="form-section">
       <div class="form-grid">
-
         <!-- CPF -->
         <mat-form-field appearance="outline">
           <mat-label>CPF</mat-label>
@@ -118,10 +117,7 @@
 
         <!-- Possui filhos -->
         <div class="toggle-row">
-          <mat-slide-toggle
-            formControlName="possuiFilhos"
-            (change)="onPossuiFilhosChange($event.checked)"
-          >
+          <mat-slide-toggle formControlName="possuiFilhos" (change)="onPossuiFilhosChange($event.checked)">
             Possui filhos
           </mat-slide-toggle>
         </div>
@@ -145,7 +141,6 @@
           <input matInput formControlName="endereco" placeholder="Rua, número, bairro, cidade" />
           <mat-hint>Opcional</mat-hint>
         </mat-form-field>
-
       </div>
 
       <div class="form-actions">

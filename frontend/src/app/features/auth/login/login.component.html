@@ -36,13 +36,7 @@
           <p class="error-global">{{ errorMessage() }}</p>
         }
 
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          class="full-width submit-btn"
-          [disabled]="isLoading()"
-        >
+        <button mat-raised-button color="primary" type="submit" class="full-width submit-btn" [disabled]="isLoading()">
           @if (isLoading()) {
             <mat-spinner diameter="22" />
           } @else {
