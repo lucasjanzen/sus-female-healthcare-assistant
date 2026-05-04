@@ -5,6 +5,7 @@ Revises: b2c3d4e5f6a7
 Create Date: 2026-05-01 10:30:00.000000
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -19,8 +20,12 @@ def upgrade() -> None:
     op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS dum DATE")
     op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS ig_semanas SMALLINT")
     op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS ig_dias SMALLINT")
-    op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS triagem_concluida BOOLEAN NOT NULL DEFAULT FALSE")
-    op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS triagem_concluida_em TIMESTAMPTZ")
+    op.execute(
+        "ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS triagem_concluida BOOLEAN NOT NULL DEFAULT FALSE"
+    )
+    op.execute(
+        "ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS triagem_concluida_em TIMESTAMPTZ"
+    )
     op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS medico_id UUID")
     op.execute("ALTER TABLE consultas_identidade ADD COLUMN IF NOT EXISTS assumida_em TIMESTAMPTZ")
 

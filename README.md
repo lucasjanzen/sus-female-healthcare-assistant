@@ -107,11 +107,22 @@ CORS_ORIGIN=http://localhost:4200
 > **Por que `api/.env` e não o `.env` raiz?**
 > O `.env` raiz usa `db:5432` (hostname do serviço Docker Compose). Quando o backend roda fora do Docker, o hostname `db` não existe — use `localhost:5432`, que é a porta exposta pelo container.
 
-**4. Inicie o servidor:**
+**4. Inicie o servidor** (com venv ativado):
 
 ```bash
-uvicorn app.main:app --reload --port 8000
+task dev
 ```
+
+#### Scripts disponíveis (`api/`)
+
+| Comando | Descrição |
+|---------|-----------|
+| `task dev` | Sobe o servidor com hot-reload |
+| `task format` | Formata todos os arquivos Python com ruff |
+| `task lint` | Lint + auto-fix com ruff |
+| `task check` | Verifica formatação e lint sem alterar arquivos (CI) |
+
+> Requer `taskipy` e `ruff` instalados: `pip install -r requirements.txt`
 
 ### Frontend (Angular 21)
 
@@ -121,14 +132,16 @@ npm install
 ng serve
 ```
 
-**4. Popule o banco com dados de teste**
-
-Em outro terminal, após os serviços subirem:
-
-```bash
-docker-compose exec api python seed.py
-
 Acesse em http://localhost:4200.
+
+#### Scripts disponíveis (`frontend/`)
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm start` | Sobe o servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm test` | Executa os testes unitários |
+| `npm run format` | Formata todos os arquivos TS, HTML e SCSS com Prettier |
 
 ---
 

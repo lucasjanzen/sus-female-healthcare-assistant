@@ -69,14 +69,18 @@ def _normalizar(texto: str) -> str:
 
 
 def _sentimento_negativo_forte(texto: str) -> bool:
-    negativos = sum(1 for palavra in ["nao", "medo", "triste", "choro", "ameaca", "vazio"] if palavra in texto)
+    negativos = sum(
+        1 for palavra in ["nao", "medo", "triste", "choro", "ameaca", "vazio"] if palavra in texto
+    )
     return negativos >= 2
 
 
 def _detectar(texto: str, origem: str) -> list[IndicadorIA]:
     indicadores: list[IndicadorIA] = []
     negativo_forte = _sentimento_negativo_forte(texto)
-    negativo = negativo_forte or any(p in texto for p in ["triste", "medo", "preocupada", "nervosa"])
+    negativo = negativo_forte or any(
+        p in texto for p in ["triste", "medo", "preocupada", "nervosa"]
+    )
 
     for tipo, padroes in PADROES.items():
         encontrados = [p for p in padroes if re.search(rf"\b{re.escape(p)}\b", texto)]
@@ -110,7 +114,9 @@ def _faixa(score: int) -> tuple[str, str]:
 
 def _resumo(indicadores: list[IndicadorIA], faixa: str, mensagem_faixa: str) -> str:
     if not indicadores:
-        achados = "Nenhum indicador psicossocial significativo foi identificado no relato informado."
+        achados = (
+            "Nenhum indicador psicossocial significativo foi identificado no relato informado."
+        )
     else:
         linhas = [
             f"- {i.tipo.replace('_', ' ').title()}: nivel {i.nivel}. {i.descricao}"
@@ -128,7 +134,9 @@ def _resumo(indicadores: list[IndicadorIA], faixa: str, mensagem_faixa: str) -> 
     return f"{mensagem_faixa}.\n\n{achados}\n\n{encaminhamento}\n\n{AVISO_CLINICO}"
 
 
-def analisar(relato_texto: str, transcricao: Optional[str] = None, id_consulta: Optional[UUID] = None) -> ResultadoIAOut:
+def analisar(
+    relato_texto: str, transcricao: Optional[str] = None, id_consulta: Optional[UUID] = None
+) -> ResultadoIAOut:
     logger.info("Azure Text Analytics indisponivel nesta configuracao; usando fallback local.")
     texto_completo = relato_texto
     origem = "TEXTO_LOCAL"

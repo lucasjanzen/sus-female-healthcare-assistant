@@ -147,10 +147,18 @@ class AudioStatusOut(BaseModel):
     transcricao: Optional[str] = None
 
 
-_ENCAMINHAMENTOS_VALIDOS = frozenset({
-    "CAPS", "CVR", "ASSISTENCIA_SOCIAL", "PSICOLOGIA",
-    "SERVICO_SOCIAL", "DELEGACIA_MULHER", "PRE_NATAL_ALTO_RISCO", "OUTRO",
-})
+_ENCAMINHAMENTOS_VALIDOS = frozenset(
+    {
+        "CAPS",
+        "CVR",
+        "ASSISTENCIA_SOCIAL",
+        "PSICOLOGIA",
+        "SERVICO_SOCIAL",
+        "DELEGACIA_MULHER",
+        "PRE_NATAL_ALTO_RISCO",
+        "OUTRO",
+    }
+)
 
 
 class EncerramentoCreate(BaseModel):

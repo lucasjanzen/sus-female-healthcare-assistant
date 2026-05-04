@@ -35,9 +35,7 @@ def buscar_pacientes(
     if termo.isdigit() and len(termo) == 11:
         cpf_hash = _hash_cpf(termo)
         pacientes = (
-            db.query(Paciente)
-            .filter(Paciente.cpf_hash == cpf_hash, Paciente.ativo.is_(True))
-            .all()
+            db.query(Paciente).filter(Paciente.cpf_hash == cpf_hash, Paciente.ativo.is_(True)).all()
         )
     else:
         pacientes = (
@@ -93,9 +91,7 @@ def atualizar_paciente(
     current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
 ):
     paciente = (
-        db.query(Paciente)
-        .filter(Paciente.id == paciente_id, Paciente.ativo.is_(True))
-        .first()
+        db.query(Paciente).filter(Paciente.id == paciente_id, Paciente.ativo.is_(True)).first()
     )
     if not paciente:
         raise HTTPException(status_code=404, detail="Paciente não encontrada")

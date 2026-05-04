@@ -10,8 +10,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./shared/layout/layout.component').then((m) => m.LayoutComponent),
+    loadComponent: () => import('./shared/layout/layout.component').then((m) => m.LayoutComponent),
     canActivate: [authGuard],
     children: [
       {
@@ -21,32 +20,36 @@ export const routes: Routes = [
       },
       {
         path: 'home',
-        loadComponent: () =>
-          import('./features/home/home.component').then((m) => m.HomeComponent),
+        loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
       },
       {
         path: 'admin',
         canActivate: [roleGuard(['ADMIN'])],
-        loadChildren: () =>
-          import('./features/admin/admin.routes').then((m) => m.adminRoutes),
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.adminRoutes),
       },
       {
         path: 'consulta/nova',
         canActivate: [roleGuard(['MEDICO', 'ENFERMEIRO'])],
         loadComponent: () =>
-          import('./features/consulta/nova-consulta/nova-consulta.component').then((m) => m.NovaConsultaComponent),
+          import('./features/consulta/nova-consulta/nova-consulta.component').then(
+            (m) => m.NovaConsultaComponent,
+          ),
       },
       {
         path: 'consulta/:id/etapa2',
         canActivate: [roleGuard(['MEDICO'])],
         loadComponent: () =>
-          import('./features/consulta/nova-consulta/nova-consulta.component').then((m) => m.NovaConsultaComponent),
+          import('./features/consulta/nova-consulta/nova-consulta.component').then(
+            (m) => m.NovaConsultaComponent,
+          ),
       },
       {
         path: 'fila',
         canActivate: [roleGuard(['MEDICO'])],
         loadComponent: () =>
-          import('./features/fila/fila-consultas/fila-consultas.component').then((m) => m.FilaConsultasComponent),
+          import('./features/fila/fila-consultas/fila-consultas.component').then(
+            (m) => m.FilaConsultasComponent,
+          ),
       },
     ],
   },

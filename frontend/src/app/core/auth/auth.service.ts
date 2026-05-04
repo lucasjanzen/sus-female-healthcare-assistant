@@ -1,14 +1,14 @@
-import { Injectable, computed, signal } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Router } from "@angular/router";
-import { Observable, tap } from "rxjs";
+import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
 
-import { JwtPayload, TokenResponse } from "../models/user.model";
-import { environment } from "../../../environments/environment";
+import { JwtPayload, TokenResponse } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly TOKEN_KEY = "sfha_token";
+  private readonly TOKEN_KEY = 'sfha_token';
 
   private readonly _token = signal<string | null>(this.loadToken());
 
@@ -48,7 +48,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     this._token.set(null);
-    this.router.navigate(["/login"]);
+    this.router.navigate(['/login']);
   }
 
   getToken(): string | null {
@@ -73,7 +73,7 @@ export class AuthService {
 
   private decodeToken(token: string): JwtPayload | null {
     try {
-      const payload = token.split(".")[1];
+      const payload = token.split('.')[1];
       return JSON.parse(atob(payload)) as JwtPayload;
     } catch {
       return null;

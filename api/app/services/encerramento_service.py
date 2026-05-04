@@ -137,12 +137,16 @@ def gerar_pdf_resumo(resumo: ResumoPecOut) -> bytes:
         dados_consulta.append(["Pressão Arterial:", resumo.pa])
 
     table_dados = Table(dados_consulta, colWidths=[4 * cm, None])
-    table_dados.setStyle(TableStyle([
-        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-    ]))
+    table_dados.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ]
+        )
+    )
     elements.append(table_dados)
 
     # Resultado da análise
@@ -156,10 +160,12 @@ def gerar_pdf_resumo(resumo: ResumoPecOut) -> bytes:
         fontSize=14,
         spaceAfter=4,
     )
-    elements.append(Paragraph(
-        f"Score: {resumo.score_risco}/100 — {label_faixa}",
-        score_style,
-    ))
+    elements.append(
+        Paragraph(
+            f"Score: {resumo.score_risco}/100 — {label_faixa}",
+            score_style,
+        )
+    )
 
     if resumo.indicadores:
         elements.append(Paragraph("Indicadores detectados:", bold_style))
@@ -198,10 +204,12 @@ def gerar_pdf_resumo(resumo: ResumoPecOut) -> bytes:
         fontSize=8,
         spaceBefore=4,
     )
-    elements.append(Paragraph(
-        f"Gerado em {resumo.gerado_em.strftime('%d/%m/%Y às %H:%M')} UTC — CASF v2.0",
-        rodape_style,
-    ))
+    elements.append(
+        Paragraph(
+            f"Gerado em {resumo.gerado_em.strftime('%d/%m/%Y às %H:%M')} UTC — CASF v2.0",
+            rodape_style,
+        )
+    )
 
     doc.build(elements)
     return buffer.getvalue()

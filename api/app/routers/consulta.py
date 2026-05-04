@@ -60,7 +60,9 @@ def _calcular_ig(dum: date | None) -> tuple[int | None, int | None]:
 
 
 def _consulta_ou_404(id_consulta: UUID, db: Session) -> ConsultaIdentidade:
-    consulta = db.query(ConsultaIdentidade).filter(ConsultaIdentidade.id_consulta == id_consulta).first()
+    consulta = (
+        db.query(ConsultaIdentidade).filter(ConsultaIdentidade.id_consulta == id_consulta).first()
+    )
     if not consulta:
         raise HTTPException(status_code=404, detail="Consulta nao encontrada")
     return consulta
@@ -77,7 +79,11 @@ def _triagem_resumo(triagem: ConsultaTriagem | None) -> TriagemResumo | None:
 
 
 def _build_etapa1_out(consulta: ConsultaIdentidade, db: Session) -> Etapa1Out:
-    triagem = db.query(ConsultaTriagem).filter(ConsultaTriagem.id_consulta == consulta.id_consulta).first()
+    triagem = (
+        db.query(ConsultaTriagem)
+        .filter(ConsultaTriagem.id_consulta == consulta.id_consulta)
+        .first()
+    )
     return Etapa1Out(
         id_consulta=consulta.id_consulta,
         paciente_id=consulta.paciente_id,
@@ -126,7 +132,9 @@ def _build_resultado_out(resultado: ConsultaResultado, db: Session) -> Resultado
     )
 
 
-@router.get("/pacientes/buscar", response_model=list[PacienteConsultaOut], response_model_by_alias=True)
+@router.get(
+    "/pacientes/buscar", response_model=list[PacienteConsultaOut], response_model_by_alias=True
+)
 def buscar_pacientes_consulta(
     q: str = Query(..., min_length=1),
     db: Session = Depends(get_db),
@@ -135,22 +143,39 @@ def buscar_pacientes_consulta(
     termo = q.strip()
 
     if termo.isdigit() and len(termo) == 11:
-        pacientes = db.query(Paciente).filter(Paciente.cpf_hash == _hash_cpf(termo), Paciente.ativo.is_(True)).all()
+        pacientes = (
+            db.query(Paciente)
+            .filter(Paciente.cpf_hash == _hash_cpf(termo), Paciente.ativo.is_(True))
+            .all()
+        )
     elif termo.isdigit() and 15 <= len(termo) <= 20:
         pacientes = db.query(Paciente).filter(Paciente.cns == termo, Paciente.ativo.is_(True)).all()
     else:
-        pacientes = db.query(Paciente).filter(Paciente.nome.ilike(f"%{termo}%"), Paciente.ativo.is_(True)).all()
+        pacientes = (
+            db.query(Paciente)
+            .filter(Paciente.nome.ilike(f"%{termo}%"), Paciente.ativo.is_(True))
+            .all()
+        )
 
-    return [PacienteConsultaOut(id=p.id, nome=p.nome, data_nascimento=p.data_nascimento, cns=p.cns) for p in pacientes]
+    return [
+        PacienteConsultaOut(id=p.id, nome=p.nome, data_nascimento=p.data_nascimento, cns=p.cns)
+        for p in pacientes
+    ]
 
 
-@router.post("/iniciar", response_model=ConsultaIniciarOut, status_code=201, response_model_by_alias=True)
+@router.post(
+    "/iniciar", response_model=ConsultaIniciarOut, status_code=201, response_model_by_alias=True
+)
 def iniciar_consulta(
     payload: ConsultaIniciarRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
 ):
-    paciente = db.query(Paciente).filter(Paciente.id == payload.paciente_id, Paciente.ativo.is_(True)).first()
+    paciente = (
+        db.query(Paciente)
+        .filter(Paciente.id == payload.paciente_id, Paciente.ativo.is_(True))
+        .first()
+    )
     if not paciente:
         raise HTTPException(status_code=404, detail="Paciente nao encontrada")
 
@@ -215,7 +240,11 @@ def criar_relato(
         relato.relato_texto = payload.relato_texto
         relato.atualizado_em = datetime.now(timezone.utc)
     else:
-        relato = ConsultaRelato(id_consulta=id_consulta, relato_texto=payload.relato_texto, registrado_por=current_user.id)
+        relato = ConsultaRelato(
+            id_consulta=id_consulta,
+            relato_texto=payload.relato_texto,
+            registrado_por=current_user.id,
+        )
         db.add(relato)
     db.commit()
     db.refresh(relato)
@@ -257,7 +286,9 @@ def obter_relato(
     return _build_relato_out(relato)
 
 
-@router.post("/{id_consulta}/audio/iniciar", response_model=AudioIniciarOut, response_model_by_alias=True)
+@router.post(
+    "/{id_consulta}/audio/iniciar", response_model=AudioIniciarOut, response_model_by_alias=True
+)
 def iniciar_audio(
     id_consulta: UUID,
     db: Session = Depends(get_db),
@@ -284,7 +315,9 @@ def encerrar_audio(
     audio.status_processamento = "CONCLUIDO"
     audio.transcricao = "Transcricao mockada do audio da consulta. Revisar e complementar conforme relato da paciente."
     db.commit()
-    return AudioStatusOut(status_processamento=audio.status_processamento, transcricao=audio.transcricao)
+    return AudioStatusOut(
+        status_processamento=audio.status_processamento, transcricao=audio.transcricao
+    )
 
 
 @router.get("/{id_consulta}/audio/status", response_model=AudioStatusOut)
@@ -297,7 +330,9 @@ def status_audio(
     audio = _ultimo_audio(id_consulta, db)
     if not audio:
         return AudioStatusOut(status_processamento="AGUARDANDO", transcricao=None)
-    return AudioStatusOut(status_processamento=audio.status_processamento, transcricao=audio.transcricao)
+    return AudioStatusOut(
+        status_processamento=audio.status_processamento, transcricao=audio.transcricao
+    )
 
 
 @router.post("/{id_consulta}/analisar", response_model=ResultadoIAOut, response_model_by_alias=True)
@@ -311,9 +346,13 @@ def analisar_consulta(
     if not relato or not relato.relato_texto:
         raise HTTPException(status_code=400, detail="Informe o relato antes da analise")
     audio = _ultimo_audio(id_consulta, db)
-    resultado_ia = analisar(relato.relato_texto, audio.transcricao if audio else None, id_consulta=id_consulta)
+    resultado_ia = analisar(
+        relato.relato_texto, audio.transcricao if audio else None, id_consulta=id_consulta
+    )
 
-    resultado = db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    resultado = (
+        db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    )
     if not resultado:
         resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
         db.add(resultado)
@@ -336,20 +375,28 @@ def obter_resultado(
     current_user: User = Depends(require_role("MEDICO")),
 ):
     _consulta_ou_404(id_consulta, db)
-    resultado = db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    resultado = (
+        db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    )
     if not resultado:
         raise HTTPException(status_code=404, detail="Resultado nao encontrado")
     return _build_resultado_out(resultado, db)
 
 
-@router.post("/{id_consulta}/resultado/confirmar", response_model=ResultadoIAOut, response_model_by_alias=True)
+@router.post(
+    "/{id_consulta}/resultado/confirmar",
+    response_model=ResultadoIAOut,
+    response_model_by_alias=True,
+)
 def confirmar_resultado(
     id_consulta: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
     _consulta_ou_404(id_consulta, db)
-    resultado = db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    resultado = (
+        db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    )
     if not resultado:
         raise HTTPException(status_code=404, detail="Resultado nao encontrado")
     resultado.confirmado = True
@@ -363,14 +410,21 @@ def confirmar_resultado(
 # Etapa 3 — Encerramento
 # ---------------------------------------------------------------------------
 
-@router.get("/{id_consulta}/encerramento/sugestao", response_model=SugestaoEncerramentoOut, response_model_by_alias=True)
+
+@router.get(
+    "/{id_consulta}/encerramento/sugestao",
+    response_model=SugestaoEncerramentoOut,
+    response_model_by_alias=True,
+)
 def obter_sugestao_encerramento(
     id_consulta: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
     consulta = _consulta_ou_404(id_consulta, db)
-    resultado = db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    resultado = (
+        db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    )
     if not resultado:
         raise HTTPException(status_code=404, detail="Resultado de analise nao encontrado")
     data_sugerida = calcular_data_sugerida(resultado.faixa_risco, consulta.ig_semanas)
@@ -382,7 +436,12 @@ def obter_sugestao_encerramento(
     )
 
 
-@router.post("/{id_consulta}/encerrar", response_model=EncerramentoOut, status_code=201, response_model_by_alias=True)
+@router.post(
+    "/{id_consulta}/encerrar",
+    response_model=EncerramentoOut,
+    status_code=201,
+    response_model_by_alias=True,
+)
 def encerrar_consulta(
     id_consulta: UUID,
     payload: EncerramentoCreate,
@@ -392,7 +451,11 @@ def encerrar_consulta(
     consulta = _consulta_ou_404(id_consulta, db)
     if consulta.status == "ENCERRADA":
         raise HTTPException(status_code=409, detail="Consulta ja encerrada")
-    enc_existente = db.query(ConsultaEncerramento).filter(ConsultaEncerramento.id_consulta == id_consulta).first()
+    enc_existente = (
+        db.query(ConsultaEncerramento)
+        .filter(ConsultaEncerramento.id_consulta == id_consulta)
+        .first()
+    )
     if enc_existente:
         raise HTTPException(status_code=409, detail="Encerramento ja registrado")
 
@@ -428,17 +491,27 @@ def obter_resumo_pec(
 ):
     consulta = _consulta_ou_404(id_consulta, db)
     if consulta.status != "ENCERRADA":
-        raise HTTPException(status_code=400, detail="Resumo disponivel apenas para consultas encerradas")
+        raise HTTPException(
+            status_code=400, detail="Resumo disponivel apenas para consultas encerradas"
+        )
 
     triagem = db.query(ConsultaTriagem).filter(ConsultaTriagem.id_consulta == id_consulta).first()
-    resultado = db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
-    encerramento = db.query(ConsultaEncerramento).filter(ConsultaEncerramento.id_consulta == id_consulta).first()
+    resultado = (
+        db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
+    )
+    encerramento = (
+        db.query(ConsultaEncerramento)
+        .filter(ConsultaEncerramento.id_consulta == id_consulta)
+        .first()
+    )
 
     if not resultado or not encerramento:
         raise HTTPException(status_code=404, detail="Dados incompletos para gerar o resumo")
 
     pa = f"{triagem.pa_sistolica}/{triagem.pa_diastolica} mmHg" if triagem else None
-    indicadores_desc = [i["descricao"] for i in resultado.indicadores] if resultado.indicadores else []
+    indicadores_desc = (
+        [i["descricao"] for i in resultado.indicadores] if resultado.indicadores else []
+    )
 
     return ResumoPecOut(
         id_consulta=consulta.id_consulta,

@@ -23,7 +23,9 @@ def _triagem_resumo(triagem: ConsultaTriagem) -> TriagemResumo:
     )
 
 
-def _assumida_out(consulta: ConsultaIdentidade, paciente: Paciente, triagem: ConsultaTriagem) -> ConsultaAssumidaOut:
+def _assumida_out(
+    consulta: ConsultaIdentidade, paciente: Paciente, triagem: ConsultaTriagem
+) -> ConsultaAssumidaOut:
     return ConsultaAssumidaOut(
         id_consulta=consulta.id_consulta,
         paciente_nome=paciente.nome,
@@ -66,7 +68,11 @@ def listar_fila(
     ]
 
 
-@router.get("/consultas/em-andamento", response_model=ConsultaAssumidaOut | None, response_model_by_alias=True)
+@router.get(
+    "/consultas/em-andamento",
+    response_model=ConsultaAssumidaOut | None,
+    response_model_by_alias=True,
+)
 def consulta_em_andamento(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
@@ -75,7 +81,10 @@ def consulta_em_andamento(
         db.query(ConsultaIdentidade, Paciente, ConsultaTriagem)
         .join(Paciente, Paciente.id == ConsultaIdentidade.paciente_id)
         .join(ConsultaTriagem, ConsultaTriagem.id_consulta == ConsultaIdentidade.id_consulta)
-        .filter(ConsultaIdentidade.medico_id == current_user.id, ConsultaIdentidade.status == "EM_ATENDIMENTO")
+        .filter(
+            ConsultaIdentidade.medico_id == current_user.id,
+            ConsultaIdentidade.status == "EM_ATENDIMENTO",
+        )
         .order_by(ConsultaIdentidade.assumida_em.desc())
         .first()
     )
@@ -85,7 +94,11 @@ def consulta_em_andamento(
     return _assumida_out(consulta, paciente, triagem)
 
 
-@router.post("/consultas/{id_consulta}/assumir", response_model=ConsultaAssumidaOut, response_model_by_alias=True)
+@router.post(
+    "/consultas/{id_consulta}/assumir",
+    response_model=ConsultaAssumidaOut,
+    response_model_by_alias=True,
+)
 def assumir_consulta(
     id_consulta: UUID,
     db: Session = Depends(get_db),

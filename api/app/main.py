@@ -28,7 +28,9 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/auth", tags=["Autenticacao"])
 app.include_router(paciente_router.router, prefix="/pacientes", tags=["Pacientes"])
-app.include_router(admin_paciente_router.router, prefix="/admin/pacientes", tags=["Admin - Pacientes"])
+app.include_router(
+    admin_paciente_router.router, prefix="/admin/pacientes", tags=["Admin - Pacientes"]
+)
 app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
 app.include_router(fila_router.router, prefix="/fila", tags=["Fila"])
 
