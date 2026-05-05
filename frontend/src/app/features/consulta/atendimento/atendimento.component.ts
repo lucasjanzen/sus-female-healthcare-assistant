@@ -24,7 +24,7 @@ export class AtendimentoComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.consultaService.obterEtapa1(id).subscribe((etapa) => {
+    this.consultaService.obterTriagem(id).subscribe((etapa) => {
       this.consultaService.definirConsultaAtiva({ idConsulta: id, tipo: etapa.tipoConsulta });
     });
   }

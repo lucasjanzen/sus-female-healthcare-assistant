@@ -42,7 +42,7 @@ export class ConsultaService {
     return this.http.post<Etapa1Out>(`${this.base}/${idConsulta}/triagem`, triagem);
   }
 
-  obterEtapa1(idConsulta: string): Observable<Etapa1Out> {
-    return this.http.get<Etapa1Out>(`${this.base}/${idConsulta}/etapa1`);
+  obterTriagem(idConsulta: string): Observable<Etapa1Out> {
+    return this.http.get<Etapa1Out>(`${this.base}/${idConsulta}/triagem`);
   }
 }
