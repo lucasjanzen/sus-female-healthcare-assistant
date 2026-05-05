@@ -18,8 +18,15 @@ export class AudioService {
     return this.http.post<{ audioId: string }>(`${this.base}/${idConsulta}/audio/iniciar`, {});
   }
 
-  encerrar(idConsulta: string): Observable<AudioStatus> {
-    return this.http.post<AudioStatus>(`${this.base}/${idConsulta}/audio/encerrar`, {});
+  encerrar(idConsulta: string, audioBlob: Blob): Observable<AudioStatus> {
+    const ext = audioBlob.type.includes('ogg')
+      ? 'ogg'
+      : audioBlob.type.includes('mp4')
+        ? 'mp4'
+        : 'webm';
+    const form = new FormData();
+    form.append('audio_file', audioBlob, `recording.${ext}`);
+    return this.http.post<AudioStatus>(`${this.base}/${idConsulta}/audio/encerrar`, form);
   }
 
   status(idConsulta: string): Observable<AudioStatus> {

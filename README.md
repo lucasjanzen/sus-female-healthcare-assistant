@@ -12,6 +12,43 @@ Assistente para auxiliar nas consultas médicas realizadas pelo SUS em mulheres,
 
 ---
 
+## Inteligência Artificial (Azure AI)
+
+A análise psicossocial e a transcrição de áudio das consultas utilizam dois serviços do Azure AI. Ambos são **opcionais**: quando não configurados, o sistema usa detecção local por palavras-chave (fallback automático).
+
+| Serviço | Finalidade |
+|---------|-----------|
+| **Azure AI Speech** | Transcreve o áudio da consulta em texto (pt-BR) |
+| **Azure AI Language** | Analisa sentimento do relato para calibrar o nível de risco |
+
+### Como obter as credenciais
+
+**Azure AI Speech**
+1. Acesse [portal.azure.com](https://portal.azure.com) → **Criar recurso** → **Azure AI services** → **Speech service**
+2. Após criar, vá em **Keys and Endpoint**
+3. Copie a **Key 1** e a **Region** (ex: `brazilsouth`)
+
+**Azure AI Language**
+1. Acesse [portal.azure.com](https://portal.azure.com) → **Criar recurso** → **Azure AI services** → **Language service**
+2. Após criar, vá em **Keys and Endpoint**
+3. Copie a **Key 1** e o **Endpoint** (ex: `https://<nome>.cognitiveservices.azure.com/`)
+
+### Configuração
+
+Adicione as variáveis abaixo no arquivo `api/.env`:
+
+```env
+AZURE_SPEECH_KEY=<sua chave>
+AZURE_SPEECH_REGION=brazilsouth
+
+AZURE_LANGUAGE_ENDPOINT=https://<nome-do-recurso>.cognitiveservices.azure.com/
+AZURE_LANGUAGE_KEY=<sua chave>
+```
+
+> Deixe as variáveis em branco para usar o fallback local. Os logs da API indicam qual modo está ativo (`"Azure Speech nao configurado"` ou `"Sentimento Azure obtido"`).
+
+---
+
 ## Início Rápido com Docker
 
 ### 1. Configure as variáveis de ambiente
@@ -96,12 +133,18 @@ pip install -r requirements.txt
 
 **3. Crie o arquivo `api/.env`** com a URL apontando para `localhost` (diferente do Docker, que usa o hostname `db`):
 
-```
+```env
 DATABASE_URL=postgresql://sfha:sfha@localhost:5432/sfha_db
 SECRET_KEY=troque-por-uma-string-aleatoria-longa-e-segura
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_HOURS=8
 CORS_ORIGIN=http://localhost:4200
+
+# Azure AI (opcional — deixe em branco para usar fallback local)
+AZURE_SPEECH_KEY=
+AZURE_SPEECH_REGION=
+AZURE_LANGUAGE_ENDPOINT=
+AZURE_LANGUAGE_KEY=
 ```
 
 > **Por que `api/.env` e não o `.env` raiz?**

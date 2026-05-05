@@ -66,6 +66,8 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
 
   private timer?: number;
   private polling?: number;
+  private mediaRecorder?: MediaRecorder;
+  private audioChunks: Blob[] = [];
 
   readonly form = this.fb.nonNullable.group({
     relatoTexto: ['', [Validators.minLength(20)]],
@@ -97,6 +99,10 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.timer) window.clearInterval(this.timer);
     if (this.polling) window.clearInterval(this.polling);
+    if (this.mediaRecorder?.state === 'recording') {
+      this.mediaRecorder.stop();
+      this.mediaRecorder.stream.getTracks().forEach((t) => t.stop());
+    }
   }
 
   salvarRelato(): void {
@@ -124,32 +130,59 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   iniciarGravacao(): void {
     const id = this.consultaAtiva()?.idConsulta;
     if (!id) return;
-    this.audioService.iniciar(id).subscribe({
-      next: () => {
-        this.gravando.set(true);
-        this.segundosGravacao.set(0);
-        this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
-      },
-      error: () =>
-        this.snackBar.open('Erro ao iniciar gravação', 'Fechar', {
-          duration: 3000,
-        }),
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.snackBar.open('Microfone não disponível neste dispositivo ou contexto', 'Fechar', {
+        duration: 4000,
+      });
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      this.audioService.iniciar(id).subscribe({
+        next: () => {
+          this.mediaRecorder = new MediaRecorder(stream);
+          this.audioChunks = [];
+          this.mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) this.audioChunks.push(e.data);
+          };
+          this.mediaRecorder.start(1000);
+          this.gravando.set(true);
+          this.segundosGravacao.set(0);
+          this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
+        },
+        error: () => {
+          stream.getTracks().forEach((t) => t.stop());
+          this.snackBar.open('Erro ao iniciar gravação', 'Fechar', { duration: 3000 });
+        },
+      });
+    }).catch(() => {
+      this.snackBar.open('Permissão de microfone negada', 'Fechar', { duration: 3000 });
     });
   }
 
   encerrarGravacao(): void {
     const id = this.consultaAtiva()?.idConsulta;
-    if (!id) return;
+    if (!id || !this.mediaRecorder) return;
+
     if (this.timer) window.clearInterval(this.timer);
     this.gravando.set(false);
     this.audioStatus.set('PROCESSANDO');
-    this.audioService.encerrar(id).subscribe({
-      next: () => this.iniciarPollingAudio(id),
-      error: () =>
-        this.snackBar.open('Erro ao encerrar gravação', 'Fechar', {
-          duration: 3000,
-        }),
-    });
+
+    this.mediaRecorder.onstop = () => {
+      const mimeType = this.mediaRecorder!.mimeType || 'audio/webm';
+      const blob = new Blob(this.audioChunks, { type: mimeType });
+      this.mediaRecorder!.stream.getTracks().forEach((t) => t.stop());
+      this.audioChunks = [];
+
+      this.audioService.encerrar(id, blob).subscribe({
+        next: () => this.iniciarPollingAudio(id),
+        error: () =>
+          this.snackBar.open('Erro ao encerrar gravação', 'Fechar', { duration: 3000 }),
+      });
+    };
+
+    this.mediaRecorder.stop();
   }
 
   analisar(): void {

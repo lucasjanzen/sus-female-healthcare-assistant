@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
@@ -17,6 +17,7 @@ from app.schemas.consulta import (
     ResultadoIAOut,
 )
 from app.services.analise_service import analisar
+from app.services.azure_service import transcrever_audio
 
 from .helpers import (
     _build_relato_out,
@@ -124,8 +125,9 @@ def iniciar_audio(
 
 
 @router.post("/{id_consulta}/audio/encerrar", response_model=AudioStatusOut)
-def encerrar_audio(
+async def encerrar_audio(
     id_consulta: UUID,
+    audio_file: UploadFile = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
@@ -133,8 +135,19 @@ def encerrar_audio(
     audio = _ultimo_audio(id_consulta, db)
     if not audio:
         raise HTTPException(status_code=404, detail="Audio nao encontrado")
+
+    transcricao = None
+    if audio_file:
+        audio_bytes = await audio_file.read()
+        transcricao = transcrever_audio(
+            audio_bytes, audio_file.content_type or "audio/webm"
+        )
+
     audio.status_processamento = "CONCLUIDO"
-    audio.transcricao = "Transcricao mockada do audio da consulta. Revisar e complementar conforme relato da paciente."
+    audio.transcricao = (
+        transcricao
+        or "Transcricao nao disponivel. Revise e complemente o relato manualmente."
+    )
     db.commit()
     return AudioStatusOut(
         status_processamento=audio.status_processamento, transcricao=audio.transcricao

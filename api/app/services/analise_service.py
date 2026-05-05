@@ -77,12 +77,25 @@ def _sentimento_negativo_forte(texto: str) -> bool:
     return negativos >= 2
 
 
-def _detectar(texto: str, origem: str) -> list[IndicadorIA]:
+def _detectar(
+    texto: str,
+    origem: str,
+    negativo_forte: Optional[bool] = None,
+    negativo: Optional[bool] = None,
+) -> list[IndicadorIA]:
+    """Detecta indicadores psicossociais por padrões de palavras-chave.
+
+    negativo_forte e negativo podem ser fornecidos pela análise Azure para maior precisão;
+    se None, calculados localmente por contagem de palavras negativas.
+    """
     indicadores: list[IndicadorIA] = []
-    negativo_forte = _sentimento_negativo_forte(texto)
-    negativo = negativo_forte or any(
-        p in texto for p in ["triste", "medo", "preocupada", "nervosa"]
-    )
+
+    if negativo_forte is None:
+        negativo_forte = _sentimento_negativo_forte(texto)
+    if negativo is None:
+        negativo = negativo_forte or any(
+            p in texto for p in ["triste", "medo", "preocupada", "nervosa"]
+        )
 
     for tipo, padroes in PADROES.items():
         encontrados = [p for p in padroes if re.search(rf"\b{re.escape(p)}\b", texto)]
@@ -116,7 +129,12 @@ def _faixa(score: int) -> tuple[str, str]:
     return "VERMELHO", "Indicadores criticos - encaminhamento imediato"
 
 
-def _resumo(indicadores: list[IndicadorIA], faixa: str, mensagem_faixa: str) -> str:
+def _resumo(
+    indicadores: list[IndicadorIA],
+    faixa: str,
+    mensagem_faixa: str,
+    sentimento_azure: Optional[dict] = None,
+) -> str:
     if not indicadores:
         achados = "Nenhum indicador psicossocial significativo foi identificado no relato informado."
     else:
@@ -133,7 +151,14 @@ def _resumo(indicadores: list[IndicadorIA], faixa: str, mensagem_faixa: str) -> 
         "VERMELHO": "Recomenda-se encaminhamento imediato conforme protocolo local e avaliacao de seguranca.",
     }[faixa]
 
-    return f"{mensagem_faixa}.\n\n{achados}\n\n{encaminhamento}\n\n{AVISO_CLINICO}"
+    texto = f"{mensagem_faixa}.\n\n{achados}\n\n{encaminhamento}\n\n{AVISO_CLINICO}"
+
+    if sentimento_azure:
+        sent = sentimento_azure["sentimento"]
+        neg_pct = sentimento_azure["scores"]["negativo"]
+        texto += f"\n\nAnalise de sentimento (Azure AI Language): {sent} — negativo: {neg_pct:.0%}."
+
+    return texto
 
 
 def analisar(
@@ -141,16 +166,27 @@ def analisar(
     transcricao: Optional[str] = None,
     id_consulta: Optional[UUID] = None,
 ) -> ResultadoIAOut:
-    logger.info(
-        "Azure Text Analytics indisponivel nesta configuracao; usando fallback local."
-    )
+    from app.services.azure_service import analisar_sentimento_azure
+
     texto_completo = relato_texto
     origem = "TEXTO_LOCAL"
     if transcricao:
         texto_completo = f"{relato_texto}\n{transcricao}"
         origem = "AMBOS"
 
-    indicadores = _detectar(_normalizar(texto_completo), origem)
+    sentimento_azure = analisar_sentimento_azure(texto_completo)
+
+    negativo_forte: Optional[bool] = None
+    negativo: Optional[bool] = None
+    if sentimento_azure:
+        logger.info("Sentimento Azure obtido: %s", sentimento_azure["sentimento"])
+        neg_score = sentimento_azure["scores"]["negativo"]
+        negativo_forte = neg_score >= 0.7
+        negativo = neg_score >= 0.4 or sentimento_azure["sentimento"] in ("negative", "mixed")
+    else:
+        logger.info("Azure Language indisponivel; usando deteccao local de sentimento.")
+
+    indicadores = _detectar(_normalizar(texto_completo), origem, negativo_forte, negativo)
     score = min(sum(PESOS[i.tipo][i.nivel] for i in indicadores), 100)
     faixa, mensagem = _faixa(score)
 
@@ -159,7 +195,7 @@ def analisar(
         score_geral=score,
         faixa_risco=faixa,
         indicadores=indicadores,
-        resumo_ia=_resumo(indicadores, faixa, mensagem),
+        resumo_ia=_resumo(indicadores, faixa, mensagem, sentimento_azure),
         status_audio="CONCLUIDO" if transcricao else "AGUARDANDO",
         confirmado=False,
         calculado_em=datetime.now(timezone.utc),

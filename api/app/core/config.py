@@ -15,5 +15,13 @@ class Settings(BaseSettings):
     cors_origin: str = "http://localhost:4200"
     secret_salt: str = "changeme-salt-altere-isso-em-producao"
 
+    # Azure AI Speech (Speech-to-Text)
+    azure_speech_key: str = ""
+    azure_speech_region: str = ""  # ex: brazilsouth, eastus
+
+    # Azure AI Language (Text Analytics — sentimento)
+    azure_language_endpoint: str = ""  # ex: https://<resource>.cognitiveservices.azure.com/
+    azure_language_key: str = ""
+
 
 settings = Settings()
