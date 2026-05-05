@@ -109,7 +109,9 @@ def gerar_pdf_resumo(resumo: ResumoPecOut) -> bytes:
     elements = []
 
     # Cabeçalho
-    elements.append(Paragraph("CASF — Centro de Assistência à Saúde Feminina", titulo_style))
+    elements.append(
+        Paragraph("CASF — Centro de Assistência à Saúde Feminina", titulo_style)
+    )
     elements.append(Paragraph("Resumo da Consulta para e-SUS PEC", subtitulo_style))
 
     # Linha divisória via tabela de 1 linha
@@ -117,7 +119,9 @@ def gerar_pdf_resumo(resumo: ResumoPecOut) -> bytes:
         Table(
             [[""]],
             colWidths=[doc.width],
-            style=TableStyle([("LINEBELOW", (0, 0), (-1, -1), 1, colors.HexColor("#1a237e"))]),
+            style=TableStyle(
+                [("LINEBELOW", (0, 0), (-1, -1), 1, colors.HexColor("#1a237e"))]
+            ),
         )
     )
     elements.append(Spacer(1, 8))
@@ -186,7 +190,9 @@ def gerar_pdf_resumo(resumo: ResumoPecOut) -> bytes:
 
     # Próximo retorno
     elements.append(Paragraph("Próximo Retorno", secao_style))
-    elements.append(Paragraph(resumo.data_proximo_retorno.strftime("%d/%m/%Y"), bold_style))
+    elements.append(
+        Paragraph(resumo.data_proximo_retorno.strftime("%d/%m/%Y"), bold_style)
+    )
 
     # Rodapé
     elements.append(Spacer(1, 16))

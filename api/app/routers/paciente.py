@@ -35,7 +35,9 @@ def buscar_pacientes(
     if termo.isdigit() and len(termo) == 11:
         cpf_hash = _hash_cpf(termo)
         pacientes = (
-            db.query(Paciente).filter(Paciente.cpf_hash == cpf_hash, Paciente.ativo.is_(True)).all()
+            db.query(Paciente)
+            .filter(Paciente.cpf_hash == cpf_hash, Paciente.ativo.is_(True))
+            .all()
         )
     else:
         pacientes = (
@@ -46,7 +48,12 @@ def buscar_pacientes(
     return pacientes
 
 
-@router.post("", response_model=ConsultaIniciadaOut, status_code=201, response_model_by_alias=True)
+@router.post(
+    "",
+    response_model=ConsultaIniciadaOut,
+    status_code=201,
+    response_model_by_alias=True,
+)
 def criar_paciente(
     payload: PacienteCreate,
     db: Session = Depends(get_db),
@@ -55,7 +62,9 @@ def criar_paciente(
     cpf_hash = _hash_cpf(payload.cpf)
 
     if db.query(Paciente).filter(Paciente.cpf_hash == cpf_hash).first():
-        raise HTTPException(status_code=409, detail="Paciente com este CPF já cadastrada")
+        raise HTTPException(
+            status_code=409, detail="Paciente com este CPF já cadastrada"
+        )
 
     paciente = Paciente(
         cpf_hash=cpf_hash,
@@ -73,7 +82,11 @@ def criar_paciente(
     db.flush()
 
     id_consulta = uuid.uuid4()
-    db.add(ConsultaPeso(id_consulta=id_consulta, paciente_id=paciente.id, peso_kg=payload.peso_kg))
+    db.add(
+        ConsultaPeso(
+            id_consulta=id_consulta, paciente_id=paciente.id, peso_kg=payload.peso_kg
+        )
+    )
     db.commit()
     db.refresh(paciente)
 
@@ -83,7 +96,9 @@ def criar_paciente(
     )
 
 
-@router.put("/{paciente_id}", response_model=ConsultaIniciadaOut, response_model_by_alias=True)
+@router.put(
+    "/{paciente_id}", response_model=ConsultaIniciadaOut, response_model_by_alias=True
+)
 def atualizar_paciente(
     paciente_id: UUID,
     payload: PacienteUpdate,
@@ -91,7 +106,9 @@ def atualizar_paciente(
     current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
 ):
     paciente = (
-        db.query(Paciente).filter(Paciente.id == paciente_id, Paciente.ativo.is_(True)).first()
+        db.query(Paciente)
+        .filter(Paciente.id == paciente_id, Paciente.ativo.is_(True))
+        .first()
     )
     if not paciente:
         raise HTTPException(status_code=404, detail="Paciente não encontrada")
@@ -111,7 +128,11 @@ def atualizar_paciente(
     db.add(PacienteLog(paciente_id=paciente.id, atualizado_por=current_user.id))
 
     id_consulta = uuid.uuid4()
-    db.add(ConsultaPeso(id_consulta=id_consulta, paciente_id=paciente.id, peso_kg=payload.peso_kg))
+    db.add(
+        ConsultaPeso(
+            id_consulta=id_consulta, paciente_id=paciente.id, peso_kg=payload.peso_kg
+        )
+    )
 
     db.commit()
     db.refresh(paciente)

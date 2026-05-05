@@ -26,7 +26,9 @@ def _hash_cpf(cpf: str) -> str:
     return hashlib.sha256((cpf + settings.secret_salt).encode()).hexdigest()
 
 
-@router.get("/buscar", response_model=list[PacienteListItem], response_model_by_alias=True)
+@router.get(
+    "/buscar", response_model=list[PacienteListItem], response_model_by_alias=True
+)
 def buscar_pacientes(
     q: str = Query(..., min_length=1),
     db: Session = Depends(get_db),
@@ -47,7 +49,9 @@ def buscar_pacientes(
     return [PacienteListItem.model_validate(p) for p in pacientes]
 
 
-@router.get("", response_model=PaginatedResponse[PacienteListItem], response_model_by_alias=True)
+@router.get(
+    "", response_model=PaginatedResponse[PacienteListItem], response_model_by_alias=True
+)
 def listar_pacientes(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -65,7 +69,12 @@ def listar_pacientes(
 
     total = query.count()
     pages = max(1, math.ceil(total / page_size))
-    items = query.order_by(Paciente.nome).offset((page - 1) * page_size).limit(page_size).all()
+    items = (
+        query.order_by(Paciente.nome)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
 
     return PaginatedResponse[PacienteListItem](
         items=[PacienteListItem.model_validate(p) for p in items],
@@ -75,7 +84,9 @@ def listar_pacientes(
     )
 
 
-@router.get("/{paciente_id}", response_model=PacienteAdminOut, response_model_by_alias=True)
+@router.get(
+    "/{paciente_id}", response_model=PacienteAdminOut, response_model_by_alias=True
+)
 def obter_paciente(
     paciente_id: UUID,
     db: Session = Depends(get_db),
@@ -87,7 +98,9 @@ def obter_paciente(
     return PacienteAdminOut.model_validate(paciente)
 
 
-@router.post("", response_model=PacienteAdminOut, status_code=201, response_model_by_alias=True)
+@router.post(
+    "", response_model=PacienteAdminOut, status_code=201, response_model_by_alias=True
+)
 def criar_paciente(
     payload: PacienteAdminCreate,
     db: Session = Depends(get_db),
@@ -96,10 +109,14 @@ def criar_paciente(
     cpf_hash = _hash_cpf(payload.cpf)
 
     if db.query(Paciente).filter(Paciente.cpf_hash == cpf_hash).first():
-        raise HTTPException(status_code=409, detail="Paciente com este CPF já cadastrada")
+        raise HTTPException(
+            status_code=409, detail="Paciente com este CPF já cadastrada"
+        )
 
     if payload.cns and db.query(Paciente).filter(Paciente.cns == payload.cns).first():
-        raise HTTPException(status_code=409, detail="Paciente com este CNS já cadastrada")
+        raise HTTPException(
+            status_code=409, detail="Paciente com este CNS já cadastrada"
+        )
 
     paciente = Paciente(
         cpf_hash=cpf_hash,
@@ -121,7 +138,9 @@ def criar_paciente(
     return PacienteAdminOut.model_validate(paciente)
 
 
-@router.put("/{paciente_id}", response_model=PacienteAdminOut, response_model_by_alias=True)
+@router.put(
+    "/{paciente_id}", response_model=PacienteAdminOut, response_model_by_alias=True
+)
 def atualizar_paciente(
     paciente_id: UUID,
     payload: PacienteAdminUpdate,

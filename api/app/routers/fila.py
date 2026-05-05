@@ -38,7 +38,9 @@ def _assumida_out(
     )
 
 
-@router.get("/consultas", response_model=list[ConsultaFilaItem], response_model_by_alias=True)
+@router.get(
+    "/consultas", response_model=list[ConsultaFilaItem], response_model_by_alias=True
+)
 def listar_fila(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
@@ -80,7 +82,10 @@ def consulta_em_andamento(
     linha = (
         db.query(ConsultaIdentidade, Paciente, ConsultaTriagem)
         .join(Paciente, Paciente.id == ConsultaIdentidade.paciente_id)
-        .join(ConsultaTriagem, ConsultaTriagem.id_consulta == ConsultaIdentidade.id_consulta)
+        .join(
+            ConsultaTriagem,
+            ConsultaTriagem.id_consulta == ConsultaIdentidade.id_consulta,
+        )
         .filter(
             ConsultaIdentidade.medico_id == current_user.id,
             ConsultaIdentidade.status == "EM_ATENDIMENTO",
@@ -107,7 +112,10 @@ def assumir_consulta(
     linha = (
         db.query(ConsultaIdentidade, Paciente, ConsultaTriagem)
         .join(Paciente, Paciente.id == ConsultaIdentidade.paciente_id)
-        .join(ConsultaTriagem, ConsultaTriagem.id_consulta == ConsultaIdentidade.id_consulta)
+        .join(
+            ConsultaTriagem,
+            ConsultaTriagem.id_consulta == ConsultaIdentidade.id_consulta,
+        )
         .filter(ConsultaIdentidade.id_consulta == id_consulta)
         .first()
     )
@@ -116,7 +124,9 @@ def assumir_consulta(
 
     consulta, paciente, triagem = linha
     if consulta.medico_id and consulta.medico_id != current_user.id:
-        raise HTTPException(status_code=409, detail="Consulta assumida por outro medico")
+        raise HTTPException(
+            status_code=409, detail="Consulta assumida por outro medico"
+        )
 
     consulta.medico_id = current_user.id
     consulta.assumida_em = consulta.assumida_em or datetime.now(timezone.utc)
