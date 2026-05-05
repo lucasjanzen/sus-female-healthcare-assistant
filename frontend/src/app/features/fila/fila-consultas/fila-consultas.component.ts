@@ -66,7 +66,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
 
   atender(consulta: ConsultaFilaItem): void {
     this.filaService.assumir(consulta.idConsulta).subscribe({
-      next: () => this.router.navigate(['/consulta', consulta.idConsulta, 'etapa2']),
+      next: () => this.router.navigate(['/consulta', consulta.idConsulta, 'atendimento']),
       error: (erro) => {
         if (erro.status === 409) {
           this.snackBar.open('Consulta assumida por outro médico', 'Fechar', { duration: 3000 });
@@ -80,7 +80,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
 
   continuar(): void {
     const consulta = this.emAndamento();
-    if (consulta) this.router.navigate(['/consulta', consulta.idConsulta, 'etapa2']);
+    if (consulta) this.router.navigate(['/consulta', consulta.idConsulta, 'atendimento']);
   }
 
   tempoAguardando(item: ConsultaFilaItem): string {

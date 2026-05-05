@@ -12,11 +12,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { PacienteConsultaOut, TipoConsulta } from '../../../models/consulta.model';
-import { ConsultaService } from '../../../services/consulta.service';
+import { PacienteConsultaOut, TipoConsulta } from '../models/consulta.model';
+import { ConsultaService } from '../services/consulta.service';
 
 @Component({
-  selector: 'app-step-recepcao',
+  selector: 'app-triagem',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -31,10 +31,10 @@ import { ConsultaService } from '../../../services/consulta.service';
     MatSelectModule,
     MatSnackBarModule,
   ],
-  templateUrl: './step-recepcao.component.html',
-  styleUrl: './step-recepcao.component.scss',
+  templateUrl: './triagem.component.html',
+  styleUrl: './triagem.component.scss',
 })
-export class StepRecepcaoComponent {
+export class TriagemComponent {
   private fb = inject(FormBuilder);
   private consultaService = inject(ConsultaService);
   private snackBar = inject(MatSnackBar);
@@ -85,9 +85,7 @@ export class StepRecepcaoComponent {
         this.carregando.set(false);
       },
       error: () => {
-        this.snackBar.open('Erro ao buscar pacientes', 'Fechar', {
-          duration: 3000,
-        });
+        this.snackBar.open('Erro ao buscar pacientes', 'Fechar', { duration: 3000 });
         this.carregando.set(false);
       },
     });
@@ -136,9 +134,7 @@ export class StepRecepcaoComponent {
           this.identificacaoForm.disable();
         },
         error: () =>
-          this.snackBar.open('Erro ao iniciar consulta', 'Fechar', {
-            duration: 3000,
-          }),
+          this.snackBar.open('Erro ao iniciar consulta', 'Fechar', { duration: 3000 }),
       });
   }
 
@@ -155,9 +151,7 @@ export class StepRecepcaoComponent {
       .subscribe({
         next: () => this.triagemConcluida.set(true),
         error: () =>
-          this.snackBar.open('Erro ao concluir triagem', 'Fechar', {
-            duration: 3000,
-          }),
+          this.snackBar.open('Erro ao concluir triagem', 'Fechar', { duration: 3000 }),
       });
   }
 

@@ -31,16 +31,14 @@ export const routes: Routes = [
         path: 'consulta/nova',
         canActivate: [roleGuard(['MEDICO', 'ENFERMEIRO'])],
         loadComponent: () =>
-          import('./features/consulta/nova-consulta/nova-consulta.component').then(
-            (m) => m.NovaConsultaComponent,
-          ),
+          import('./features/consulta/triagem/triagem.component').then((m) => m.TriagemComponent),
       },
       {
-        path: 'consulta/:id/etapa2',
+        path: 'consulta/:id/atendimento',
         canActivate: [roleGuard(['MEDICO'])],
         loadComponent: () =>
-          import('./features/consulta/nova-consulta/nova-consulta.component').then(
-            (m) => m.NovaConsultaComponent,
+          import('./features/consulta/atendimento/atendimento.component').then(
+            (m) => m.AtendimentoComponent,
           ),
       },
       {
