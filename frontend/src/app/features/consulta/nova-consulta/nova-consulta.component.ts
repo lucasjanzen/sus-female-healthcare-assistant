@@ -1,7 +1,5 @@
-import { Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 
 import { ConsultaService } from '../services/consulta.service';
 import { StepConsultaComponent } from './steps/step-consulta/step-consulta.component';
@@ -11,19 +9,11 @@ import { StepRecepcaoComponent } from './steps/step-recepcao/step-recepcao.compo
 @Component({
   selector: 'app-nova-consulta',
   standalone: true,
-  imports: [
-    MatStepperModule,
-    MatIconModule,
-    StepRecepcaoComponent,
-    StepConsultaComponent,
-    StepEncerramentoComponent,
-  ],
+  imports: [StepRecepcaoComponent, StepConsultaComponent, StepEncerramentoComponent],
   templateUrl: './nova-consulta.component.html',
   styleUrl: './nova-consulta.component.scss',
 })
 export class NovaConsultaComponent implements OnInit {
-  @ViewChild(MatStepper) stepper?: MatStepper;
-
   private readonly route = inject(ActivatedRoute);
   private readonly consultaService = inject(ConsultaService);
 
@@ -31,15 +21,24 @@ export class NovaConsultaComponent implements OnInit {
   readonly encerramentoPronto = signal(false);
   modo: 'nova' | 'assumir' = 'nova';
 
+  readonly titulo = computed(() => {
+    if (this.modo === 'nova') return 'Triagem';
+    if (this.encerramentoPronto()) return 'Encerramento';
+    return 'Consulta';
+  });
+
+  readonly faseBadge = computed(() => {
+    if (this.modo === 'nova') return null;
+    if (this.encerramentoPronto()) return '3 / 3';
+    return '2 / 3';
+  });
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.modo = 'assumir';
       this.consultaService.obterEtapa1(id).subscribe((etapa) => {
         this.consultaService.definirConsultaAtiva({ idConsulta: id, tipo: etapa.tipoConsulta });
-        queueMicrotask(() => {
-          if (this.stepper) this.stepper.selectedIndex = 1;
-        });
       });
     } else {
       this.consultaService.definirConsultaAtiva(null);
@@ -47,7 +46,6 @@ export class NovaConsultaComponent implements OnInit {
   }
 
   irParaEncerramento(): void {
-    if (this.stepper) this.stepper.selectedIndex = 2;
     this.encerramentoPronto.set(true);
   }
 }
