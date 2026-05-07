@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,9 +47,9 @@ export class TriagemComponent {
   etapa1Concluida = signal(false);
   triagemConcluida = signal(false);
   carregando = signal(false);
+  submetendo = signal(false);
   consultaId = signal<string | null>(null);
   tipos: TipoConsulta[] = ['PRENATAL', 'GINECOLOGICA', 'PUERPERIO', 'PLANEJAMENTO_FAMILIAR'];
-
   maxDate: Date = new Date();
 
   busca = this.fb.nonNullable.control('', [Validators.required]);
@@ -69,12 +70,28 @@ export class TriagemComponent {
   });
 
   ig = computed(() => {
-    const dum = this.identificacaoForm.controls.dum.value;
+    const dum = this.dumValue();
     if (!dum) return null;
     const hoje = new Date();
     const diff = Math.max(Math.floor((hoje.getTime() - dum.getTime()) / 86400000), 0);
     return { semanas: Math.floor(diff / 7), dias: diff % 7 };
   });
+
+  private readonly dumValue = toSignal(this.identificacaoForm.controls.dum.valueChanges, {
+    initialValue: this.identificacaoForm.controls.dum.value,
+  });
+
+  constructor() {
+    this.identificacaoForm.controls.tipoConsulta.valueChanges.subscribe((tipo) => {
+      const dum = this.identificacaoForm.controls.dum;
+      if (tipo === 'PRENATAL') {
+        dum.setValidators([Validators.required]);
+      } else {
+        dum.clearValidators();
+      }
+      dum.updateValueAndValidity({ emitEvent: false });
+    });
+  }
 
   buscar(): void {
     const termo = this.busca.value.trim();
@@ -108,16 +125,10 @@ export class TriagemComponent {
 
   confirmarIdentificacao(): void {
     const paciente = this.pacienteSelecionada();
+    if (!paciente) return;
     const tipo = this.identificacaoForm.controls.tipoConsulta.value;
     const dum = this.identificacaoForm.controls.dum.value;
-
-    if (!paciente) return;
-    if (tipo === 'PRENATAL' && !dum) {
-      this.snackBar.open('Informe a Data última menstruação para consulta pre-natal', 'Fechar', {
-        duration: 3000,
-      });
-      return;
-    }
+    this.submetendo.set(true);
     this.consultaService
       .iniciar({
         pacienteId: paciente.id,
@@ -133,9 +144,12 @@ export class TriagemComponent {
           });
           this.etapa1Concluida.set(true);
           this.identificacaoForm.disable();
+          this.submetendo.set(false);
         },
-        error: () =>
-          this.snackBar.open('Erro ao iniciar consulta', 'Fechar', { duration: 3000 }),
+        error: () => {
+          this.snackBar.open('Erro ao iniciar consulta', 'Fechar', { duration: 3000 });
+          this.submetendo.set(false);
+        },
       });
   }
 
@@ -143,6 +157,7 @@ export class TriagemComponent {
     const id = this.consultaId();
     if (!id || this.triagemForm.invalid) return;
     const value = this.triagemForm.getRawValue();
+    this.submetendo.set(true);
     this.consultaService
       .salvarTriagem(id, {
         pesoKg: Number(value.pesoKg),
@@ -150,9 +165,14 @@ export class TriagemComponent {
         paDiastolica: Number(value.paDiastolica),
       })
       .subscribe({
-        next: () => this.triagemConcluida.set(true),
-        error: () =>
-          this.snackBar.open('Erro ao concluir triagem', 'Fechar', { duration: 3000 }),
+        next: () => {
+          this.triagemConcluida.set(true);
+          this.submetendo.set(false);
+        },
+        error: () => {
+          this.snackBar.open('Erro ao concluir triagem', 'Fechar', { duration: 3000 });
+          this.submetendo.set(false);
+        },
       });
   }
 
@@ -162,6 +182,7 @@ export class TriagemComponent {
     this.triagemConcluida.set(false);
     this.consultaId.set(null);
     this.busca.reset('');
+    this.identificacaoForm.enable();
     this.identificacaoForm.reset({ tipoConsulta: 'PRENATAL', dum: null });
     this.triagemForm.reset();
   }
