@@ -8,42 +8,37 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-def transcrever_audio(audio_bytes: bytes, content_type: str) -> Optional[str]:
-    """Transcreve áudio usando a REST API do Azure AI Speech (modo conversa, até ~10 min).
-    Retorna None se o Azure não estiver configurado ou se a transcrição falhar.
-    Formatos suportados: audio/webm, audio/ogg, audio/wav, audio/mp4.
+def gerar_token_speech() -> Optional[str]:
+    """Gera token temporário para o Azure Speech SDK (válido por 10 minutos).
+    O token é emitido pelo STS do Azure — a subscription key nunca sai do backend.
+    Retorna None se o Azure não estiver configurado ou se a requisição falhar.
     """
     if not settings.azure_speech_key or not settings.azure_speech_region:
-        logger.info("Azure Speech nao configurado; transcricao indisponivel.")
+        logger.info("Azure Speech nao configurado; token indisponivel.")
         return None
 
-    base = (
-        f"https://{settings.azure_speech_region}.stt.speech.microsoft.com"
-        "/speech/recognition/conversation/cognitiveservices/v1"
+    url = (
+        f"https://{settings.azure_speech_region}"
+        ".api.cognitive.microsoft.com/sts/v1.0/issueToken"
     )
-    params = urllib.parse.urlencode({"language": "pt-BR", "format": "detailed"})
-    url = f"{base}?{params}"
-
     req = urllib.request.Request(
         url,
-        data=audio_bytes,
+        data=b"",
         headers={
             "Ocp-Apim-Subscription-Key": settings.azure_speech_key,
-            "Content-Type": content_type or "audio/webm",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": "0",
         },
         method="POST",
     )
     try:
-        import json
-
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            data = json.loads(resp.read())
-        if data.get("RecognitionStatus") == "Success":
-            return data.get("DisplayText")
-        logger.warning("Azure Speech status inesperado: %s", data.get("RecognitionStatus"))
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            token = resp.read().decode("utf-8")
+        logger.info("Token Azure Speech gerado com sucesso.")
+        return token
     except Exception as exc:
-        logger.error("Erro ao chamar Azure Speech: %s", exc)
-    return None
+        logger.error("Erro ao gerar token Azure Speech: %s", exc)
+        return None
 
 
 def analisar_sentimento_azure(texto: str) -> Optional[dict]:

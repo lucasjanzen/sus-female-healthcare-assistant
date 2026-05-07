@@ -9,6 +9,7 @@ from app.routers import auth
 from app.routers import consulta as consulta_router
 from app.routers import fila as fila_router
 from app.routers import paciente as paciente_router
+from app.routers import speech as speech_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,6 +34,7 @@ app.include_router(
 )
 app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
 app.include_router(fila_router.router, prefix="/fila", tags=["Fila"])
+app.include_router(speech_router.router, prefix="/speech", tags=["Speech"])
 
 
 @app.get("/health", tags=["Status"])

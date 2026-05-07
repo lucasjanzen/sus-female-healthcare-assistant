@@ -17,7 +17,6 @@ from app.schemas.consulta import (
     ResultadoIAOut,
 )
 from app.services.analise_service import analisar
-from app.services.azure_service import transcrever_audio
 
 from .helpers import (
     _build_relato_out,
@@ -124,36 +123,6 @@ def iniciar_audio(
     return AudioIniciarOut(audio_id=audio.id)
 
 
-@router.post("/{id_consulta}/audio/encerrar", response_model=AudioStatusOut)
-async def encerrar_audio(
-    id_consulta: UUID,
-    audio_file: UploadFile = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("MEDICO")),
-):
-    _consulta_ou_404(id_consulta, db)
-    audio = _ultimo_audio(id_consulta, db)
-    if not audio:
-        raise HTTPException(status_code=404, detail="Audio nao encontrado")
-
-    transcricao = None
-    if audio_file:
-        audio_bytes = await audio_file.read()
-        transcricao = transcrever_audio(
-            audio_bytes, audio_file.content_type or "audio/webm"
-        )
-
-    audio.status_processamento = "CONCLUIDO"
-    audio.transcricao = (
-        transcricao
-        or "Transcricao nao disponivel. Revise e complemente o relato manualmente."
-    )
-    db.commit()
-    return AudioStatusOut(
-        status_processamento=audio.status_processamento, transcricao=audio.transcricao
-    )
-
-
 @router.get("/{id_consulta}/audio/status", response_model=AudioStatusOut)
 def status_audio(
     id_consulta: UUID,
@@ -187,12 +156,7 @@ def analisar_consulta(
     )
     if not relato or not relato.relato_texto:
         raise HTTPException(status_code=400, detail="Informe o relato antes da analise")
-    audio = _ultimo_audio(id_consulta, db)
-    resultado_ia = analisar(
-        relato.relato_texto,
-        audio.transcricao if audio else None,
-        id_consulta=id_consulta,
-    )
+    resultado_ia = analisar(relato.relato_texto, id_consulta=id_consulta)
 
     resultado = (
         db.query(ConsultaResultado)
@@ -211,7 +175,7 @@ def analisar_consulta(
     resultado.confirmado_em = None
     db.commit()
     db.refresh(resultado)
-    return _build_resultado_out(resultado, db)
+    return _build_resultado_out(resultado)
 
 
 @router.get(
@@ -232,7 +196,7 @@ def obter_resultado(
     )
     if not resultado:
         raise HTTPException(status_code=404, detail="Resultado nao encontrado")
-    return _build_resultado_out(resultado, db)
+    return _build_resultado_out(resultado)
 
 
 @router.post(
@@ -257,4 +221,4 @@ def confirmar_resultado(
     resultado.confirmado_em = datetime.now(timezone.utc)
     db.commit()
     db.refresh(resultado)
-    return _build_resultado_out(resultado, db)
+    return _build_resultado_out(resultado)

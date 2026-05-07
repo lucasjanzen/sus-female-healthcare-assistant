@@ -63,10 +63,14 @@
           Encerrar Gravação
         </button>
       }
-      @if (audioStatus() !== 'AGUARDANDO') {
-        <span>{{ audioStatus() }}</span>
-      }
     </section>
+
+    @if (gravando() && textoParcial()) {
+      <p class="texto-parcial">
+        <mat-icon style="font-size:16px;vertical-align:middle">graphic_eq</mat-icon>
+        {{ textoParcial() }}
+      </p>
+    }
 
     <div>
       <button

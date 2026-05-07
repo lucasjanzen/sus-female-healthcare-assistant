@@ -163,18 +163,12 @@ def _resumo(
 
 def analisar(
     relato_texto: str,
-    transcricao: Optional[str] = None,
     id_consulta: Optional[UUID] = None,
 ) -> ResultadoIAOut:
     from app.services.azure_service import analisar_sentimento_azure
 
-    texto_completo = relato_texto
-    origem = "TEXTO_LOCAL"
-    if transcricao:
-        texto_completo = f"{relato_texto}\n{transcricao}"
-        origem = "AMBOS"
-
-    sentimento_azure = analisar_sentimento_azure(texto_completo)
+    # Transcrição de voz já está embutida em relato_texto (Azure Speech SDK no browser)
+    sentimento_azure = analisar_sentimento_azure(relato_texto)
 
     negativo_forte: Optional[bool] = None
     negativo: Optional[bool] = None
@@ -186,7 +180,7 @@ def analisar(
     else:
         logger.info("Azure Language indisponivel; usando deteccao local de sentimento.")
 
-    indicadores = _detectar(_normalizar(texto_completo), origem, negativo_forte, negativo)
+    indicadores = _detectar(_normalizar(relato_texto), "TEXTO_LOCAL", negativo_forte, negativo)
     score = min(sum(PESOS[i.tipo][i.nivel] for i in indicadores), 100)
     faixa, mensagem = _faixa(score)
 
@@ -196,7 +190,7 @@ def analisar(
         faixa_risco=faixa,
         indicadores=indicadores,
         resumo_ia=_resumo(indicadores, faixa, mensagem, sentimento_azure),
-        status_audio="CONCLUIDO" if transcricao else "AGUARDANDO",
+        status_audio="CONCLUIDO",
         confirmado=False,
         calculado_em=datetime.now(timezone.utc),
     )

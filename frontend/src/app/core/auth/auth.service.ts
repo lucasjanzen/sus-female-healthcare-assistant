@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 
 import { JwtPayload, TokenResponse } from '../models/user.model';
-import { environment } from '../../../environments/environment';
+import { environment } from 'environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

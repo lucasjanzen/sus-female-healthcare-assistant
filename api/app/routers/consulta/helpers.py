@@ -88,15 +88,14 @@ def _ultimo_audio(id_consulta: UUID, db: Session) -> ConsultaAudio | None:
     )
 
 
-def _build_resultado_out(resultado: ConsultaResultado, db: Session) -> ResultadoIAOut:
-    audio = _ultimo_audio(resultado.id_consulta, db)
+def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
     return ResultadoIAOut(
         id_consulta=resultado.id_consulta,
         score_geral=resultado.score_geral,
         faixa_risco=resultado.faixa_risco,
         indicadores=resultado.indicadores,
         resumo_ia=resultado.resumo_ia or "",
-        status_audio=audio.status_processamento if audio else "AGUARDANDO",
+        status_audio="CONCLUIDO",
         confirmado=resultado.confirmado,
         calculado_em=resultado.calculado_em,
     )
