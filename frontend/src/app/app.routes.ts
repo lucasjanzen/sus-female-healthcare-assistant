@@ -28,26 +28,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.adminRoutes),
       },
       {
-        path: 'consulta/nova',
-        canActivate: [roleGuard(['MEDICO', 'ENFERMEIRO'])],
-        loadComponent: () =>
-          import('./features/consulta/triagem/triagem.component').then((m) => m.TriagemComponent),
-      },
-      {
-        path: 'consulta/:id/atendimento',
-        canActivate: [roleGuard(['MEDICO'])],
-        loadComponent: () =>
-          import('./features/consulta/atendimento/atendimento.component').then(
-            (m) => m.AtendimentoComponent,
-          ),
+        path: 'consulta',
+        loadChildren: () =>
+          import('./features/consulta/consulta.routes').then((m) => m.consultaRoutes),
       },
       {
         path: 'fila',
-        canActivate: [roleGuard(['MEDICO', 'ENFERMEIRO'])],
-        loadComponent: () =>
-          import('./features/fila/fila-consultas/fila-consultas.component').then(
-            (m) => m.FilaConsultasComponent,
-          ),
+        loadChildren: () => import('./features/fila/fila.routes').then((m) => m.filaRoutes),
       },
     ],
   },
