@@ -83,7 +83,14 @@
         }
 
         @if (!etapa1Concluida()) {
-          <button mat-raised-button color="primary" [disabled]="identificacaoForm.invalid || submetendo()" (click)="confirmarIdentificacao()">Confirmar</button>
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="identificacaoForm.invalid || submetendo()"
+            (click)="confirmarIdentificacao()"
+          >
+            Confirmar
+          </button>
         }
       }
 
@@ -102,22 +109,30 @@
         <form class="stack" [formGroup]="triagemForm">
           <mat-form-field appearance="outline">
             <mat-label>Peso atual (kg)</mat-label>
-            <input matInput type="number" formControlName="pesoKg" />
+            <input matInput type="number" formControlName="pesoKg" placeholder="ex: 65" />
+            <mat-error>Informe um peso entre 30 e 300 kg</mat-error>
           </mat-form-field>
 
           <div class="pa-grid">
             <mat-form-field appearance="outline">
               <mat-label>PA Sistólica (mmHg)</mat-label>
-              <input matInput type="number" formControlName="paSistolica" />
+              <input matInput type="number" formControlName="paSistolica" placeholder="ex: 120" />
+              <mat-error>Informe um valor entre 60 e 250 mmHg</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>PA Diastólica (mmHg)</mat-label>
-              <input matInput type="number" formControlName="paDiastolica" />
+              <input matInput type="number" formControlName="paDiastolica" placeholder="ex: 80" />
+              <mat-error>Informe um valor entre 40 e 150 mmHg</mat-error>
             </mat-form-field>
           </div>
         </form>
 
-        <button mat-raised-button color="primary" [disabled]="triagemForm.invalid || submetendo()" (click)="concluirTriagem()">
+        <button
+          mat-raised-button
+          color="primary"
+          [disabled]="triagemForm.invalid || submetendo()"
+          (click)="concluirTriagem()"
+        >
           Concluir
         </button>
       }

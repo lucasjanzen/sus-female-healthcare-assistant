@@ -20,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ConsultaAssumidaOut } from 'app/features/fila/models/fila.model';
 import { FilaService } from 'app/features/fila/services/fila.service';
@@ -43,6 +44,7 @@ import { AzureSpeechRecognitionService } from 'app/core/services/azure-speech-re
     MatInputModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './step-consulta.component.html',
   styleUrl: './step-consulta.component.scss',
@@ -59,6 +61,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   private readonly filaService = inject(FilaService);
   private readonly snackBar = inject(MatSnackBar);
   private timer?: number;
+  private saveTimer?: number;
 
   readonly consultaAtiva = computed(() => this.consultaService.consultaAtiva());
   readonly dadosConsulta = signal<ConsultaAssumidaOut | null>(null);
@@ -66,8 +69,10 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly analisando = signal(false);
   readonly gravando = signal(false);
   readonly segundosGravacao = signal(0);
+  readonly relatoSalvo = signal(false);
   /** Texto sendo reconhecido em tempo real (resultado parcial — ainda pode mudar). */
   readonly textoParcial = signal('');
+  private idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
 
   readonly form = this.fb.nonNullable.group({
     relatoTexto: ['', [Validators.minLength(20)]],
@@ -87,9 +92,21 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.timer) window.clearInterval(this.timer);
-    // Libera microfone e fecha socket do Azure Speech
+    this.cancelarTimerGravacao();
+    this.cancelarSaveTimer();
     this.speechService.destroy();
+  }
+
+  private cancelarTimerGravacao(): void {
+    if (this.timer) window.clearInterval(this.timer);
+  }
+
+  private cancelarSaveTimer(): void {
+    if (this.saveTimer) window.clearTimeout(this.saveTimer);
+  }
+
+  private notificarErro(msg: string, duration = 3000): void {
+    this.snackBar.open(msg, 'Fechar', { duration });
   }
 
   private carregarDadosConsulta(): void {
@@ -99,7 +116,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   private carregarRelato(): void {
-    const id = this.consultaAtiva()?.idConsulta;
+    const id = this.idConsulta();
     if (!id) return;
     this.relatoService.obter(id).subscribe({
       next: (relato) =>
@@ -107,7 +124,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
           relatoTexto: relato.relatoTexto ?? '',
           parecerMedico: relato.parecerMedico ?? '',
         }),
-      error: () => undefined,
+      error: () => this.notificarErro('Não foi possível carregar o relato anterior.', 4000),
     });
   }
 
@@ -125,28 +142,39 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     });
 
     this.speechService.error$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((msg) => {
-      this.snackBar.open(msg, 'Fechar', { duration: 5000 });
+      this.notificarErro(msg, 5000);
       this.gravando.set(false);
-      if (this.timer) window.clearInterval(this.timer);
+      this.cancelarTimerGravacao();
     });
   }
 
   salvarRelato(): void {
-    const id = this.consultaAtiva()?.idConsulta;
+    const id = this.idConsulta();
     const relatoTexto = this.form.controls.relatoTexto.value.trim();
     if (!id || relatoTexto.length < 20) return;
     this.relatoService.atualizar(id, { relatoTexto }).subscribe({
-      error: () => this.relatoService.criar(id, relatoTexto).subscribe(),
+      next: () => this.indicarRelatoSalvo(),
+      error: () =>
+        this.relatoService.criar(id, relatoTexto).subscribe({
+          next: () => this.indicarRelatoSalvo(),
+          error: () => this.notificarErro('Erro ao salvar relato'),
+        }),
     });
   }
 
+  private indicarRelatoSalvo(): void {
+    this.relatoSalvo.set(true);
+    this.cancelarSaveTimer();
+    this.saveTimer = window.setTimeout(() => this.relatoSalvo.set(false), 2000);
+  }
+
   salvarParecer(): void {
-    const id = this.consultaAtiva()?.idConsulta;
+    const id = this.idConsulta();
     if (!id) return;
     this.relatoService
       .atualizar(id, { parecerMedico: this.form.controls.parecerMedico.value })
       .subscribe({
-        error: () => this.snackBar.open('Erro ao salvar parecer', 'Fechar', { duration: 3000 }),
+        error: () => this.notificarErro('Erro ao salvar parecer'),
       });
   }
 
@@ -157,14 +185,12 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
         this.segundosGravacao.set(0);
         this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
       },
-      error: () => {
-        this.snackBar.open('Erro ao iniciar reconhecimento de voz', 'Fechar', { duration: 4000 });
-      },
+      error: () => this.notificarErro('Erro ao iniciar reconhecimento de voz', 4000),
     });
   }
 
   encerrarGravacao(): void {
-    if (this.timer) window.clearInterval(this.timer);
+    this.cancelarTimerGravacao();
     this.gravando.set(false);
     this.speechService.parar().then(() => {
       this.textoParcial.set('');
@@ -172,30 +198,40 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   analisar(): void {
-    const id = this.consultaAtiva()?.idConsulta;
+    const id = this.idConsulta();
     if (!id) return;
     this.salvarRelato();
     this.analisando.set(true);
     this.resultadoService.analisar(id).subscribe({
       next: (resultado) => {
         this.resultado.set(resultado);
-        this.form.controls.parecerMedico.setValue(resultado.resumoIa);
         this.analisando.set(false);
+        const parecerAtual = this.form.controls.parecerMedico.value.trim();
+        if (parecerAtual) {
+          this.snackBar
+            .open('IA gerou um resumo. Deseja substituir o parecer atual?', 'Substituir', {
+              duration: 8000,
+            })
+            .onAction()
+            .subscribe(() => this.form.controls.parecerMedico.setValue(resultado.resumoIa));
+        } else {
+          this.form.controls.parecerMedico.setValue(resultado.resumoIa);
+        }
       },
       error: () => {
-        this.snackBar.open('Erro ao analisar relato', 'Fechar', { duration: 3000 });
+        this.notificarErro('Erro ao analisar relato');
         this.analisando.set(false);
       },
     });
   }
 
   confirmarAnalise(): void {
-    const id = this.consultaAtiva()?.idConsulta;
+    const id = this.idConsulta();
     if (!id) return;
     this.salvarParecer();
     this.resultadoService.confirmar(id).subscribe({
       next: () => this.confirmado.emit(),
-      error: () => this.snackBar.open('Erro ao confirmar análise', 'Fechar', { duration: 3000 }),
+      error: () => this.notificarErro('Erro ao confirmar análise'),
     });
   }
 

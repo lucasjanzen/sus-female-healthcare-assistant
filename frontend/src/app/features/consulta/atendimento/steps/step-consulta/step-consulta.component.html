@@ -47,6 +47,11 @@
         placeholder="Digite aqui o relato da paciente durante a consulta..."
         (blur)="salvarRelato()"
       ></textarea>
+      @if (relatoSalvo()) {
+        <mat-hint>Salvo ✓</mat-hint>
+      } @else if (form.controls.relatoTexto.value.trim().length < 20) {
+        <mat-hint align="end">{{ form.controls.relatoTexto.value.trim().length }}/20 mín.</mat-hint>
+      }
     </mat-form-field>
 
     <section class="audio-row">
@@ -78,6 +83,7 @@
         color="accent"
         type="button"
         [disabled]="form.controls.relatoTexto.value.trim().length < 20 || analisando()"
+        [matTooltip]="form.controls.relatoTexto.value.trim().length < 20 ? 'Digite pelo menos 20 caracteres para analisar' : ''"
         (click)="analisar()"
       >
         Analisar com IA

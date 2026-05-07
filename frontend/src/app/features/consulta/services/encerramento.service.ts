@@ -1,8 +1,6 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { environment } from 'environments/environment';
 import { ApiService } from '../../../core/services/api.service';
 import {
   EncerramentoCreate,
@@ -14,8 +12,6 @@ import {
 @Injectable({ providedIn: 'root' })
 export class EncerramentoService {
   private readonly api = inject(ApiService);
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiUrl;
 
   obterSugestao(idConsulta: string): Observable<SugestaoEncerramentoOut> {
     return this.api.get<SugestaoEncerramentoOut>(`/consulta/${idConsulta}/encerramento/sugestao`);
@@ -30,8 +26,6 @@ export class EncerramentoService {
   }
 
   baixarResumoPdf(idConsulta: string): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/consulta/${idConsulta}/resumo-pec/pdf`, {
-      responseType: 'blob',
-    });
+    return this.api.getBlob(`/consulta/${idConsulta}/resumo-pec/pdf`);
   }
 }

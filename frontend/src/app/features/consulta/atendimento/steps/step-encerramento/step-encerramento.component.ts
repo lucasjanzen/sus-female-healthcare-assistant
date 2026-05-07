@@ -58,6 +58,7 @@ export class StepEncerramentoComponent {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly idConsulta = computed(() => this.consultaService.consultaAtiva()?.idConsulta);
 
   private inicializado = false;
   readonly carregando = signal(false);
@@ -65,7 +66,6 @@ export class StepEncerramentoComponent {
   readonly encerrado = signal(false);
   readonly resultado = signal<ResultadoIAOut | null>(null);
   readonly encaminhamentosSelecionados = signal<string[]>([]);
-
   readonly faixaRisco = computed(() => this.resultado()?.faixaRisco ?? '');
   readonly precisaAlerta = computed(
     () => this.faixaRisco() === 'LARANJA' || this.faixaRisco() === 'VERMELHO',
@@ -94,10 +94,10 @@ export class StepEncerramentoComponent {
   constructor() {
     effect(() => {
       if (this.pronto() && !this.inicializado) {
-        const ativa = this.consultaService.consultaAtiva();
-        if (ativa) {
+        const id = this.idConsulta();
+        if (id) {
           this.inicializado = true;
-          this.inicializar(ativa.idConsulta);
+          this.inicializar(id);
         }
       }
     });
@@ -123,9 +123,13 @@ export class StepEncerramentoComponent {
       },
       error: () => {
         this.carregando.set(false);
-        this.snackBar.open('Erro ao carregar dados da consulta.', 'Fechar', { duration: 4000 });
+        this.notificarErro('Erro ao carregar dados da consulta.');
       },
     });
+  }
+
+  private notificarErro(msg: string, duration = 4000): void {
+    this.snackBar.open(msg, 'Fechar', { duration });
   }
 
   onEncaminhamentosChange(event: MatChipListboxChange): void {
@@ -145,8 +149,8 @@ export class StepEncerramentoComponent {
   }
 
   private encerrar(): void {
-    const ativa = this.consultaService.consultaAtiva();
-    if (!ativa || this.form.invalid) return;
+    const id = this.idConsulta();
+    if (!id || this.form.invalid) return;
 
     const dataRetorno = this.form.value.dataProximoRetorno!;
     const dataStr = dataRetorno.toLocaleDateString('en-CA');
@@ -159,7 +163,7 @@ export class StepEncerramentoComponent {
     };
 
     this.salvando.set(true);
-    this.encerramentoService.encerrar(ativa.idConsulta, dados).subscribe({
+    this.encerramentoService.encerrar(id, dados).subscribe({
       next: (enc) => {
         this.encerramento = enc;
         this.salvando.set(false);
@@ -167,15 +171,13 @@ export class StepEncerramentoComponent {
       },
       error: () => {
         this.salvando.set(false);
-        this.snackBar.open('Erro ao encerrar a consulta. Tente novamente.', 'Fechar', {
-          duration: 4000,
-        });
+        this.notificarErro('Erro ao encerrar a consulta. Tente novamente.');
       },
     });
   }
 
   baixarPdf(): void {
-    const id = this.consultaService.consultaAtiva()?.idConsulta;
+    const id = this.idConsulta();
     if (!id) return;
     this.encerramentoService.baixarResumoPdf(id).subscribe({
       next: (blob) => {
@@ -186,7 +188,7 @@ export class StepEncerramentoComponent {
         link.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.snackBar.open('Erro ao gerar PDF.', 'Fechar', { duration: 4000 }),
+      error: () => this.notificarErro('Erro ao gerar PDF.'),
     });
   }
 
