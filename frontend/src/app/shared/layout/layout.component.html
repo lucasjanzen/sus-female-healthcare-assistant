@@ -1,0 +1,21 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  @if (showBack()) {
+    <button mat-icon-button (click)="irParaInicio()" title="Voltar ao início" aria-label="Início">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+  }
+
+  <span class="app-name">Centro de Assistência à Saúde Feminina</span>
+  <span class="spacer"></span>
+
+  @if (currentUser(); as user) {
+    <span class="user-name">{{ user.nome }}</span>
+  }
+
+  <span (click)="logout()" title="Sair da conta" aria-label="Sair">
+    <mat-icon>logout</mat-icon>
+    Sair
+  </span>
+</mat-toolbar>
+
+<router-outlet />

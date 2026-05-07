@@ -58,6 +58,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   private readonly resultadoService = inject(ResultadoService);
   private readonly filaService = inject(FilaService);
   private readonly snackBar = inject(MatSnackBar);
+  private timer?: number;
 
   readonly consultaAtiva = computed(() => this.consultaService.consultaAtiva());
   readonly dadosConsulta = signal<ConsultaAssumidaOut | null>(null);
@@ -67,8 +68,6 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly segundosGravacao = signal(0);
   /** Texto sendo reconhecido em tempo real (resultado parcial — ainda pode mudar). */
   readonly textoParcial = signal('');
-
-  private timer?: number;
 
   readonly form = this.fb.nonNullable.group({
     relatoTexto: ['', [Validators.minLength(20)]],
@@ -82,25 +81,38 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    this.carregarDadosConsulta();
+    this.carregarRelato();
+    this.configurarSpeech();
+  }
+
+  ngOnDestroy(): void {
+    if (this.timer) window.clearInterval(this.timer);
+    // Libera microfone e fecha socket do Azure Speech
+    this.speechService.destroy();
+  }
+
+  private carregarDadosConsulta(): void {
     this.filaService.emAndamento().subscribe((consulta) => {
       this.dadosConsulta.set(consulta);
     });
+  }
 
+  private carregarRelato(): void {
     const id = this.consultaAtiva()?.idConsulta;
-    if (id) {
-      this.relatoService.obter(id).subscribe({
-        next: (relato) =>
-          this.form.patchValue({
-            relatoTexto: relato.relatoTexto ?? '',
-            parecerMedico: relato.parecerMedico ?? '',
-          }),
-        error: () => undefined,
-      });
-    }
+    if (!id) return;
+    this.relatoService.obter(id).subscribe({
+      next: (relato) =>
+        this.form.patchValue({
+          relatoTexto: relato.relatoTexto ?? '',
+          parecerMedico: relato.parecerMedico ?? '',
+        }),
+      error: () => undefined,
+    });
+  }
 
-    // Resultados do Azure Speech SDK:
-    // - 'partial': atualiza preview em tempo real (não grava no textarea ainda)
-    // - 'final': acumula frase completa no campo de relato
+  private configurarSpeech(): void {
+    // 'partial' atualiza preview; 'final' acumula no campo de relato
     this.speechService.result$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result.type === 'partial') {
         this.textoParcial.set(result.text);
@@ -117,12 +129,6 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       this.gravando.set(false);
       if (this.timer) window.clearInterval(this.timer);
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.timer) window.clearInterval(this.timer);
-    // Libera microfone e fecha socket do Azure Speech
-    this.speechService.destroy();
   }
 
   salvarRelato(): void {

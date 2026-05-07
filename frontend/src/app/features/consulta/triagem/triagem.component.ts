@@ -12,7 +12,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { PacienteConsultaOut, TipoConsulta } from '../models/consulta.model';
+import { PacienteConsultaOut } from '../models/consulta.model';
+import { TipoConsulta } from '../models/consulta.types';
 import { ConsultaService } from '../services/consulta.service';
 
 @Component({

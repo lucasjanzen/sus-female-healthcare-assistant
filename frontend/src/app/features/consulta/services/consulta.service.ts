@@ -3,12 +3,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from 'environments/environment';
-import {
-  Etapa1Out,
-  PacienteConsultaOut,
-  TipoConsulta,
-  TriagemResumo,
-} from '../models/consulta.model';
+import { Etapa1Out, PacienteConsultaOut, TriagemResumo } from '../models/consulta.model';
+import { TipoConsulta } from '../models/consulta.types';
 
 interface ConsultaIniciarRequest {
   pacienteId: string;

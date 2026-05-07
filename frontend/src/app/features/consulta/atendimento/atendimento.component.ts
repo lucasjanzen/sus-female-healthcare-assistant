@@ -18,7 +18,6 @@ export class AtendimentoComponent implements OnInit {
 
   readonly consultaAtiva = computed(() => this.consultaService.consultaAtiva());
   readonly encerramentoPronto = signal(false);
-
   readonly titulo = computed(() => (this.encerramentoPronto() ? 'Encerramento' : 'Consulta'));
   readonly faseBadge = computed(() => (this.encerramentoPronto() ? '3 / 3' : '2 / 3'));
 

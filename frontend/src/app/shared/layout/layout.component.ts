@@ -12,32 +12,11 @@ import { AuthService } from '../../core/auth/auth.service';
   selector: 'app-layout',
   standalone: true,
   imports: [RouterOutlet, MatToolbarModule, MatButtonModule, MatIconModule],
-  template: `
-    <mat-toolbar color="primary" class="app-toolbar">
-      @if (showBack()) {
-        <button mat-icon-button (click)="irParaInicio()" title="Voltar ao início" aria-label="Início">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-      }
-      <span class="app-name">Centro de Assistência à Saúde Feminina</span>
-      <span class="spacer"></span>
-      @if (currentUser(); as user) {
-        <span class="user-name">{{ user.nome }}</span>
-      }
-      <button mat-stroked-button (click)="logout()" title="Sair da conta" aria-label="Sair">
-        <mat-icon>logout</mat-icon>
-        Sair
-      </button>
-    </mat-toolbar>
-    <router-outlet />
-  `,
+  templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss',
 })
 export class LayoutComponent {
-  readonly currentUser = computed(() => this.authService.getUser());
-
   private readonly router = inject(Router);
-
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
@@ -46,6 +25,7 @@ export class LayoutComponent {
     { initialValue: this.router.url },
   );
 
+  readonly currentUser = computed(() => this.authService.getUser());
   readonly showBack = computed(() => this.currentUrl() !== '/home');
 
   constructor(private authService: AuthService) {}

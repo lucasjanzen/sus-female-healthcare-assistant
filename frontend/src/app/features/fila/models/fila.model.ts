@@ -1,4 +1,5 @@
-import { TipoConsulta, TriagemResumo } from '../../consulta/models/consulta.model';
+import { TriagemResumo } from '../../consulta/models/consulta.model';
+import { TipoConsulta } from '../../consulta/models/consulta.types';
 
 export interface ConsultaFilaItem {
   idConsulta: string;

@@ -13,11 +13,11 @@
       <mat-icon class="check-icon">check_circle</mat-icon>
       <h2>Consulta encerrada com sucesso</h2>
 
-      @if (resultado) {
+      @if (resultado(); as r) {
         <div class="score-final">
-          <span class="num" [style.color]="corFaixa(resultado.faixaRisco)">{{ resultado.scoreGeral }}/100</span>
-          <span class="label" [style.color]="corFaixa(resultado.faixaRisco)">
-            {{ textoFaixa(resultado.faixaRisco) }}
+          <span class="num" [style.color]="corFaixa(r.faixaRisco)">{{ r.scoreGeral }}/100</span>
+          <span class="label" [style.color]="corFaixa(r.faixaRisco)">
+            {{ textoFaixa(r.faixaRisco) }}
           </span>
         </div>
       }
@@ -42,20 +42,20 @@
   <!-- Formulário de encerramento -->
   @else {
     <!-- BLOCO 0 — Resultado da IA (somente leitura) -->
-    @if (resultado) {
-      <mat-card class="resultado-card section" [style.border-left]="'4px solid ' + corFaixa(resultado.faixaRisco)">
+    @if (resultado(); as r) {
+      <mat-card class="resultado-card section" [style.border-left]="'4px solid ' + corFaixa(r.faixaRisco)">
         <mat-card-header>
           <mat-card-title>Resultado da Análise IA</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="score-display">
-            <span class="score-num" [style.color]="corFaixa(resultado.faixaRisco)">{{ resultado.scoreGeral }}/100</span>
-            <span class="faixa-badge" [style.background-color]="corFaixa(resultado.faixaRisco)">
-              {{ textoFaixa(resultado.faixaRisco) }}
+            <span class="score-num" [style.color]="corFaixa(r.faixaRisco)">{{ r.scoreGeral }}/100</span>
+            <span class="faixa-badge" [style.background-color]="corFaixa(r.faixaRisco)">
+              {{ textoFaixa(r.faixaRisco) }}
             </span>
           </div>
           <div class="indicadores">
-            @for (ind of resultado.indicadores; track ind.tipo) {
+            @for (ind of r.indicadores; track ind.tipo) {
               <span
                 class="indicador-chip"
                 [style.color]="corNivel(ind.nivel)"
@@ -64,7 +64,7 @@
                 {{ ind.descricao }}
               </span>
             }
-            @if (resultado.indicadores.length === 0) {
+            @if (r.indicadores.length === 0) {
               <span>Nenhum indicador de risco detectado.</span>
             }
           </div>
@@ -91,13 +91,13 @@
 
       <!-- BLOCO 2 — Encaminhamentos -->
       <div class="section">
-        @if (precisaAlerta) {
+        @if (precisaAlerta()) {
           <mat-card
             class="alerta-card"
-            [style.border]="faixaRisco === 'VERMELHO' ? '2px solid #b71c1c' : '2px solid #e65100'"
+            [style.border]="faixaRisco() === 'VERMELHO' ? '2px solid #b71c1c' : '2px solid #e65100'"
           >
             <mat-card-content>
-              @if (faixaRisco === 'VERMELHO') {
+              @if (faixaRisco() === 'VERMELHO') {
                 <mat-icon [style.color]="'#b71c1c'">priority_high</mat-icon>
                 <span [style.color]="'#b71c1c'">Encaminhamento urgente necessário.</span>
               } @else {

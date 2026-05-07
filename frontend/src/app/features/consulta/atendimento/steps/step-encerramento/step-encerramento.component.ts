@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -15,7 +15,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import {
-  IndicadorIA,
   ResultadoIAOut,
   EncerramentoCreate,
   EncerramentoOut,
@@ -60,15 +59,20 @@ export class StepEncerramentoComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
 
+  private inicializado = false;
   readonly carregando = signal(false);
   readonly salvando = signal(false);
   readonly encerrado = signal(false);
-
-  resultado: ResultadoIAOut | null = null;
-  encerramento: EncerramentoOut | null = null;
-
+  readonly resultado = signal<ResultadoIAOut | null>(null);
   readonly encaminhamentosSelecionados = signal<string[]>([]);
+
+  readonly faixaRisco = computed(() => this.resultado()?.faixaRisco ?? '');
+  readonly precisaAlerta = computed(
+    () => this.faixaRisco() === 'LARANJA' || this.faixaRisco() === 'VERMELHO',
+  );
+
   readonly minData = new Date();
+  encerramento: EncerramentoOut | null = null;
 
   readonly form = this.fb.group({
     conduta: ['', [Validators.required, Validators.minLength(10)]],
@@ -87,8 +91,6 @@ export class StepEncerramentoComponent {
     { valor: 'OUTRO', label: 'Outro' },
   ];
 
-  private inicializado = false;
-
   constructor() {
     effect(() => {
       if (this.pronto() && !this.inicializado) {
@@ -103,12 +105,13 @@ export class StepEncerramentoComponent {
 
   private inicializar(idConsulta: string): void {
     this.carregando.set(true);
+
     forkJoin({
       resultado: this.resultadoService.obter(idConsulta),
       sugestao: this.encerramentoService.obterSugestao(idConsulta),
     }).subscribe({
       next: ({ resultado, sugestao }) => {
-        this.resultado = resultado;
+        this.resultado.set(resultado);
         this.encaminhamentosSelecionados.set(sugestao.encaminhamentosSugeridos);
 
         const [ano, mes, dia] = sugestao.dataSugerida.split('-').map(Number);
@@ -222,13 +225,5 @@ export class StepEncerramentoComponent {
       ALTO: '#b71c1c',
     };
     return mapa[nivel] ?? '#757575';
-  }
-
-  get faixaRisco(): string {
-    return this.resultado?.faixaRisco ?? '';
-  }
-
-  get precisaAlerta(): boolean {
-    return this.faixaRisco === 'LARANJA' || this.faixaRisco === 'VERMELHO';
   }
 }
