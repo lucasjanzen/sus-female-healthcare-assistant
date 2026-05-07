@@ -43,7 +43,7 @@ def _assumida_out(
 )
 def listar_fila(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("MEDICO")),
+    current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
 ):
     linhas = (
         db.query(ConsultaIdentidade, Paciente)

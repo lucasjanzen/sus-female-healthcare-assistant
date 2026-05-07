@@ -1,5 +1,5 @@
 <div class="page">
-  @if (emAndamento(); as consultaAtual) {
+  @if (isMedico() && emAndamento(); as consultaAtual) {
     <div class="banner">
       <span>Você tem uma consulta em andamento.</span>
       <button mat-raised-button color="primary" (click)="continuar()">Continuar atendimento</button>
@@ -48,7 +48,7 @@
             </div>
             <div class="row" style="margin-top: 12px">
               <span class="muted">Aguardando há {{ tempoAguardando(consulta) }}</span>
-              @if (i === 0) {
+              @if (i === 0 && isMedico()) {
                 <button mat-raised-button color="primary" (click)="atender(consulta)">Atender</button>
               }
             </div>

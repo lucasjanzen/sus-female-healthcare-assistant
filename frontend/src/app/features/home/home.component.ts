@@ -53,6 +53,12 @@ export class HomeComponent {
     if (role === 'ENFERMEIRO') {
       return [
         {
+          icon: 'format_list_bulleted',
+          title: 'Fila de Consultas',
+          description: 'Acompanhe as consultas aguardando atendimento médico',
+          route: '/fila',
+        },
+        {
           icon: 'add_circle_outline',
           title: 'Iniciar Nova Consulta',
           description: 'Inicie uma nova consulta para uma paciente',

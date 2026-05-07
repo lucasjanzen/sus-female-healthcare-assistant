@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import { AuthService } from '../../../core/auth/auth.service';
 import { ConsultaAssumidaOut, ConsultaFilaItem } from '../models/fila.model';
 import { FilaService } from '../services/fila.service';
 
@@ -26,6 +27,7 @@ import { FilaService } from '../services/fila.service';
 })
 export class FilaConsultasComponent implements OnInit, OnDestroy {
   private readonly filaService = inject(FilaService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -33,6 +35,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   readonly emAndamento = signal<ConsultaAssumidaOut | null>(null);
   readonly carregando = signal(false);
   readonly atualizadoEm = signal<Date | null>(null);
+  readonly isMedico = computed(() => this.authService.getRole() === 'MEDICO');
 
   private polling?: number;
   private relogio?: number;
@@ -61,7 +64,9 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
         this.carregando.set(false);
       },
     });
-    this.filaService.emAndamento().subscribe((consulta) => this.emAndamento.set(consulta));
+    if (this.isMedico()) {
+      this.filaService.emAndamento().subscribe((consulta) => this.emAndamento.set(consulta));
+    }
   }
 
   atender(consulta: ConsultaFilaItem): void {

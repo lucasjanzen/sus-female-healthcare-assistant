@@ -43,7 +43,7 @@ export const routes: Routes = [
       },
       {
         path: 'fila',
-        canActivate: [roleGuard(['MEDICO'])],
+        canActivate: [roleGuard(['MEDICO', 'ENFERMEIRO'])],
         loadComponent: () =>
           import('./features/fila/fila-consultas/fila-consultas.component').then(
             (m) => m.FilaConsultasComponent,
