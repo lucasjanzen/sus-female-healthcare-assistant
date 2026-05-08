@@ -1,4 +1,6 @@
+import logging
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -6,25 +8,25 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
 from app.db.session import get_db
-from app.models.consulta import ConsultaAudio, ConsultaRelato, ConsultaResultado
+from app.models.consulta import ConsultaRelato, ConsultaResultado
 from app.models.user import User
 from app.schemas.consulta import (
-    AudioIniciarOut,
-    AudioStatusOut,
     RelatoCreate,
     RelatoOut,
     RelatoUpdate,
     ResultadoIAOut,
 )
-from app.services.analise_service import analisar
+import app.services.analise_service as analise_service
 
 from .helpers import (
     _build_relato_out,
     _build_resultado_out,
     _consulta_ou_404,
-    _ultimo_audio,
 )
 
+MAX_AUDIO_SIZE_BYTES = 60 * 1024 * 1024  # 60 MB
+
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -106,57 +108,49 @@ def obter_relato(
 
 
 @router.post(
-    "/{id_consulta}/audio/iniciar",
-    response_model=AudioIniciarOut,
-    response_model_by_alias=True,
-)
-def iniciar_audio(
-    id_consulta: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("MEDICO")),
-):
-    _consulta_ou_404(id_consulta, db)
-    audio = ConsultaAudio(id_consulta=id_consulta, status_processamento="PROCESSANDO")
-    db.add(audio)
-    db.commit()
-    db.refresh(audio)
-    return AudioIniciarOut(audio_id=audio.id)
-
-
-@router.get("/{id_consulta}/audio/status", response_model=AudioStatusOut)
-def status_audio(
-    id_consulta: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("MEDICO")),
-):
-    _consulta_ou_404(id_consulta, db)
-    audio = _ultimo_audio(id_consulta, db)
-    if not audio:
-        return AudioStatusOut(status_processamento="AGUARDANDO", transcricao=None)
-    return AudioStatusOut(
-        status_processamento=audio.status_processamento, transcricao=audio.transcricao
-    )
-
-
-@router.post(
     "/{id_consulta}/analisar",
     response_model=ResultadoIAOut,
     response_model_by_alias=True,
 )
-def analisar_consulta(
+async def analisar_consulta(
     id_consulta: UUID,
+    audio: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
     _consulta_ou_404(id_consulta, db)
+
     relato = (
         db.query(ConsultaRelato)
         .filter(ConsultaRelato.id_consulta == id_consulta)
         .first()
     )
-    if not relato or not relato.relato_texto:
+    relato_texto = relato.relato_texto if relato else ""
+
+    audio_bytes: Optional[bytes] = None
+    audio_content_type = "audio/webm"
+
+    if audio:
+        audio_bytes = await audio.read()
+        if len(audio_bytes) > MAX_AUDIO_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Arquivo de audio excede o limite de {MAX_AUDIO_SIZE_BYTES // (1024 * 1024)} MB.",
+            )
+        audio_content_type = audio.content_type or "audio/webm"
+    elif not relato_texto:
         raise HTTPException(status_code=400, detail="Informe o relato antes da analise")
-    resultado_ia = analisar(relato.relato_texto, id_consulta=id_consulta)
+
+    try:
+        resultado_ia = await analise_service.analisar(
+            relato_texto=relato_texto,
+            id_consulta=id_consulta,
+            audio_bytes=audio_bytes,
+            audio_content_type=audio_content_type,
+        )
+    except Exception as exc:
+        logger.error("Falha na análise IA para consulta %s: %s", id_consulta, exc)
+        raise HTTPException(status_code=502, detail="Serviço de análise indisponível. Tente novamente.")
 
     resultado = (
         db.query(ConsultaResultado)
@@ -170,6 +164,9 @@ def analisar_consulta(
     resultado.faixa_risco = resultado_ia.faixa_risco
     resultado.indicadores = [i.model_dump() for i in resultado_ia.indicadores]
     resultado.resumo_ia = resultado_ia.resumo_ia
+    resultado.sentimento_voz = (
+        resultado_ia.sentimento_voz.model_dump() if resultado_ia.sentimento_voz else None
+    )
     resultado.calculado_em = datetime.now(timezone.utc)
     resultado.confirmado = False
     resultado.confirmado_em = None

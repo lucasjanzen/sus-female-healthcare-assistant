@@ -7,13 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.consulta import (
-    ConsultaAudio,
     ConsultaIdentidade,
     ConsultaRelato,
     ConsultaResultado,
     ConsultaTriagem,
 )
-from app.schemas.consulta import Etapa1Out, RelatoOut, ResultadoIAOut, TriagemResumo
+from app.schemas.consulta import Etapa1Out, RelatoOut, ResultadoIAOut, SentimentoVozOut, TriagemResumo
 
 
 def _hash_cpf(cpf: str) -> str:
@@ -79,23 +78,22 @@ def _build_relato_out(relato: ConsultaRelato) -> RelatoOut:
     )
 
 
-def _ultimo_audio(id_consulta: UUID, db: Session) -> ConsultaAudio | None:
-    return (
-        db.query(ConsultaAudio)
-        .filter(ConsultaAudio.id_consulta == id_consulta)
-        .order_by(ConsultaAudio.criado_em.desc())
-        .first()
-    )
-
-
 def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
+    sentimento_voz_out: SentimentoVozOut | None = None
+    if resultado.sentimento_voz:
+        sv = resultado.sentimento_voz
+        sentimento_voz_out = SentimentoVozOut(
+            dominante=sv["dominante"],
+            scores=sv["scores"],
+        )
     return ResultadoIAOut(
         id_consulta=resultado.id_consulta,
         score_geral=resultado.score_geral,
         faixa_risco=resultado.faixa_risco,
         indicadores=resultado.indicadores,
         resumo_ia=resultado.resumo_ia or "",
-        status_audio="CONCLUIDO",
+        status_audio="CONCLUIDO" if resultado.sentimento_voz is not None else "NAO_PROCESSADO",
         confirmado=resultado.confirmado,
         calculado_em=resultado.calculado_em,
+        sentimento_voz=sentimento_voz_out,
     )

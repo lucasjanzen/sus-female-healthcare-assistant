@@ -55,7 +55,7 @@
     </mat-form-field>
 
     <section class="audio-row">
-      @if (!gravando()) {
+      @if (!recordingService.gravando()) {
         <button mat-raised-button color="primary" type="button" (click)="iniciarGravacao()">
           <mat-icon>play_arrow</mat-icon>
           Iniciar Gravação
@@ -70,10 +70,10 @@
       }
     </section>
 
-    @if (gravando() && textoParcial()) {
-      <p class="texto-parcial">
-        <mat-icon style="font-size:16px;vertical-align:middle">graphic_eq</mat-icon>
-        {{ textoParcial() }}
+    @if (recordingService.gravacaoConcluida()) {
+      <p class="audio-pronta">
+        <mat-icon style="font-size:16px;vertical-align:middle">check_circle</mat-icon>
+        Gravação concluída. Clique em "Analisar com IA" para processar.
       </p>
     }
 
@@ -82,8 +82,8 @@
         mat-raised-button
         color="accent"
         type="button"
-        [disabled]="form.controls.relatoTexto.value.trim().length < 20 || analisando()"
-        [matTooltip]="form.controls.relatoTexto.value.trim().length < 20 ? 'Digite pelo menos 20 caracteres para analisar' : ''"
+        [disabled]="!recordingService.gravacaoConcluida() || analisando()"
+        [matTooltip]="!recordingService.gravacaoConcluida() ? 'Grave e encerre o áudio antes de analisar' : ''"
         (click)="analisar()"
       >
         Analisar com IA
@@ -93,7 +93,7 @@
     @if (analisando()) {
       <div class="audio-row">
         <mat-spinner diameter="32" />
-        <span>Analisando...</span>
+        <span>Analisando áudio e relato... isso pode levar alguns minutos.</span>
       </div>
     }
 
@@ -129,6 +129,33 @@
           </p>
         </mat-card-content>
       </mat-card>
+
+      @if (resultadoIa.sentimentoVoz; as sv) {
+        <section class="vocal-sentiment-card">
+          <h4>Análise Vocal — Paciente</h4>
+          <span [class]="'chip chip--' + sv.dominante.toLowerCase()">{{ sv.dominante }}</span>
+
+          <div class="progress-row">
+            <label>Positivo</label>
+            <progress [value]="sv.scores.positivo" max="1"></progress>
+            <span>{{ (sv.scores.positivo * 100).toFixed(0) }}%</span>
+          </div>
+          <div class="progress-row">
+            <label>Negativo</label>
+            <progress [value]="sv.scores.negativo" max="1"></progress>
+            <span>{{ (sv.scores.negativo * 100).toFixed(0) }}%</span>
+          </div>
+          <div class="progress-row">
+            <label>Neutro</label>
+            <progress [value]="sv.scores.neutro" max="1"></progress>
+            <span>{{ (sv.scores.neutro * 100).toFixed(0) }}%</span>
+          </div>
+
+          <p class="vocal-note">
+            Análise baseada no padrão vocal da paciente detectado durante a consulta.
+          </p>
+        </section>
+      }
 
       <mat-form-field appearance="outline">
         <mat-label>Parecer do profissional</mat-label>

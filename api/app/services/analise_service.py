@@ -1,10 +1,11 @@
+import asyncio
 import logging
 import re
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
-from app.schemas.consulta import IndicadorIA, ResultadoIAOut
+from app.schemas.consulta import IndicadorIA, ResultadoIAOut, SentimentoVozOut
 
 logger = logging.getLogger(__name__)
 
@@ -83,11 +84,6 @@ def _detectar(
     negativo_forte: Optional[bool] = None,
     negativo: Optional[bool] = None,
 ) -> list[IndicadorIA]:
-    """Detecta indicadores psicossociais por padrões de palavras-chave.
-
-    negativo_forte e negativo podem ser fornecidos pela análise Azure para maior precisão;
-    se None, calculados localmente por contagem de palavras negativas.
-    """
     indicadores: list[IndicadorIA] = []
 
     if negativo_forte is None:
@@ -161,14 +157,44 @@ def _resumo(
     return texto
 
 
-def analisar(
-    relato_texto: str,
-    id_consulta: Optional[UUID] = None,
-) -> ResultadoIAOut:
-    from app.services.azure_service import analisar_sentimento_azure
+def _calcular_voice_modifier(sentimento_voz: Optional[dict]) -> int:
+    """Modificador de score ponderado por número de trechos do paciente."""
+    if not sentimento_voz:
+        return 0
+    trechos = sentimento_voz.get("_por_trecho_interno", [])
+    n = len(trechos)
+    if n == 0:
+        return 0
+    confianca = min(n / 5.0, 1.0)
+    negativo = sentimento_voz["scores"]["negativo"]
+    if negativo > 0.8:
+        modificador_bruto = 15
+    elif negativo > 0.6:
+        modificador_bruto = 10
+    else:
+        modificador_bruto = 0
+    return round(modificador_bruto * confianca)
 
-    # Transcrição de voz já está embutida em relato_texto (Azure Speech SDK no browser)
-    sentimento_azure = analisar_sentimento_azure(relato_texto)
+
+async def analisar(
+    relato_texto: str = "",
+    id_consulta: Optional[UUID] = None,
+    audio_bytes: Optional[bytes] = None,
+    audio_content_type: str = "audio/webm",
+) -> ResultadoIAOut:
+    from app.services.azure_service import analisar_sentimento_azure, transcrever_e_analisar_voz
+
+    sentimento_voz: Optional[dict] = None
+
+    if audio_bytes:
+        resultado_voz = await asyncio.to_thread(
+            transcrever_e_analisar_voz, audio_bytes, audio_content_type
+        )
+        if resultado_voz["transcricao"]:
+            relato_texto = resultado_voz["transcricao"]
+        sentimento_voz = resultado_voz["sentimento_voz"]
+
+    sentimento_azure = analisar_sentimento_azure(relato_texto) if relato_texto else None
 
     negativo_forte: Optional[bool] = None
     negativo: Optional[bool] = None
@@ -178,19 +204,49 @@ def analisar(
         negativo_forte = neg_score >= 0.7
         negativo = neg_score >= 0.4 or sentimento_azure["sentimento"] in ("negative", "mixed")
     else:
-        logger.info("Azure Language indisponivel; usando deteccao local de sentimento.")
+        logger.warning("Azure Language indisponivel; usando deteccao local de sentimento.")
 
     indicadores = _detectar(_normalizar(relato_texto), "TEXTO_LOCAL", negativo_forte, negativo)
+
+    if (
+        sentimento_voz
+        and sentimento_voz["scores"]["negativo"] > 0.65
+        and not indicadores
+    ):
+        indicadores.append(IndicadorIA(
+            tipo="DEPRESSAO",
+            nivel="BAIXO",
+            descricao="Tom de voz negativo detectado pelo sistema de analise vocal",
+            origem="VOZ",
+        ))
+
     score = min(sum(PESOS[i.tipo][i.nivel] for i in indicadores), 100)
+    score = min(score + _calcular_voice_modifier(sentimento_voz), 100)
     faixa, mensagem = _faixa(score)
 
+    resumo = _resumo(indicadores, faixa, mensagem, sentimento_azure)
+    if sentimento_voz:
+        resumo += (
+            f"\n\nAnalise vocal: tom predominantemente {sentimento_voz['dominante'].lower()} "
+            f"detectado nos trechos do paciente "
+            f"(negativo: {sentimento_voz['scores']['negativo']:.0%})."
+        )
+
+    sentimento_voz_out: Optional[SentimentoVozOut] = None
+    if sentimento_voz:
+        sentimento_voz_out = SentimentoVozOut(
+            dominante=sentimento_voz["dominante"],
+            scores=sentimento_voz["scores"],
+        )
+
     return ResultadoIAOut(
-        id_consulta=id_consulta or UUID(int=0),
+        id_consulta=id_consulta,
         score_geral=score,
         faixa_risco=faixa,
         indicadores=indicadores,
-        resumo_ia=_resumo(indicadores, faixa, mensagem, sentimento_azure),
-        status_audio="CONCLUIDO",
+        resumo_ia=resumo,
+        status_audio="CONCLUIDO" if audio_bytes else "NAO_PROCESSADO",
         confirmado=False,
         calculado_em=datetime.now(timezone.utc),
+        sentimento_voz=sentimento_voz_out,
     )

@@ -10,6 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -20,8 +21,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { NotificationService } from 'app/core/services/notification.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { NotificationService } from 'app/core/services/notification.service';
 
 import { ConsultaAssumidaOut } from 'app/features/fila/models/fila.model';
 import { FilaService } from 'app/features/fila/services/fila.service';
@@ -29,7 +30,7 @@ import { IndicadorIA, ResultadoIAOut } from 'app/features/consulta/models/consul
 import { ConsultaService } from 'app/features/consulta/services/consulta.service';
 import { RelatoService } from 'app/features/consulta/services/relato.service';
 import { ResultadoService } from 'app/features/consulta/services/resultado.service';
-import { AzureSpeechRecognitionService } from 'app/core/services/azure-speech-recognition.service';
+import { ConsultaRecordingService } from 'app/features/consulta/services/consulta-recording.service';
 
 @Component({
   selector: 'app-step-consulta',
@@ -57,7 +58,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly consultaService = inject(ConsultaService);
   private readonly relatoService = inject(RelatoService);
-  private readonly speechService = inject(AzureSpeechRecognitionService);
+  protected readonly recordingService = inject(ConsultaRecordingService);
   private readonly resultadoService = inject(ResultadoService);
   private readonly filaService = inject(FilaService);
   private readonly snackBar = inject(MatSnackBar);
@@ -69,11 +70,8 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly dadosConsulta = signal<ConsultaAssumidaOut | null>(null);
   readonly resultado = signal<ResultadoIAOut | null>(null);
   readonly analisando = signal(false);
-  readonly gravando = signal(false);
   readonly segundosGravacao = signal(0);
   readonly relatoSalvo = signal(false);
-  /** Texto sendo reconhecido em tempo real (resultado parcial — ainda pode mudar). */
-  readonly textoParcial = signal('');
   private idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
 
   readonly form = this.fb.nonNullable.group({
@@ -90,13 +88,14 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.carregarDadosConsulta();
     this.carregarRelato();
-    this.configurarSpeech();
   }
 
   ngOnDestroy(): void {
     this.cancelarTimerGravacao();
     this.cancelarSaveTimer();
-    this.speechService.destroy();
+    if (this.recordingService.gravando()) {
+      this.recordingService.parar();
+    }
   }
 
   private cancelarTimerGravacao(): void {
@@ -108,9 +107,10 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   private carregarDadosConsulta(): void {
-    this.filaService.emAndamento().subscribe((consulta) => {
-      this.dadosConsulta.set(consulta);
-    });
+    this.filaService
+      .emAndamento()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((consulta) => this.dadosConsulta.set(consulta));
   }
 
   private carregarRelato(): void {
@@ -126,38 +126,20 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     });
   }
 
-  private configurarSpeech(): void {
-    // 'partial' atualiza preview; 'final' acumula no campo de relato
-    this.speechService.result$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
-      if (result.type === 'partial') {
-        this.textoParcial.set(result.text);
-      } else {
-        this.textoParcial.set('');
-        const atual = this.form.controls.relatoTexto.value;
-        const separador = atual.trim() ? ' ' : '';
-        this.form.controls.relatoTexto.setValue(`${atual}${separador}${result.text}`);
-      }
-    });
-
-    this.speechService.error$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((msg) => {
-      this.notification.erro(msg, 5000);
-      this.gravando.set(false);
-      this.cancelarTimerGravacao();
-    });
-  }
-
   salvarRelato(): void {
     const id = this.idConsulta();
     const relatoTexto = this.form.controls.relatoTexto.value.trim();
     if (!id || relatoTexto.length < 20) return;
-    this.relatoService.atualizar(id, { relatoTexto }).subscribe({
-      next: () => this.indicarRelatoSalvo(),
-      error: () =>
-        this.relatoService.criar(id, relatoTexto).subscribe({
-          next: () => this.indicarRelatoSalvo(),
-          error: () => this.notification.erro('Erro ao salvar relato'),
-        }),
-    });
+    this.relatoService
+      .atualizar(id, { relatoTexto })
+      .pipe(
+        catchError(() => this.relatoService.criar(id, relatoTexto)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => this.indicarRelatoSalvo(),
+        error: () => this.notification.erro('Erro ao salvar relato'),
+      });
   }
 
   private indicarRelatoSalvo(): void {
@@ -176,31 +158,29 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       });
   }
 
-  iniciarGravacao(): void {
-    this.speechService.iniciar().subscribe({
-      next: () => {
-        this.gravando.set(true);
-        this.segundosGravacao.set(0);
-        this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
-      },
-      error: () => this.notification.erro('Erro ao iniciar reconhecimento de voz', 4000),
-    });
+  async iniciarGravacao(): Promise<void> {
+    try {
+      await this.recordingService.iniciar();
+      this.segundosGravacao.set(0);
+      this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
+    } catch {
+      this.notification.erro('Erro ao iniciar gravação. Verifique permissão do microfone.', 4000);
+    }
   }
 
   encerrarGravacao(): void {
     this.cancelarTimerGravacao();
-    this.gravando.set(false);
-    this.speechService.parar().then(() => {
-      this.textoParcial.set('');
-    });
+    this.recordingService.parar();
   }
 
   analisar(): void {
+    if (!this.recordingService.gravacaoConcluida()) return;
     const id = this.idConsulta();
     if (!id) return;
     this.salvarRelato();
     this.analisando.set(true);
-    this.resultadoService.analisar(id).subscribe({
+    const audioBlob = this.recordingService.getAudioBlob() ?? undefined;
+    this.resultadoService.analisar(id, audioBlob).subscribe({
       next: (resultado) => {
         this.resultado.set(resultado);
         this.analisando.set(false);
@@ -239,13 +219,13 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   textoFaixa(resultado: ResultadoIAOut): string {
-    const textos = {
+    const textos: Record<string, string> = {
       VERDE: 'Nenhum indicador significativo',
       AMARELO: 'Indicadores leves - atenção recomendada',
       LARANJA: 'Indicadores moderados - intervenção recomendada',
       VERMELHO: 'Indicadores críticos - encaminhamento imediato',
     };
-    return textos[resultado.faixaRisco];
+    return textos[resultado.faixaRisco] ?? '';
   }
 
   formatarIndicador(indicador: IndicadorIA): string {

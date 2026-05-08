@@ -123,10 +123,21 @@ class IndicadorIA(BaseModel):
     origem: str
 
 
+class SentimentoVozScores(BaseModel):
+    positivo: float
+    negativo: float
+    neutro: float
+
+
+class SentimentoVozOut(BaseModel):
+    dominante: str  # 'POSITIVO' | 'NEGATIVO' | 'NEUTRO'
+    scores: SentimentoVozScores
+
+
 class ResultadoIAOut(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
-    id_consulta: UUID
+    id_consulta: Optional[UUID] = None
     score_geral: int
     faixa_risco: str
     indicadores: list[IndicadorIA]
@@ -134,17 +145,7 @@ class ResultadoIAOut(BaseModel):
     status_audio: str = "AGUARDANDO"
     confirmado: bool
     calculado_em: datetime
-
-
-class AudioIniciarOut(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    audio_id: UUID
-
-
-class AudioStatusOut(BaseModel):
-    status_processamento: str
-    transcricao: Optional[str] = None
+    sentimento_voz: Optional[SentimentoVozOut] = None
 
 
 _ENCAMINHAMENTOS_VALIDOS = frozenset(

@@ -34,6 +34,11 @@ export interface IndicadorIA {
   origem: string;
 }
 
+export interface SentimentoVozOut {
+  dominante: 'POSITIVO' | 'NEGATIVO' | 'NEUTRO';
+  scores: { positivo: number; negativo: number; neutro: number };
+}
+
 export interface ResultadoIAOut {
   idConsulta: string;
   scoreGeral: number;
@@ -43,6 +48,7 @@ export interface ResultadoIAOut {
   statusAudio: string;
   confirmado: boolean;
   calculadoEm: string;
+  sentimentoVoz?: SentimentoVozOut;
 }
 
 export interface RelatoOut {

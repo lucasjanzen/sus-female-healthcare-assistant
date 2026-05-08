@@ -110,6 +110,7 @@ class ConsultaResultado(Base):
     faixa_risco = Column(String(20), nullable=False)
     indicadores = Column(JSON, nullable=False)
     resumo_ia = Column(Text, nullable=True)
+    sentimento_voz = Column(JSON, nullable=True)
     calculado_em = Column(
         DateTime(timezone=True),
         nullable=False,
