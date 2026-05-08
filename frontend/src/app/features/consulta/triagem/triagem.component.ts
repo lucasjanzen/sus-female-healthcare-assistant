@@ -11,11 +11,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-
 import { PacienteConsultaOut } from '../models/consulta.model';
 import { TipoConsulta } from '../models/consulta.types';
 import { ConsultaService } from '../services/consulta.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { formatarDataIso } from '../../../core/utils/date.utils';
+import { FormatDataPipe } from '../../../shared/pipes/format-data.pipe';
 
 @Component({
   selector: 'app-triagem',
@@ -31,7 +32,7 @@ import { ConsultaService } from '../services/consulta.service';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatSnackBarModule,
+    FormatDataPipe,
   ],
   templateUrl: './triagem.component.html',
   styleUrl: './triagem.component.scss',
@@ -39,7 +40,7 @@ import { ConsultaService } from '../services/consulta.service';
 export class TriagemComponent {
   private fb = inject(FormBuilder);
   private consultaService = inject(ConsultaService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   private router = inject(Router);
 
   pacientes = signal<PacienteConsultaOut[]>([]);
@@ -103,7 +104,7 @@ export class TriagemComponent {
         this.carregando.set(false);
       },
       error: () => {
-        this.snackBar.open('Erro ao buscar pacientes', 'Fechar', { duration: 3000 });
+        this.notification.erro('Erro ao buscar pacientes');
         this.carregando.set(false);
       },
     });
@@ -133,7 +134,7 @@ export class TriagemComponent {
       .iniciar({
         pacienteId: paciente.id,
         tipoConsulta: tipo,
-        dum: dum ? this.formatarDataIso(dum) : null,
+        dum: dum ? formatarDataIso(dum) : null,
       })
       .subscribe({
         next: (consulta) => {
@@ -147,7 +148,7 @@ export class TriagemComponent {
           this.submetendo.set(false);
         },
         error: () => {
-          this.snackBar.open('Erro ao iniciar consulta', 'Fechar', { duration: 3000 });
+          this.notification.erro('Erro ao iniciar consulta');
           this.submetendo.set(false);
         },
       });
@@ -170,7 +171,7 @@ export class TriagemComponent {
           this.submetendo.set(false);
         },
         error: () => {
-          this.snackBar.open('Erro ao concluir triagem', 'Fechar', { duration: 3000 });
+          this.notification.erro('Erro ao concluir triagem');
           this.submetendo.set(false);
         },
       });
@@ -191,15 +192,5 @@ export class TriagemComponent {
     this.router.navigate(['/home']);
   }
 
-  formatarData(data: string): string {
-    const [ano, mes, dia] = data.split('-');
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  private formatarDataIso(data: Date): string {
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const dia = String(data.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
-  }
 }
+

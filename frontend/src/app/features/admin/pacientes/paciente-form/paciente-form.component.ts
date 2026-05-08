@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -15,11 +15,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { PacienteAdminCreate, PacienteAdminUpdate } from '../../models/paciente-admin.model';
 import { PacienteAdminService } from '../../services/paciente-admin.service';
+import { NotificationService } from 'app/core/services/notification.service';
+import { formatarDataIso } from 'app/core/utils/date.utils';
 
 function notFutureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -48,12 +49,17 @@ function minDigitsValidator(min: number) {
     MatDatepickerModule,
     MatSlideToggleModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
   ],
   templateUrl: './paciente-form.component.html',
   styleUrl: './paciente-form.component.scss',
 })
 export class PacienteFormComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly service = inject(PacienteAdminService);
+  private readonly notification = inject(NotificationService);
+
   form!: FormGroup;
   modoEdicao = false;
   pacienteId: string | null = null;
@@ -69,14 +75,6 @@ export class PacienteFormComponent implements OnInit {
     { value: 'VIUVA', label: 'Viúva' },
     { value: 'UNIAO_ESTAVEL', label: 'União Estável' },
   ];
-
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private service: PacienteAdminService,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit(): void {
     this.pacienteId = this.route.snapshot.paramMap.get('id');
@@ -145,19 +143,10 @@ export class PacienteFormComponent implements OnInit {
         this.carregando = false;
       },
       error: () => {
-        this.snackBar.open('Erro ao carregar dados da paciente', 'Fechar', {
-          duration: 3000,
-        });
+        this.notification.erro('Erro ao carregar dados da paciente');
         this.router.navigate(['/admin/pacientes']);
       },
     });
-  }
-
-  private formatarData(d: Date): string {
-    const ano = d.getFullYear();
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const dia = String(d.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
   }
 
   submeter(): void {
@@ -167,7 +156,7 @@ export class PacienteFormComponent implements OnInit {
     }
 
     const v = this.form.getRawValue();
-    const dataNascimento = this.formatarData(v.dataNascimento as Date);
+    const dataNascimento = formatarDataIso(v.dataNascimento as Date);
 
     this.salvando = true;
 
@@ -186,14 +175,12 @@ export class PacienteFormComponent implements OnInit {
       };
       this.service.atualizar(this.pacienteId, payload).subscribe({
         next: () => {
-          this.snackBar.open('Dados atualizados com sucesso', 'Fechar', {
-            duration: 3000,
-          });
+          this.notification.sucesso('Dados atualizados com sucesso');
           this.router.navigate(['/admin/pacientes']);
         },
         error: (err) => {
           const msg = err?.error?.detail ?? 'Erro ao atualizar paciente';
-          this.snackBar.open(msg, 'Fechar', { duration: 4000 });
+          this.notification.erro(msg, 4000);
           this.salvando = false;
         },
       });
@@ -213,14 +200,12 @@ export class PacienteFormComponent implements OnInit {
       };
       this.service.criar(payload).subscribe({
         next: () => {
-          this.snackBar.open('Paciente cadastrada com sucesso', 'Fechar', {
-            duration: 3000,
-          });
+          this.notification.sucesso('Paciente cadastrada com sucesso');
           this.router.navigate(['/admin/pacientes']);
         },
         error: (err) => {
           const msg = err?.error?.detail ?? 'Erro ao cadastrar paciente';
-          this.snackBar.open(msg, 'Fechar', { duration: 4000 });
+          this.notification.erro(msg, 4000);
           this.salvando = false;
         },
       });

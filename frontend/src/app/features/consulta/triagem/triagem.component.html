@@ -35,7 +35,7 @@
             <mat-card class="selectable" (click)="selecionar(paciente)">
               <mat-card-header>
                 <mat-card-title>{{ paciente.nome }}</mat-card-title>
-                <mat-card-subtitle>{{ formatarData(paciente.dataNascimento) }}</mat-card-subtitle>
+                <mat-card-subtitle>{{ paciente.dataNascimento | formatarData }}</mat-card-subtitle>
               </mat-card-header>
             </mat-card>
           }
@@ -45,7 +45,7 @@
           <mat-card-header>
             <mat-card-title>{{ pacienteSelecionada()?.nome }}</mat-card-title>
             <mat-card-subtitle>
-              Nascimento: {{ formatarData(pacienteSelecionada()!.dataNascimento) }}
+              Nascimento: {{ pacienteSelecionada()!.dataNascimento | formatarData }}
               @if (pacienteSelecionada()?.cns) {
                 | CNS: {{ pacienteSelecionada()?.cns }}
               }

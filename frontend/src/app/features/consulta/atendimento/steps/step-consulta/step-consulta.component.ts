@@ -20,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from 'app/core/services/notification.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ConsultaAssumidaOut } from 'app/features/fila/models/fila.model';
@@ -60,6 +61,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   private readonly resultadoService = inject(ResultadoService);
   private readonly filaService = inject(FilaService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly notification = inject(NotificationService);
   private timer?: number;
   private saveTimer?: number;
 
@@ -105,10 +107,6 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     if (this.saveTimer) window.clearTimeout(this.saveTimer);
   }
 
-  private notificarErro(msg: string, duration = 3000): void {
-    this.snackBar.open(msg, 'Fechar', { duration });
-  }
-
   private carregarDadosConsulta(): void {
     this.filaService.emAndamento().subscribe((consulta) => {
       this.dadosConsulta.set(consulta);
@@ -124,7 +122,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
           relatoTexto: relato.relatoTexto ?? '',
           parecerMedico: relato.parecerMedico ?? '',
         }),
-      error: () => this.notificarErro('Não foi possível carregar o relato anterior.', 4000),
+      error: () => this.notification.erro('Não foi possível carregar o relato anterior.', 4000),
     });
   }
 
@@ -142,7 +140,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     });
 
     this.speechService.error$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((msg) => {
-      this.notificarErro(msg, 5000);
+      this.notification.erro(msg, 5000);
       this.gravando.set(false);
       this.cancelarTimerGravacao();
     });
@@ -157,7 +155,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       error: () =>
         this.relatoService.criar(id, relatoTexto).subscribe({
           next: () => this.indicarRelatoSalvo(),
-          error: () => this.notificarErro('Erro ao salvar relato'),
+          error: () => this.notification.erro('Erro ao salvar relato'),
         }),
     });
   }
@@ -174,7 +172,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.relatoService
       .atualizar(id, { parecerMedico: this.form.controls.parecerMedico.value })
       .subscribe({
-        error: () => this.notificarErro('Erro ao salvar parecer'),
+        error: () => this.notification.erro('Erro ao salvar parecer'),
       });
   }
 
@@ -185,7 +183,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
         this.segundosGravacao.set(0);
         this.timer = window.setInterval(() => this.segundosGravacao.update((v) => v + 1), 1000);
       },
-      error: () => this.notificarErro('Erro ao iniciar reconhecimento de voz', 4000),
+      error: () => this.notification.erro('Erro ao iniciar reconhecimento de voz', 4000),
     });
   }
 
@@ -219,7 +217,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        this.notificarErro('Erro ao analisar relato');
+        this.notification.erro('Erro ao analisar relato');
         this.analisando.set(false);
       },
     });
@@ -231,7 +229,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.salvarParecer();
     this.resultadoService.confirmar(id).subscribe({
       next: () => this.confirmado.emit(),
-      error: () => this.notificarErro('Erro ao confirmar análise'),
+      error: () => this.notification.erro('Erro ao confirmar análise'),
     });
   }
 

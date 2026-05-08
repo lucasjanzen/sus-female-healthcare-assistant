@@ -12,7 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from 'app/core/services/notification.service';
 
 import {
   ResultadoIAOut,
@@ -43,7 +43,6 @@ interface OpcaoEncaminhamento {
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
   ],
   templateUrl: './step-encerramento.component.html',
   styleUrl: './step-encerramento.component.scss',
@@ -56,7 +55,7 @@ export class StepEncerramentoComponent {
   private readonly resultadoService = inject(ResultadoService);
   private readonly encerramentoService = inject(EncerramentoService);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notification = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly idConsulta = computed(() => this.consultaService.consultaAtiva()?.idConsulta);
 
@@ -123,13 +122,9 @@ export class StepEncerramentoComponent {
       },
       error: () => {
         this.carregando.set(false);
-        this.notificarErro('Erro ao carregar dados da consulta.');
+        this.notification.erro('Erro ao carregar dados da consulta.');
       },
     });
-  }
-
-  private notificarErro(msg: string, duration = 4000): void {
-    this.snackBar.open(msg, 'Fechar', { duration });
   }
 
   onEncaminhamentosChange(event: MatChipListboxChange): void {
@@ -171,7 +166,7 @@ export class StepEncerramentoComponent {
       },
       error: () => {
         this.salvando.set(false);
-        this.notificarErro('Erro ao encerrar a consulta. Tente novamente.');
+        this.notification.erro('Erro ao encerrar a consulta. Tente novamente.');
       },
     });
   }
@@ -188,7 +183,7 @@ export class StepEncerramentoComponent {
         link.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notificarErro('Erro ao gerar PDF.'),
+      error: () => this.notification.erro('Erro ao gerar PDF.'),
     });
   }
 

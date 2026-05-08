@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,12 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { Router } from '@angular/router';
 
 import { PacienteListItem } from '../../models/paciente-admin.model';
 import { PacienteAdminService } from '../../services/paciente-admin.service';
+import { NotificationService } from 'app/core/services/notification.service';
+import { FormatDataPipe } from 'app/shared/pipes/format-data.pipe';
 
 @Component({
   selector: 'app-pacientes-lista',
@@ -25,12 +26,16 @@ import { PacienteAdminService } from '../../services/paciente-admin.service';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
+    FormatDataPipe,
   ],
   templateUrl: './pacientes-lista.component.html',
   styleUrl: './pacientes-lista.component.scss',
 })
 export class PacientesListaComponent implements OnInit {
+  private readonly service = inject(PacienteAdminService);
+  private readonly router = inject(Router);
+  private readonly notification = inject(NotificationService);
+
   readonly colunas = ['nome', 'dataNascimento', 'cns', 'status', 'acoes'];
   dataSource: PacienteListItem[] = [];
   total = 0;
@@ -39,12 +44,6 @@ export class PacientesListaComponent implements OnInit {
   carregando = false;
 
   readonly termoBusca = new FormControl('');
-
-  constructor(
-    private service: PacienteAdminService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit(): void {
     this.carregar();
@@ -59,7 +58,7 @@ export class PacientesListaComponent implements OnInit {
         this.carregando = false;
       },
       error: () => {
-        this.snackBar.open('Erro ao carregar pacientes', 'Fechar', { duration: 3000 });
+        this.notification.erro('Erro ao carregar pacientes');
         this.carregando = false;
       },
     });
@@ -80,7 +79,7 @@ export class PacientesListaComponent implements OnInit {
         this.carregando = false;
       },
       error: () => {
-        this.snackBar.open('Erro ao buscar pacientes', 'Fechar', { duration: 3000 });
+        this.notification.erro('Erro ao buscar pacientes');
         this.carregando = false;
       },
     });
@@ -108,18 +107,12 @@ export class PacientesListaComponent implements OnInit {
     if (!confirm(`Deseja desativar a paciente "${paciente.nome}"?`)) return;
     this.service.desativar(paciente.id).subscribe({
       next: () => {
-        this.snackBar.open('Paciente desativada com sucesso', 'Fechar', { duration: 3000 });
+        this.notification.sucesso('Paciente desativada com sucesso');
         this.carregar();
       },
       error: () => {
-        this.snackBar.open('Erro ao desativar paciente', 'Fechar', { duration: 3000 });
+        this.notification.erro('Erro ao desativar paciente');
       },
     });
-  }
-
-  formatarData(data: string): string {
-    if (!data) return '';
-    const [ano, mes, dia] = data.split('-');
-    return `${dia}/${mes}/${ano}`;
   }
 }

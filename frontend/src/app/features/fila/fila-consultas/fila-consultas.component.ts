@@ -5,11 +5,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-
 import { AuthService } from '../../../core/auth/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { ConsultaAssumidaOut, ConsultaFilaItem } from '../models/fila.model';
 import { FilaService } from '../services/fila.service';
+import { FormatDataPipe } from '../../../shared/pipes/format-data.pipe';
 
 @Component({
   selector: 'app-fila-consultas',
@@ -20,7 +20,7 @@ import { FilaService } from '../services/fila.service';
     MatChipsModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
+    FormatDataPipe,
   ],
   templateUrl: './fila-consultas.component.html',
   styleUrl: './fila-consultas.component.scss',
@@ -29,16 +29,18 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   private readonly filaService = inject(FilaService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notification = inject(NotificationService);
 
   readonly consultas = signal<ConsultaFilaItem[]>([]);
   readonly emAndamento = signal<ConsultaAssumidaOut | null>(null);
   readonly carregando = signal(false);
+  readonly assumindo = signal(false);
   readonly atualizadoEm = signal<Date | null>(null);
   readonly isMedico = computed(() => this.authService.getRole() === 'MEDICO');
 
   private polling?: number;
   private relogio?: number;
+  private _inicialCarregado = false;
 
   ngOnInit(): void {
     this.carregar();
@@ -52,32 +54,39 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   }
 
   carregar(): void {
-    this.carregando.set(true);
+    if (!this._inicialCarregado) this.carregando.set(true);
     this.filaService.listar().subscribe({
       next: (items) => {
         this.consultas.set(items);
         this.atualizadoEm.set(new Date());
         this.carregando.set(false);
+        this._inicialCarregado = true;
       },
       error: () => {
-        this.snackBar.open('Erro ao carregar fila', 'Fechar', { duration: 3000 });
+        this.notification.erro('Erro ao carregar fila');
         this.carregando.set(false);
+        this._inicialCarregado = true;
       },
     });
     if (this.isMedico()) {
-      this.filaService.emAndamento().subscribe((consulta) => this.emAndamento.set(consulta));
+      this.filaService.emAndamento().subscribe({
+        next: (consulta) => this.emAndamento.set(consulta),
+        error: () => this.notification.erro('Erro ao verificar consulta em andamento'),
+      });
     }
   }
 
   atender(consulta: ConsultaFilaItem): void {
+    this.assumindo.set(true);
     this.filaService.assumir(consulta.idConsulta).subscribe({
       next: () => this.router.navigate(['/consulta', consulta.idConsulta, 'atendimento']),
       error: (erro) => {
+        this.assumindo.set(false);
         if (erro.status === 409) {
-          this.snackBar.open('Consulta assumida por outro médico', 'Fechar', { duration: 3000 });
+          this.notification.erro('Consulta assumida por outro médico');
           this.carregar();
         } else {
-          this.snackBar.open('Erro ao assumir consulta', 'Fechar', { duration: 3000 });
+          this.notification.erro('Erro ao assumir consulta');
         }
       },
     });
@@ -95,11 +104,6 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
     );
     if (minutos < 60) return `${minutos} min`;
     return `${Math.floor(minutos / 60)}h ${minutos % 60}min`;
-  }
-
-  formatarData(data: string): string {
-    const [ano, mes, dia] = data.split('-');
-    return `${dia}/${mes}/${ano}`;
   }
 
   horaAtualizacao(): string {
