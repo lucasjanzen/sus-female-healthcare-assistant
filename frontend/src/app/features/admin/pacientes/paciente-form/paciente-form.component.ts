@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -65,7 +65,7 @@ export class PacienteFormComponent implements OnInit {
   pacienteId: string | null = null;
   salvando = false;
   carregando = false;
-
+  readonly possuiFilhos = signal(false);
   readonly hoje = new Date();
 
   readonly estadosCivis = [
@@ -105,11 +105,8 @@ export class PacienteFormComponent implements OnInit {
     });
   }
 
-  get possuiFilhos(): boolean {
-    return !!this.form.get('possuiFilhos')?.value;
-  }
-
   onPossuiFilhosChange(checked: boolean): void {
+    this.possuiFilhos.set(checked);
     const ctrl = this.form.get('quantidadeFilhos')!;
     if (checked) {
       ctrl.setValidators([Validators.required, Validators.min(1)]);
@@ -137,9 +134,7 @@ export class PacienteFormComponent implements OnInit {
           alturaCm: p.alturaCm,
           endereco: p.endereco ?? '',
         });
-        if (p.possuiFilhos) {
-          this.onPossuiFilhosChange(true);
-        }
+        this.onPossuiFilhosChange(p.possuiFilhos);
         this.carregando = false;
       },
       error: () => {
@@ -154,62 +149,62 @@ export class PacienteFormComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-
     const v = this.form.getRawValue();
     const dataNascimento = formatarDataIso(v.dataNascimento as Date);
-
     this.salvando = true;
 
     if (this.modoEdicao && this.pacienteId) {
-      const payload: PacienteAdminUpdate = {
-        cns: v.cns || undefined,
-        nome: v.nome,
-        dataNascimento,
-        telefone: v.telefone,
-        email: v.email || undefined,
-        estadoCivil: v.estadoCivil,
-        possuiFilhos: v.possuiFilhos,
-        quantidadeFilhos: v.possuiFilhos ? v.quantidadeFilhos : undefined,
-        alturaCm: v.alturaCm,
-        endereco: v.endereco || undefined,
-      };
-      this.service.atualizar(this.pacienteId, payload).subscribe({
-        next: () => {
-          this.notification.sucesso('Dados atualizados com sucesso');
-          this.router.navigate(['/admin/pacientes']);
-        },
-        error: (err) => {
-          const msg = err?.error?.detail ?? 'Erro ao atualizar paciente';
-          this.notification.erro(msg, 4000);
-          this.salvando = false;
-        },
-      });
+      this.salvarEdicao(this.pacienteId, this.buildPayloadBase(v, dataNascimento));
     } else {
-      const payload: PacienteAdminCreate = {
+      this.salvarCriacao({
         cpf: v.cpf,
-        cns: v.cns || undefined,
-        nome: v.nome,
-        dataNascimento,
-        telefone: v.telefone,
-        email: v.email || undefined,
-        estadoCivil: v.estadoCivil,
-        possuiFilhos: v.possuiFilhos,
-        quantidadeFilhos: v.possuiFilhos ? v.quantidadeFilhos : undefined,
-        alturaCm: v.alturaCm,
-        endereco: v.endereco || undefined,
-      };
-      this.service.criar(payload).subscribe({
-        next: () => {
-          this.notification.sucesso('Paciente cadastrada com sucesso');
-          this.router.navigate(['/admin/pacientes']);
-        },
-        error: (err) => {
-          const msg = err?.error?.detail ?? 'Erro ao cadastrar paciente';
-          this.notification.erro(msg, 4000);
-          this.salvando = false;
-        },
-      });
+        ...this.buildPayloadBase(v, dataNascimento),
+      } as PacienteAdminCreate);
     }
+  }
+
+  private buildPayloadBase(
+    v: ReturnType<typeof this.form.getRawValue>,
+    dataNascimento: string,
+  ): PacienteAdminUpdate {
+    return {
+      cns: v.cns || undefined,
+      nome: v.nome,
+      dataNascimento,
+      telefone: v.telefone,
+      email: v.email || undefined,
+      estadoCivil: v.estadoCivil,
+      possuiFilhos: v.possuiFilhos,
+      quantidadeFilhos: v.possuiFilhos ? v.quantidadeFilhos : undefined,
+      alturaCm: v.alturaCm,
+      endereco: v.endereco || undefined,
+    };
+  }
+
+  private salvarEdicao(id: string, payload: PacienteAdminUpdate): void {
+    this.service.atualizar(id, payload).subscribe({
+      next: () => {
+        this.notification.sucesso('Dados atualizados com sucesso');
+        this.router.navigate(['/admin/pacientes']);
+      },
+      error: (err) => {
+        this.notification.erro(err?.error?.detail ?? 'Erro ao atualizar paciente', 4000);
+        this.salvando = false;
+      },
+    });
+  }
+
+  private salvarCriacao(payload: PacienteAdminCreate): void {
+    this.service.criar(payload).subscribe({
+      next: () => {
+        this.notification.sucesso('Paciente cadastrada com sucesso');
+        this.router.navigate(['/admin/pacientes']);
+      },
+      error: (err) => {
+        this.notification.erro(err?.error?.detail ?? 'Erro ao cadastrar paciente', 4000);
+        this.salvando = false;
+      },
+    });
   }
 
   cancelar(): void {

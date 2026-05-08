@@ -123,7 +123,7 @@
         </div>
 
         <!-- Quantidade de filhos (condicional) -->
-        @if (possuiFilhos) {
+        @if (possuiFilhos()) {
           <mat-form-field appearance="outline">
             <mat-label>Quantidade de filhos</mat-label>
             <input matInput formControlName="quantidadeFilhos" type="number" min="1" />
