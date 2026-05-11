@@ -1,5 +1,5 @@
 import enum
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -76,4 +76,12 @@ class ConsultaIniciadaOut(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     paciente: PacienteOut
+    id_consulta: UUID
+
+
+class HistoricoPesoItem(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    peso_kg: float
+    registrado_em: datetime
     id_consulta: UUID

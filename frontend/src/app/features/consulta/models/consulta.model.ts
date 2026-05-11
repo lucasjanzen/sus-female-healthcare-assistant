@@ -34,9 +34,33 @@ export interface IndicadorIA {
   origem: string;
 }
 
+export interface IndicadorRisco {
+  tipo: string;
+  nivel: 'BAIXO' | 'MODERADO' | 'ALTO';
+  evidencias: string[];
+  recomendacao: string;
+}
+
+export interface SumarioEstruturado {
+  indicadores: IndicadorRisco[];
+  scoreGeral: number;
+  faixaRisco: FaixaRisco;
+  pontosAtencao: string[];
+  encaminhamentosSugeridos: string[];
+  contextoHistorico: string;
+  modoFallback: boolean;
+}
+
 export interface SentimentoVozOut {
   dominante: 'POSITIVO' | 'NEGATIVO' | 'NEUTRO';
   scores: { positivo: number; negativo: number; neutro: number };
+}
+
+export interface FontesUtilizadas {
+  relato: boolean;
+  transcricao: boolean;
+  sentimentoVoz: boolean;
+  historico: boolean;
 }
 
 export interface ResultadoIAOut {
@@ -49,6 +73,10 @@ export interface ResultadoIAOut {
   confirmado: boolean;
   calculadoEm: string;
   sentimentoVoz?: SentimentoVozOut;
+  sumarioEstruturado?: SumarioEstruturado;
+  textoClinico?: string;
+  fontesUtilizadas?: FontesUtilizadas;
+  tokensUtilizados?: number;
 }
 
 export interface RelatoOut {

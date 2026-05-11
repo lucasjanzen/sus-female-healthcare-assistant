@@ -45,8 +45,8 @@ class TriagemCreate(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     peso_kg: float = Field(..., ge=30, le=300)
-    pa_sistolica: int = Field(..., ge=60, le=250)
-    pa_diastolica: int = Field(..., ge=40, le=150)
+    pa_sistolica: int = Field(..., ge=60, le=200)
+    pa_diastolica: int = Field(..., ge=40, le=130)
 
 
 class TriagemResumo(BaseModel):
@@ -123,6 +123,23 @@ class IndicadorIA(BaseModel):
     origem: str
 
 
+class IndicadorRisco(BaseModel):
+    tipo: str
+    nivel: str
+    evidencias: list[str]
+    recomendacao: str
+
+
+class SumarioEstruturado(BaseModel):
+    indicadores: list[IndicadorRisco]
+    score_geral: int
+    faixa_risco: str
+    pontos_atencao: list[str]
+    encaminhamentos_sugeridos: list[str]
+    contexto_historico: str
+    modo_fallback: bool = False
+
+
 class SentimentoVozScores(BaseModel):
     positivo: float
     negativo: float
@@ -146,6 +163,11 @@ class ResultadoIAOut(BaseModel):
     confirmado: bool
     calculado_em: datetime
     sentimento_voz: Optional[SentimentoVozOut] = None
+    sumario_estruturado: Optional[SumarioEstruturado] = None
+    texto_clinico: Optional[str] = None
+    fontes_utilizadas: Optional[dict] = None
+    tokens_utilizados: Optional[int] = None
+    transcricao: Optional[str] = None
 
 
 _ENCAMINHAMENTOS_VALIDOS = frozenset(

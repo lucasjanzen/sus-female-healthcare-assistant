@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +21,7 @@ import {
 } from '../../../models/consulta.model';
 import { ConsultaService } from '../../../services/consulta.service';
 import { EncerramentoService } from '../../../services/encerramento.service';
+import { RelatoService } from '../../../services/relato.service';
 import { ResultadoService } from '../../../services/resultado.service';
 import { ConfirmarEncerramentoDialogComponent } from './confirmar-encerramento-dialog.component';
 
@@ -54,6 +55,7 @@ export class StepEncerramentoComponent {
   private readonly consultaService = inject(ConsultaService);
   private readonly resultadoService = inject(ResultadoService);
   private readonly encerramentoService = inject(EncerramentoService);
+  private readonly relatoService = inject(RelatoService);
   private readonly dialog = inject(MatDialog);
   private readonly notification = inject(NotificationService);
   private readonly router = inject(Router);
@@ -108,15 +110,26 @@ export class StepEncerramentoComponent {
     forkJoin({
       resultado: this.resultadoService.obter(idConsulta),
       sugestao: this.encerramentoService.obterSugestao(idConsulta),
+      relato: this.relatoService.obter(idConsulta).pipe(catchError(() => of({ parecerMedico: null as string | null | undefined }))),
     }).subscribe({
-      next: ({ resultado, sugestao }) => {
+      next: ({ resultado, sugestao, relato }) => {
         this.resultado.set(resultado);
-        this.encaminhamentosSelecionados.set(sugestao.encaminhamentosSugeridos);
 
-        const [ano, mes, dia] = sugestao.dataSugerida.split('-').map(Number);
+        // Encaminhamentos: preferir os do sumário LLM, depois os da sugestão de risco
+        const encsLlm = resultado.sumarioEstruturado?.encaminhamentosSugeridos ?? [];
+        this.encaminhamentosSelecionados.set(
+          encsLlm.length > 0 ? encsLlm : sugestao.encaminhamentosSugeridos,
+        );
+
+        // Conduta: texto editado pelo médico > texto clínico do LLM > conduta sugerida
+        const conduta =
+          relato.parecerMedico ||
+          resultado.textoClinico ||
+          sugestao.condutaSugerida;
+
         this.form.patchValue({
-          conduta: sugestao.condutaSugerida,
-          dataProximoRetorno: new Date(ano, mes - 1, dia),
+          conduta,
+          dataProximoRetorno: new Date(sugestao.dataSugerida),
         });
         this.carregando.set(false);
       },
@@ -148,7 +161,7 @@ export class StepEncerramentoComponent {
     if (!id || this.form.invalid) return;
 
     const dataRetorno = this.form.value.dataProximoRetorno!;
-    const dataStr = dataRetorno.toLocaleDateString('en-CA');
+    const dataStr = dataRetorno.toISOString().split('T')[0];
 
     const dados: EncerramentoCreate = {
       conduta: this.form.value.conduta!,

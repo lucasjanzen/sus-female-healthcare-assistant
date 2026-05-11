@@ -12,7 +12,15 @@ from app.models.consulta import (
     ConsultaResultado,
     ConsultaTriagem,
 )
-from app.schemas.consulta import Etapa1Out, RelatoOut, ResultadoIAOut, SentimentoVozOut, TriagemResumo
+from app.schemas.consulta import (
+    Etapa1Out,
+    IndicadorRisco,
+    RelatoOut,
+    ResultadoIAOut,
+    SentimentoVozOut,
+    SumarioEstruturado,
+    TriagemResumo,
+)
 
 
 def _hash_cpf(cpf: str) -> str:
@@ -86,6 +94,28 @@ def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
             dominante=sv["dominante"],
             scores=sv["scores"],
         )
+
+    sumario_out: SumarioEstruturado | None = None
+    if resultado.sumario_estruturado:
+        s = resultado.sumario_estruturado
+        sumario_out = SumarioEstruturado(
+            indicadores=[
+                IndicadorRisco(
+                    tipo=i.get("tipo", ""),
+                    nivel=i.get("nivel", "BAIXO"),
+                    evidencias=i.get("evidencias", []),
+                    recomendacao=i.get("recomendacao", ""),
+                )
+                for i in s.get("indicadores", [])
+            ],
+            score_geral=int(s.get("score_geral", 0)),
+            faixa_risco=s.get("faixa_risco", "VERDE"),
+            pontos_atencao=s.get("pontos_atencao", []),
+            encaminhamentos_sugeridos=s.get("encaminhamentos_sugeridos", []),
+            contexto_historico=s.get("contexto_historico", ""),
+            modo_fallback=s.get("modo_fallback", False),
+        )
+
     return ResultadoIAOut(
         id_consulta=resultado.id_consulta,
         score_geral=resultado.score_geral,
@@ -96,4 +126,8 @@ def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
         confirmado=resultado.confirmado,
         calculado_em=resultado.calculado_em,
         sentimento_voz=sentimento_voz_out,
+        sumario_estruturado=sumario_out,
+        texto_clinico=resultado.texto_clinico,
+        fontes_utilizadas=resultado.fontes_utilizadas,
+        tokens_utilizados=resultado.tokens_utilizados,
     )

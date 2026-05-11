@@ -11,9 +11,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,7 +28,7 @@ import { NotificationService } from 'app/core/services/notification.service';
 
 import { ConsultaAssumidaOut } from 'app/features/fila/models/fila.model';
 import { FilaService } from 'app/features/fila/services/fila.service';
-import { IndicadorIA, ResultadoIAOut } from 'app/features/consulta/models/consulta.model';
+import { IndicadorIA, IndicadorRisco, ResultadoIAOut } from 'app/features/consulta/models/consulta.model';
 import { ConsultaService } from 'app/features/consulta/services/consulta.service';
 import { RelatoService } from 'app/features/consulta/services/relato.service';
 import { ResultadoService } from 'app/features/consulta/services/resultado.service';
@@ -39,6 +41,7 @@ import { ConsultaRecordingService } from 'app/features/consulta/services/consult
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
+    MatChipsModule,
     MatDividerModule,
     MatExpansionModule,
     MatFormFieldModule,
@@ -76,14 +79,26 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
 
   readonly form = this.fb.nonNullable.group({
     relatoTexto: ['', [Validators.minLength(20)]],
-    parecerMedico: [''],
+    textoClinico: [''],
   });
 
-  readonly indicadoresVisiveis = computed(() => {
-    return (this.resultado()?.indicadores ?? []).filter(
-      (i) => i.nivel === 'MODERADO' || i.nivel === 'ALTO',
-    );
-  });
+  readonly indicadoresVisiveis = computed(() =>
+    (this.resultado()?.sumarioEstruturado?.indicadores ?? []).filter(
+      (i): i is IndicadorRisco => i.nivel === 'MODERADO' || i.nivel === 'ALTO',
+    ),
+  );
+
+  readonly pontosAtencao = computed(
+    () => this.resultado()?.sumarioEstruturado?.pontosAtencao ?? [],
+  );
+
+  readonly encaminhamentosSugeridos = computed(
+    () => this.resultado()?.sumarioEstruturado?.encaminhamentosSugeridos ?? [],
+  );
+
+  readonly modoFallback = computed(
+    () => this.resultado()?.sumarioEstruturado?.modoFallback ?? false,
+  );
 
   ngOnInit(): void {
     this.carregarDadosConsulta();
@@ -120,9 +135,13 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       next: (relato) =>
         this.form.patchValue({
           relatoTexto: relato.relatoTexto ?? '',
-          parecerMedico: relato.parecerMedico ?? '',
+          textoClinico: relato.parecerMedico ?? '',
         }),
-      error: () => this.notification.erro('Não foi possível carregar o relato anterior.', 4000),
+      error: (err: HttpErrorResponse) => {
+        if (err.status !== 404) {
+          this.notification.erro('Não foi possível carregar o relato anterior.', 4000);
+        }
+      },
     });
   }
 
@@ -148,14 +167,24 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.saveTimer = window.setTimeout(() => this.relatoSalvo.set(false), 2000);
   }
 
-  salvarParecer(): void {
+  salvarTextoClinico(): void {
     const id = this.idConsulta();
     if (!id) return;
     this.relatoService
-      .atualizar(id, { parecerMedico: this.form.controls.parecerMedico.value })
+      .atualizar(id, { parecerMedico: this.form.controls.textoClinico.value })
       .subscribe({
-        error: () => this.notification.erro('Erro ao salvar parecer'),
+        next: () => this.snackBar.open('Texto clínico salvo.', '', { duration: 2000 }),
+        error: () => this.notification.erro('Erro ao salvar texto clínico'),
       });
+  }
+
+  copiarTextoClinico(): void {
+    const texto = this.form.controls.textoClinico.value;
+    if (!texto) return;
+    navigator.clipboard.writeText(texto).then(
+      () => this.snackBar.open('Texto copiado!', '', { duration: 2000 }),
+      () => this.notification.erro('Não foi possível copiar o texto'),
+    );
   }
 
   async iniciarGravacao(): Promise<void> {
@@ -181,19 +210,18 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.analisando.set(true);
     const audioBlob = this.recordingService.getAudioBlob() ?? undefined;
     this.resultadoService.analisar(id, audioBlob).subscribe({
-      next: (resultado) => {
-        this.resultado.set(resultado);
+      next: (res) => {
+        this.resultado.set(res);
         this.analisando.set(false);
-        const parecerAtual = this.form.controls.parecerMedico.value.trim();
-        if (parecerAtual) {
+        const textoClinico = res.textoClinico ?? res.resumoIa;
+        const atual = this.form.controls.textoClinico.value.trim();
+        if (atual) {
           this.snackBar
-            .open('IA gerou um resumo. Deseja substituir o parecer atual?', 'Substituir', {
-              duration: 8000,
-            })
+            .open('IA gerou um texto clínico. Deseja substituir?', 'Substituir', { duration: 8000 })
             .onAction()
-            .subscribe(() => this.form.controls.parecerMedico.setValue(resultado.resumoIa));
+            .subscribe(() => this.form.controls.textoClinico.setValue(textoClinico));
         } else {
-          this.form.controls.parecerMedico.setValue(resultado.resumoIa);
+          this.form.controls.textoClinico.setValue(textoClinico);
         }
       },
       error: () => {
@@ -206,7 +234,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   confirmarAnalise(): void {
     const id = this.idConsulta();
     if (!id) return;
-    this.salvarParecer();
+    this.salvarTextoClinico();
     this.resultadoService.confirmar(id).subscribe({
       next: () => this.confirmado.emit(),
       error: () => this.notification.erro('Erro ao confirmar análise'),
@@ -228,7 +256,39 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     return textos[resultado.faixaRisco] ?? '';
   }
 
-  formatarIndicador(indicador: IndicadorIA): string {
+  corFaixa(faixa: string): string {
+    const mapa: Record<string, string> = {
+      VERDE: '#2e7d32',
+      AMARELO: '#f57f17',
+      LARANJA: '#e65100',
+      VERMELHO: '#b71c1c',
+    };
+    return mapa[faixa] ?? '#757575';
+  }
+
+  corNivel(nivel: string): string {
+    const mapa: Record<string, string> = {
+      BAIXO: '#2e7d32',
+      MODERADO: '#e65100',
+      ALTO: '#b71c1c',
+    };
+    return mapa[nivel] ?? '#757575';
+  }
+
+  formatarIndicador(indicador: IndicadorIA | IndicadorRisco): string {
     return indicador.tipo.replaceAll('_', ' ');
+  }
+
+  formatarEncaminhamento(valor: string): string {
+    const mapa: Record<string, string> = {
+      CAPS: 'CAPS',
+      CVR: 'CVR',
+      ASSISTENCIA_SOCIAL: 'Assistência Social',
+      PSICOLOGIA: 'Psicologia',
+      SERVICO_SOCIAL: 'Serviço Social',
+      DELEGACIA_MULHER: 'Delegacia da Mulher',
+      PRE_NATAL_ALTO_RISCO: 'Pré-natal Alto Risco',
+    };
+    return mapa[valor] ?? valor;
   }
 }

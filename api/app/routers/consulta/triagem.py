@@ -2,11 +2,13 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
 from app.db.session import get_db
 from app.models.consulta import ConsultaIdentidade, ConsultaTriagem
+from app.models.consulta import HistoricoPeso
 from app.models.paciente import Paciente
 from app.models.user import User
 from app.schemas.consulta import (
@@ -122,6 +124,22 @@ def salvar_triagem(
     triagem.pa_diastolica = payload.pa_diastolica
     consulta.triagem_concluida = True
     consulta.triagem_concluida_em = datetime.now(timezone.utc)
+
+    # Registra peso no histórico para uso no contexto do LLM
+    stmt = (
+        pg_insert(HistoricoPeso)
+        .values(
+            paciente_id=consulta.paciente_id,
+            id_consulta=id_consulta,
+            peso_kg=payload.peso_kg,
+        )
+        .on_conflict_do_update(
+            index_elements=["id_consulta"],
+            set_={"peso_kg": payload.peso_kg},
+        )
+    )
+    db.execute(stmt)
+
     db.commit()
     db.refresh(consulta)
     return _build_etapa1_out(consulta, db)

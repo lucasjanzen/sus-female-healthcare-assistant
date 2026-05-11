@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
 from app.db.session import get_db
-from app.models.consulta import ConsultaRelato, ConsultaResultado
+from app.models.consulta import ConsultaAudio, ConsultaRelato, ConsultaResultado
 from app.models.user import User
 from app.schemas.consulta import (
     RelatoCreate,
@@ -17,6 +18,7 @@ from app.schemas.consulta import (
     ResultadoIAOut,
 )
 import app.services.analise_service as analise_service
+import app.services.analise_llm_service as analise_llm_service
 
 from .helpers import (
     _build_relato_out,
@@ -149,9 +151,22 @@ async def analisar_consulta(
             audio_content_type=audio_content_type,
         )
     except Exception as exc:
-        logger.error("Falha na análise IA para consulta %s: %s", id_consulta, exc)
+        logger.error("Falha no processamento de áudio para consulta %s: %s", id_consulta, exc)
         raise HTTPException(status_code=502, detail="Serviço de análise indisponível. Tente novamente.")
 
+    sentimento_voz_dict = (
+        resultado_ia.sentimento_voz.model_dump() if resultado_ia.sentimento_voz else None
+    )
+
+    # Persiste a transcrição para o LLM ler
+    if resultado_ia.transcricao:
+        db.add(ConsultaAudio(
+            id_consulta=id_consulta,
+            transcricao=resultado_ia.transcricao,
+            status_processamento="CONCLUIDO",
+        ))
+
+    # Cria / atualiza resultado parcial com sentimento_voz antes de chamar o LLM
     resultado = (
         db.query(ConsultaResultado)
         .filter(ConsultaResultado.id_consulta == id_consulta)
@@ -160,19 +175,46 @@ async def analisar_consulta(
     if not resultado:
         resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
         db.add(resultado)
+
+    resultado.sentimento_voz = sentimento_voz_dict
     resultado.score_geral = resultado_ia.score_geral
     resultado.faixa_risco = resultado_ia.faixa_risco
     resultado.indicadores = [i.model_dump() for i in resultado_ia.indicadores]
     resultado.resumo_ia = resultado_ia.resumo_ia
-    resultado.sentimento_voz = (
-        resultado_ia.sentimento_voz.model_dump() if resultado_ia.sentimento_voz else None
-    )
     resultado.calculado_em = datetime.now(timezone.utc)
     resultado.confirmado = False
     resultado.confirmado_em = None
+    db.flush()
+
+    # Análise LLM (GPT-4o com fallback local) — executado em thread para não bloquear o event loop
+    resultado_llm = await asyncio.to_thread(analise_llm_service.analisar_com_llm, id_consulta, db)
+
+    resultado.score_geral = int(resultado_llm["score_geral"])
+    resultado.faixa_risco = resultado_llm["faixa_risco"]
+    resultado.resumo_ia = resultado_llm["resumo_ia"]
+    resultado.indicadores = _llm_indicadores_para_ia(resultado_llm["indicadores"])
+    resultado.sumario_estruturado = resultado_llm["sumario_estruturado"]
+    resultado.texto_clinico = resultado_llm["texto_clinico"]
+    resultado.fontes_utilizadas = resultado_llm["fontes_utilizadas"]
+    resultado.tokens_utilizados = resultado_llm["tokens_utilizados"]
+
     db.commit()
     db.refresh(resultado)
     return _build_resultado_out(resultado)
+
+
+def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
+    """Converte IndicadorRisco (LLM) para formato legado IndicadorIA."""
+    result = []
+    for ind in indicadores_llm:
+        evidencias = ind.get("evidencias", [])
+        result.append({
+            "tipo": ind.get("tipo", ""),
+            "nivel": ind.get("nivel", "BAIXO"),
+            "descricao": "; ".join(evidencias) if evidencias else ind.get("recomendacao", ""),
+            "origem": "LLM",
+        })
+    return result
 
 
 @router.get(

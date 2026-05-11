@@ -115,14 +115,25 @@ def _detectar(
     return indicadores
 
 
-def _faixa(score: int) -> tuple[str, str]:
+def calcular_faixa(score: int) -> str:
     if score <= 25:
-        return "VERDE", "Nenhum indicador significativo identificado"
+        return "VERDE"
     if score <= 50:
-        return "AMARELO", "Indicadores leves - atencao recomendada"
+        return "AMARELO"
     if score <= 75:
-        return "LARANJA", "Indicadores moderados - intervencao recomendada"
-    return "VERMELHO", "Indicadores criticos - encaminhamento imediato"
+        return "LARANJA"
+    return "VERMELHO"
+
+
+def _faixa(score: int) -> tuple[str, str]:
+    mensagens = {
+        "VERDE": "Nenhum indicador significativo identificado",
+        "AMARELO": "Indicadores leves - atencao recomendada",
+        "LARANJA": "Indicadores moderados - intervencao recomendada",
+        "VERMELHO": "Indicadores criticos - encaminhamento imediato",
+    }
+    faixa = calcular_faixa(score)
+    return faixa, mensagens[faixa]
 
 
 def _resumo(
@@ -185,12 +196,14 @@ async def analisar(
     from app.services.azure_service import analisar_sentimento_azure, transcrever_e_analisar_voz
 
     sentimento_voz: Optional[dict] = None
+    transcricao_audio: Optional[str] = None
 
     if audio_bytes:
         resultado_voz = await asyncio.to_thread(
             transcrever_e_analisar_voz, audio_bytes, audio_content_type
         )
         if resultado_voz["transcricao"]:
+            transcricao_audio = resultado_voz["transcricao"]
             relato_texto = resultado_voz["transcricao"]
         sentimento_voz = resultado_voz["sentimento_voz"]
 
@@ -208,17 +221,15 @@ async def analisar(
 
     indicadores = _detectar(_normalizar(relato_texto), "TEXTO_LOCAL", negativo_forte, negativo)
 
-    if (
-        sentimento_voz
-        and sentimento_voz["scores"]["negativo"] > 0.65
-        and not indicadores
-    ):
-        indicadores.append(IndicadorIA(
-            tipo="DEPRESSAO",
-            nivel="BAIXO",
-            descricao="Tom de voz negativo detectado pelo sistema de analise vocal",
-            origem="VOZ",
-        ))
+    if sentimento_voz and sentimento_voz["scores"]["negativo"] > 0.65:
+        ja_tem_depressao = any(i.tipo == "DEPRESSAO" for i in indicadores)
+        if not ja_tem_depressao:
+            indicadores.append(IndicadorIA(
+                tipo="DEPRESSAO",
+                nivel="BAIXO",
+                descricao="Tom de voz negativo detectado pelo sistema de analise vocal",
+                origem="VOZ",
+            ))
 
     score = min(sum(PESOS[i.tipo][i.nivel] for i in indicadores), 100)
     score = min(score + _calcular_voice_modifier(sentimento_voz), 100)
@@ -249,4 +260,5 @@ async def analisar(
         confirmado=False,
         calculado_em=datetime.now(timezone.utc),
         sentimento_voz=sentimento_voz_out,
+        transcricao=transcricao_audio,
     )

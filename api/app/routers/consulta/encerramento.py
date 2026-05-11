@@ -2,13 +2,15 @@ import io
 from datetime import datetime, timezone
 from uuid import UUID
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
 from app.db.session import get_db
-from app.models.consulta import ConsultaEncerramento, ConsultaResultado, ConsultaTriagem
+from app.models.consulta import ConsultaEncerramento, ConsultaRelato, ConsultaResultado, ConsultaTriagem
 from app.models.user import User
 from app.schemas.consulta import (
     EncerramentoCreate,
@@ -24,6 +26,7 @@ from app.services.encerramento_service import (
 
 from .helpers import _consulta_ou_404
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -48,11 +51,38 @@ def obter_sugestao_encerramento(
             status_code=404, detail="Resultado de analise nao encontrado"
         )
     data_sugerida = calcular_data_sugerida(resultado.faixa_risco, consulta.ig_semanas)
-    encs = encaminhamentos_sugeridos(resultado.faixa_risco)
+
+    # Encaminhamentos: preferir lista do LLM quando disponível
+    encs_llm: list[str] = []
+    if resultado.sumario_estruturado:
+        encs_llm = resultado.sumario_estruturado.get("encaminhamentos_sugeridos", [])
+    if encs_llm:
+        encs = encs_llm
+    else:
+        logger.info(
+            "Consulta %s: sumário LLM sem encaminhamentos — usando fallback por faixa de risco (%s).",
+            id_consulta,
+            resultado.faixa_risco,
+        )
+        encs = encaminhamentos_sugeridos(resultado.faixa_risco)
+
+    # Conduta: parecer editado pelo médico > texto clínico do LLM > resumo legado
+    relato = (
+        db.query(ConsultaRelato)
+        .filter(ConsultaRelato.id_consulta == id_consulta)
+        .first()
+    )
+    conduta = (
+        (relato.parecer_medico if relato and relato.parecer_medico else None)
+        or resultado.texto_clinico
+        or resultado.resumo_ia
+        or ""
+    )
+
     return SugestaoEncerramentoOut(
         data_sugerida=data_sugerida,
         encaminhamentos_sugeridos=encs,
-        conduta_sugerida=resultado.resumo_ia or "",
+        conduta_sugerida=conduta,
     )
 
 

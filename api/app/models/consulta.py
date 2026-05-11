@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import Boolean, Column, Date, DateTime, JSON, Numeric, SmallInteger, String, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, Integer, JSON, Numeric, SmallInteger, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.session import Base
@@ -116,8 +116,26 @@ class ConsultaResultado(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
+    sumario_estruturado = Column(JSON, nullable=True)
+    texto_clinico = Column(Text, nullable=True)
+    fontes_utilizadas = Column(JSON, nullable=True)
+    tokens_utilizados = Column(Integer, nullable=True)
     confirmado = Column(Boolean, nullable=False, default=False)
     confirmado_em = Column(DateTime(timezone=True), nullable=True)
+
+
+class HistoricoPeso(Base):
+    __tablename__ = "historico_peso"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    paciente_id = Column(UUID(as_uuid=True), nullable=False)
+    id_consulta = Column(UUID(as_uuid=True), nullable=False, unique=True)
+    peso_kg = Column(Numeric(5, 2), nullable=False)
+    registrado_em = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
 
 
 class ConsultaEncerramento(Base):

@@ -1,6 +1,7 @@
 import hashlib
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -9,10 +10,12 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.dependencies import require_role
 from app.db.session import get_db
+from app.models.consulta import HistoricoPeso
 from app.models.paciente import ConsultaPeso, Paciente, PacienteLog
 from app.models.user import User
 from app.schemas.paciente import (
     ConsultaIniciadaOut,
+    HistoricoPesoItem,
     PacienteCreate,
     PacienteOut,
     PacienteUpdate,
@@ -141,3 +144,37 @@ def atualizar_paciente(
         paciente=PacienteOut.model_validate(paciente),
         id_consulta=id_consulta,
     )
+
+
+@router.get(
+    "/{paciente_id}/historico-peso",
+    response_model=list[HistoricoPesoItem],
+    response_model_by_alias=True,
+)
+def obter_historico_peso(
+    paciente_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
+):
+    paciente = (
+        db.query(Paciente)
+        .filter(Paciente.id == paciente_id, Paciente.ativo.is_(True))
+        .first()
+    )
+    if not paciente:
+        raise HTTPException(status_code=404, detail="Paciente nao encontrada")
+
+    registros = (
+        db.query(HistoricoPeso)
+        .filter(HistoricoPeso.paciente_id == paciente_id)
+        .order_by(HistoricoPeso.registrado_em.desc())
+        .all()
+    )
+    return [
+        HistoricoPesoItem(
+            peso_kg=float(r.peso_kg),
+            registrado_em=r.registrado_em,
+            id_consulta=r.id_consulta,
+        )
+        for r in registros
+    ]
