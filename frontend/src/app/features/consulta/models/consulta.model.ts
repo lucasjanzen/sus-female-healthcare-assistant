@@ -69,7 +69,6 @@ export interface ResultadoIAOut {
   faixaRisco: FaixaRisco;
   indicadores: IndicadorIA[];
   resumoIa: string;
-  statusAudio: string;
   confirmado: boolean;
   calculadoEm: string;
   sentimentoVoz?: SentimentoVozOut;

@@ -163,7 +163,6 @@ async def analisar_consulta(
         db.add(ConsultaAudio(
             id_consulta=id_consulta,
             transcricao=resultado_ia.transcricao,
-            status_processamento="CONCLUIDO",
         ))
 
     # Cria / atualiza resultado parcial com sentimento_voz antes de chamar o LLM

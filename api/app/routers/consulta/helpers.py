@@ -122,7 +122,6 @@ def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
         faixa_risco=resultado.faixa_risco,
         indicadores=resultado.indicadores,
         resumo_ia=resultado.resumo_ia or "",
-        status_audio="CONCLUIDO" if resultado.sentimento_voz is not None else "NAO_PROCESSADO",
         confirmado=resultado.confirmado,
         calculado_em=resultado.calculado_em,
         sentimento_voz=sentimento_voz_out,

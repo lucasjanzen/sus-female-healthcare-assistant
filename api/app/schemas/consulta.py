@@ -159,7 +159,6 @@ class ResultadoIAOut(BaseModel):
     faixa_risco: str
     indicadores: list[IndicadorIA]
     resumo_ia: str
-    status_audio: str = "AGUARDANDO"
     confirmado: bool
     calculado_em: datetime
     sentimento_voz: Optional[SentimentoVozOut] = None

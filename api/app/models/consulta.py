@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, Column, Date, DateTime, Integer, JSON, Numeric, SmallInteger, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -88,16 +88,10 @@ class ConsultaAudio(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     id_consulta = Column(UUID(as_uuid=True), nullable=False)
     transcricao = Column(Text, nullable=True)
-    status_processamento = Column(String(20), nullable=False, default="AGUARDANDO")
     criado_em = Column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
-    )
-    deletar_em = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc) + timedelta(days=90),
     )
 
 
