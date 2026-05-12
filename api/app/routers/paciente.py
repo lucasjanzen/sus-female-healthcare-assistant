@@ -1,7 +1,6 @@
 import hashlib
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -11,7 +10,7 @@ from app.core.config import settings
 from app.core.dependencies import require_role
 from app.db.session import get_db
 from app.models.consulta import HistoricoPeso
-from app.models.paciente import ConsultaPeso, Paciente, PacienteLog
+from app.models.paciente import Paciente, PacienteLog
 from app.models.user import User
 from app.schemas.paciente import (
     ConsultaIniciadaOut,
@@ -86,7 +85,7 @@ def criar_paciente(
 
     id_consulta = uuid.uuid4()
     db.add(
-        ConsultaPeso(
+        HistoricoPeso(
             id_consulta=id_consulta, paciente_id=paciente.id, peso_kg=payload.peso_kg
         )
     )
@@ -126,13 +125,13 @@ def atualizar_paciente(
     if not paciente.possui_filhos:
         paciente.quantidade_filhos = None
 
-    paciente.atualizado_em = datetime.now(timezone.utc)
+    paciente.atualizado_em = datetime.now(UTC)
 
     db.add(PacienteLog(paciente_id=paciente.id, atualizado_por=current_user.id))
 
     id_consulta = uuid.uuid4()
     db.add(
-        ConsultaPeso(
+        HistoricoPeso(
             id_consulta=id_consulta, paciente_id=paciente.id, peso_kg=payload.peso_kg
         )
     )

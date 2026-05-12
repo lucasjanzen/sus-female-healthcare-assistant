@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Numeric, SmallInteger, String
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, SmallInteger, String
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.session import Base
@@ -26,12 +26,12 @@ class Paciente(Base):
     criado_em = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     atualizado_em = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -44,19 +44,5 @@ class PacienteLog(Base):
     atualizado_em = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-    )
-
-
-class ConsultaPeso(Base):
-    __tablename__ = "consulta_peso"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_consulta = Column(UUID(as_uuid=True), nullable=False)
-    paciente_id = Column(UUID(as_uuid=True), ForeignKey("pacientes.id"), nullable=False)
-    peso_kg = Column(Numeric(5, 2), nullable=False)
-    registrado_em = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
