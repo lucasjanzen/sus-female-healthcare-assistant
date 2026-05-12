@@ -82,19 +82,6 @@ class ConsultaRelato(Base):
     )
 
 
-class ConsultaAudio(Base):
-    __tablename__ = "consulta_audio"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_consulta = Column(UUID(as_uuid=True), nullable=False)
-    transcricao = Column(Text, nullable=True)
-    criado_em = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-    )
-
-
 class ConsultaResultado(Base):
     __tablename__ = "consulta_resultado"
 

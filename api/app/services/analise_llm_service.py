@@ -21,7 +21,12 @@ logger = logging.getLogger(__name__)
 # COLETA DE CONTEXTO
 # -------------------------------------------------------
 
-def coletar_contexto(id_consulta: UUID, db: Session) -> dict:
+def coletar_contexto(
+    id_consulta: UUID,
+    db: Session,
+    transcricao: str = "",
+    sentimento_voz: dict = None,
+) -> dict:
     """Coleta todas as fontes de dados clínicos para enviar ao GPT-4o."""
     fontes = {
         "relato": False,
@@ -40,31 +45,10 @@ def coletar_contexto(id_consulta: UUID, db: Session) -> dict:
     if relato_texto:
         fontes["relato"] = True
 
-    # Transcrição e sentimento vocal (salvos anteriormente na consulta)
-    resultado_parcial = db.execute(
-        text(
-            """SELECT cr.sentimento_voz,
-                      ca.transcricao
-               FROM consulta_resultado cr
-               LEFT JOIN LATERAL (
-                   SELECT transcricao FROM consulta_audio
-                   WHERE id_consulta = :id
-                   ORDER BY criado_em DESC LIMIT 1
-               ) ca ON true
-               WHERE cr.id_consulta = :id"""
-        ),
-        {"id": id_consulta},
-    ).fetchone()
-
-    transcricao = ""
-    sentimento_voz = None
-    if resultado_parcial:
-        transcricao = resultado_parcial.transcricao or ""
-        sentimento_voz = resultado_parcial.sentimento_voz
-        if transcricao:
-            fontes["transcricao"] = True
-        if sentimento_voz:
-            fontes["sentimento_voz"] = True
+    if transcricao:
+        fontes["transcricao"] = True
+    if sentimento_voz:
+        fontes["sentimento_voz"] = True
 
     # Dados da consulta atual
     consulta = db.execute(
@@ -281,7 +265,12 @@ def chamar_gpt4o(prompt_usuario: str) -> tuple[dict, int]:
 # FUNÇÃO PRINCIPAL
 # -------------------------------------------------------
 
-def analisar_com_llm(id_consulta: UUID, db: Session) -> dict:
+def analisar_com_llm(
+    id_consulta: UUID,
+    db: Session,
+    transcricao: str = "",
+    sentimento_voz: dict = None,
+) -> dict:
     """
     Executa o pipeline completo de análise com LLM.
 
@@ -289,7 +278,7 @@ def analisar_com_llm(id_consulta: UUID, db: Session) -> dict:
         sumario_estruturado, texto_clinico, fontes_utilizadas,
         tokens_utilizados, score_geral, faixa_risco, indicadores, resumo_ia
     """
-    ctx = coletar_contexto(id_consulta, db)
+    ctx = coletar_contexto(id_consulta, db, transcricao, sentimento_voz)
     prompt = montar_prompt(ctx)
 
     try:

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
 from app.db.session import get_db
-from app.models.consulta import ConsultaAudio, ConsultaRelato, ConsultaResultado
+from app.models.consulta import ConsultaRelato, ConsultaResultado
 from app.models.user import User
 from app.schemas.consulta import (
     RelatoCreate,
@@ -158,13 +158,6 @@ async def analisar_consulta(
         resultado_ia.sentimento_voz.model_dump() if resultado_ia.sentimento_voz else None
     )
 
-    # Persiste a transcrição para o LLM ler
-    if resultado_ia.transcricao:
-        db.add(ConsultaAudio(
-            id_consulta=id_consulta,
-            transcricao=resultado_ia.transcricao,
-        ))
-
     # Cria / atualiza resultado parcial com sentimento_voz antes de chamar o LLM
     resultado = (
         db.query(ConsultaResultado)
@@ -186,7 +179,13 @@ async def analisar_consulta(
     db.flush()
 
     # Análise LLM (GPT-4o com fallback local) — executado em thread para não bloquear o event loop
-    resultado_llm = await asyncio.to_thread(analise_llm_service.analisar_com_llm, id_consulta, db)
+    resultado_llm = await asyncio.to_thread(
+        analise_llm_service.analisar_com_llm,
+        id_consulta,
+        db,
+        resultado_ia.transcricao or "",
+        sentimento_voz_dict,
+    )
 
     resultado.score_geral = int(resultado_llm["score_geral"])
     resultado.faixa_risco = resultado_llm["faixa_risco"]
