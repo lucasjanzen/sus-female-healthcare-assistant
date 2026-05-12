@@ -28,6 +28,7 @@ def _assumida_out(
 ) -> ConsultaAssumidaOut:
     return ConsultaAssumidaOut(
         id_consulta=consulta.id_consulta,
+        paciente_id=paciente.id,
         paciente_nome=paciente.nome,
         paciente_data_nascimento=paciente.data_nascimento,
         tipo_consulta=consulta.tipo_consulta,

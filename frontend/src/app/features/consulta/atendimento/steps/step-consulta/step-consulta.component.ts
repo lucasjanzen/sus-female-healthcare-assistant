@@ -23,6 +23,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NotificationService } from 'app/core/services/notification.service';
 
@@ -33,6 +34,14 @@ import { ConsultaService } from 'app/features/consulta/services/consulta.service
 import { RelatoService } from 'app/features/consulta/services/relato.service';
 import { ResultadoService } from 'app/features/consulta/services/resultado.service';
 import { ConsultaRecordingService } from 'app/features/consulta/services/consulta-recording.service';
+import { HistoricoService, HistoricoPesoItem } from 'app/features/consulta/services/historico.service';
+
+interface LinhaPeso {
+  pesoKg: number;
+  registradoEm: string;
+  variacaoTexto: string;
+  variacaoCor: string;
+}
 
 @Component({
   selector: 'app-step-consulta',
@@ -49,6 +58,7 @@ import { ConsultaRecordingService } from 'app/features/consulta/services/consult
     MatInputModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTableModule,
     MatTooltipModule,
   ],
   templateUrl: './step-consulta.component.html',
@@ -64,6 +74,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   protected readonly recordingService = inject(ConsultaRecordingService);
   private readonly resultadoService = inject(ResultadoService);
   private readonly filaService = inject(FilaService);
+  private readonly historicoService = inject(HistoricoService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly notification = inject(NotificationService);
   private timer?: number;
@@ -75,6 +86,14 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly analisando = signal(false);
   readonly segundosGravacao = signal(0);
   readonly relatoSalvo = signal(false);
+  readonly historicoPeso = signal<HistoricoPesoItem[]>([]);
+  readonly colunasPeso = ['data', 'peso', 'variacao'];
+  readonly linhasPeso = computed(() => this.mapearLinhas(this.historicoPeso()));
+  readonly tendenciaPeso = computed(() => this.calcularTendencia(this.historicoPeso()));
+  readonly tendenciaCor = computed(() => {
+    const t = this.tendenciaPeso();
+    return t === 'perda progressiva' || t === 'ganho progressivo' ? '#e65100' : null;
+  });
   private idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
 
   readonly form = this.fb.nonNullable.group({
@@ -125,7 +144,22 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.filaService
       .emAndamento()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((consulta) => this.dadosConsulta.set(consulta));
+      .subscribe((consulta) => {
+        this.dadosConsulta.set(consulta);
+        if (consulta?.pacienteId) {
+          this.carregarHistoricoPeso(consulta.pacienteId);
+        }
+      });
+  }
+
+  private carregarHistoricoPeso(pacienteId: string): void {
+    this.historicoService
+      .obterHistoricoPeso(pacienteId, 5)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (hist) => this.historicoPeso.set(hist),
+        error: (err) => console.error('[historico-peso]', err),
+      });
   }
 
   private carregarRelato(): void {
@@ -290,5 +324,54 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       PRE_NATAL_ALTO_RISCO: 'Pré-natal Alto Risco',
     };
     return mapa[valor] ?? valor;
+  }
+
+  formatarDataPeso(iso: string): string {
+    return new Date(iso).toLocaleDateString('pt-BR');
+  }
+
+  formatarPeso(kg: number): string {
+    return kg.toFixed(1).replace('.', ',') + ' kg';
+  }
+
+  private mapearLinhas(hist: HistoricoPesoItem[]): LinhaPeso[] {
+    return hist.map((item, i) => ({
+      pesoKg: item.pesoKg,
+      registradoEm: item.registradoEm,
+      variacaoTexto: this.calcularVariacaoTexto(hist, i),
+      variacaoCor: this.calcularVariacaoCor(hist, i),
+    }));
+  }
+
+  private calcularVariacaoTexto(hist: HistoricoPesoItem[], index: number): string {
+    if (index >= hist.length - 1) return '—';
+    const diff = hist[index].pesoKg - hist[index + 1].pesoKg;
+    if (diff === 0) return '—';
+    const abs = Math.abs(diff).toFixed(1).replace('.', ',');
+    return diff > 0 ? `▲ +${abs} kg` : `▼ −${abs} kg`;
+  }
+
+  private calcularVariacaoCor(hist: HistoricoPesoItem[], index: number): string {
+    if (index >= hist.length - 1) return '';
+    const diff = hist[index].pesoKg - hist[index + 1].pesoKg;
+    if (diff > 5 || diff < -5) return '#b71c1c';
+    if (diff > 2 || diff < -2) return '#e65100';
+    return '';
+  }
+
+  private calcularTendencia(hist: HistoricoPesoItem[]): string {
+    if (hist.length < 3) return '';
+    const totalDiff = Math.abs(hist[0].pesoKg - hist[hist.length - 1].pesoKg);
+    if (totalDiff < 1) return 'estável';
+    let todosGanhos = true;
+    let todasPerdas = true;
+    for (let i = 0; i < hist.length - 1; i++) {
+      const diff = hist[i].pesoKg - hist[i + 1].pesoKg;
+      if (diff <= 0) todosGanhos = false;
+      if (diff >= 0) todasPerdas = false;
+    }
+    if (todosGanhos) return 'ganho progressivo';
+    if (todasPerdas) return 'perda progressiva';
+    return 'variação irregular';
   }
 }

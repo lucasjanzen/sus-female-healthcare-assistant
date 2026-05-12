@@ -13,6 +13,7 @@ export interface ConsultaFilaItem {
 
 export interface ConsultaAssumidaOut {
   idConsulta: string;
+  pacienteId: string;
   pacienteNome: string;
   pacienteDataNascimento: string;
   tipoConsulta: TipoConsulta;

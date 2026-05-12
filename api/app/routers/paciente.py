@@ -152,6 +152,7 @@ def atualizar_paciente(
 )
 def obter_historico_peso(
     paciente_id: UUID,
+    limite: int = Query(default=5, ge=1, le=10),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
 ):
@@ -167,6 +168,7 @@ def obter_historico_peso(
         db.query(HistoricoPeso)
         .filter(HistoricoPeso.paciente_id == paciente_id)
         .order_by(HistoricoPeso.registrado_em.desc())
+        .limit(limite)
         .all()
     )
     return [
