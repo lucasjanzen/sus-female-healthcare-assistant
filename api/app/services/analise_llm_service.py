@@ -191,7 +191,7 @@ def montar_prompt(ctx: dict) -> str:
     partes.append(f"Data: {d.get('data_consulta', 'não informada')}")
 
     if ctx["relato_texto"]:
-        partes.append("\n## RELATO DA CONSULTA (digitado pelo médico)")
+        partes.append("\n## OBSERVAÇÕES DO PROFISSIONAL")
         partes.append(ctx["relato_texto"])
 
     if ctx["transcricao"]:

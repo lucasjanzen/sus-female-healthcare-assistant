@@ -204,10 +204,10 @@ async def analisar(
         )
         if resultado_voz["transcricao"]:
             transcricao_audio = resultado_voz["transcricao"]
-            relato_texto = resultado_voz["transcricao"]
         sentimento_voz = resultado_voz["sentimento_voz"]
 
-    sentimento_azure = analisar_sentimento_azure(relato_texto) if relato_texto else None
+    texto_para_analise = transcricao_audio or relato_texto
+    sentimento_azure = analisar_sentimento_azure(texto_para_analise) if texto_para_analise else None
 
     negativo_forte: Optional[bool] = None
     negativo: Optional[bool] = None
@@ -219,7 +219,7 @@ async def analisar(
     else:
         logger.warning("Azure Language indisponivel; usando deteccao local de sentimento.")
 
-    indicadores = _detectar(_normalizar(relato_texto), "TEXTO_LOCAL", negativo_forte, negativo)
+    indicadores = _detectar(_normalizar(texto_para_analise), "TEXTO_LOCAL", negativo_forte, negativo)
 
     if sentimento_voz and sentimento_voz["scores"]["negativo"] > 0.65:
         ja_tem_depressao = any(i.tipo == "DEPRESSAO" for i in indicadores)

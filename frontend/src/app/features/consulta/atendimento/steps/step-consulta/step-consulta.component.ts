@@ -237,7 +237,6 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   analisar(): void {
-    if (!this.recordingService.gravacaoConcluida()) return;
     const id = this.idConsulta();
     if (!id) return;
     this.salvarRelato();

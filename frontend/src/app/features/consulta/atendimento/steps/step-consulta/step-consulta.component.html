@@ -78,12 +78,12 @@
 
   <form class="stack" [formGroup]="form">
     <mat-form-field appearance="outline">
-      <mat-label>Relato da paciente</mat-label>
+      <mat-label>Observações do profissional</mat-label>
       <textarea
         matInput
         formControlName="relatoTexto"
         rows="7"
-        placeholder="Digite aqui o relato da paciente durante a consulta..."
+        placeholder="Registre aqui suas observações sobre a consulta, complementando o áudio ou descrevendo o relato da paciente..."
         (blur)="salvarRelato()"
       ></textarea>
       @if (relatoSalvo()) {
@@ -121,8 +121,7 @@
         mat-raised-button
         color="accent"
         type="button"
-        [disabled]="!recordingService.gravacaoConcluida() || analisando()"
-        [matTooltip]="!recordingService.gravacaoConcluida() ? 'Grave e encerre o áudio antes de analisar' : ''"
+        [disabled]="analisando()"
         (click)="analisar()"
       >
         Analisar com IA
