@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.core.exception_handlers import validation_exception_handler
 from app.db.session import Base, engine
 from app.models import audit_acessos, consulta, paciente, user  # noqa: F401
 from app.routers import admin_paciente as admin_paciente_router
@@ -18,6 +20,8 @@ app = FastAPI(
     description="Centro de Assistencia a Saude Feminina",
     version="1.0.0",
 )
+
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 app.add_middleware(
     CORSMiddleware,

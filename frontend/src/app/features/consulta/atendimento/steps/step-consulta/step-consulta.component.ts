@@ -26,6 +26,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NotificationService } from 'app/core/services/notification.service';
+import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
 
 import { ConsultaAssumidaOut } from 'app/features/fila/models/fila.model';
 import { FilaService } from 'app/features/fila/services/fila.service';
@@ -173,7 +174,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
         }),
       error: (err: HttpErrorResponse) => {
         if (err.status !== 404) {
-          this.notification.erro('Não foi possível carregar o relato anterior.', 4000);
+          this.notification.erro(extrairMensagemErro(err, 'Não foi possível carregar o relato anterior.'), 4000);
         }
       },
     });
@@ -191,7 +192,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => this.indicarRelatoSalvo(),
-        error: () => this.notification.erro('Erro ao salvar relato'),
+        error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao salvar relato')),
       });
   }
 
@@ -208,7 +209,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       .atualizar(id, { parecerMedico: this.form.controls.textoClinico.value })
       .subscribe({
         next: () => this.snackBar.open('Texto clínico salvo.', '', { duration: 2000 }),
-        error: () => this.notification.erro('Erro ao salvar texto clínico'),
+        error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao salvar texto clínico')),
       });
   }
 
@@ -257,8 +258,8 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
           this.form.controls.textoClinico.setValue(textoClinico);
         }
       },
-      error: () => {
-        this.notification.erro('Erro ao analisar relato');
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao analisar relato'));
         this.analisando.set(false);
       },
     });
@@ -270,7 +271,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.salvarTextoClinico();
     this.resultadoService.confirmar(id).subscribe({
       next: () => this.confirmado.emit(),
-      error: () => this.notification.erro('Erro ao confirmar análise'),
+      error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao confirmar análise')),
     });
   }
 

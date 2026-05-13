@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -14,9 +15,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { PacienteConsultaOut } from '../models/consulta.model';
 import { TipoConsulta } from '../models/consulta.types';
 import { ConsultaService } from '../services/consulta.service';
-import { NotificationService } from '../../../core/services/notification.service';
-import { formatarDataIso } from '../../../core/utils/date.utils';
-import { FormatDataPipe } from '../../../shared/pipes/format-data.pipe';
+import { NotificationService } from 'app/core/services/notification.service';
+import { formatarDataIso } from 'app/core/utils/date.utils';
+import { FormatDataPipe } from 'app/shared/pipes/format-data.pipe';
+import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
 
 @Component({
   selector: 'app-triagem',
@@ -103,8 +105,8 @@ export class TriagemComponent {
         this.pacientes.set(pacientes);
         this.carregando.set(false);
       },
-      error: () => {
-        this.notification.erro('Erro ao buscar pacientes');
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao buscar pacientes'), 5000);
         this.carregando.set(false);
       },
     });
@@ -147,8 +149,8 @@ export class TriagemComponent {
           this.identificacaoForm.disable();
           this.submetendo.set(false);
         },
-        error: () => {
-          this.notification.erro('Erro ao iniciar consulta');
+        error: (err: HttpErrorResponse) => {
+          this.notification.erro(extrairMensagemErro(err, 'Erro ao iniciar consulta'), 5000);
           this.submetendo.set(false);
         },
       });
@@ -170,8 +172,8 @@ export class TriagemComponent {
           this.triagemConcluida.set(true);
           this.submetendo.set(false);
         },
-        error: () => {
-          this.notification.erro('Erro ao concluir triagem');
+        error: (err: HttpErrorResponse) => {
+          this.notification.erro(extrairMensagemErro(err, 'Erro ao concluir triagem'), 5000);
           this.submetendo.set(false);
         },
       });
@@ -191,6 +193,4 @@ export class TriagemComponent {
   voltarInicio(): void {
     this.router.navigate(['/home']);
   }
-
 }
-

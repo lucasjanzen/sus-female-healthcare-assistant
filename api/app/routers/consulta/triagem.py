@@ -80,7 +80,7 @@ def iniciar_consulta(
         .first()
     )
     if not paciente:
-        raise HTTPException(status_code=404, detail="Paciente nao encontrada")
+        raise HTTPException(status_code=404, detail="Paciente não encontrada")
 
     ig_semanas, ig_dias = _calcular_ig(payload.dum)
     consulta = ConsultaIdentidade(

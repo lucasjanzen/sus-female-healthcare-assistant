@@ -37,7 +37,7 @@ class ConsultaIniciarRequest(BaseModel):
     @model_validator(mode="after")
     def validar_dum_prenatal(self):
         if self.tipo_consulta == TipoConsultaEnum.PRENATAL and self.dum is None:
-            raise ValueError("DUM e obrigatoria para consulta pre-natal")
+            raise ValueError("DUM é obrigatória para consulta pré-natal")
         return self
 
 
@@ -45,8 +45,8 @@ class TriagemCreate(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     peso_kg: float = Field(..., ge=30, le=300)
-    pa_sistolica: int = Field(..., ge=60, le=200)
-    pa_diastolica: int = Field(..., ge=40, le=130)
+    pa_sistolica: int = Field(..., ge=60, le=250)
+    pa_diastolica: int = Field(..., ge=40, le=150)
 
 
 class TriagemResumo(BaseModel):
@@ -102,7 +102,7 @@ class RelatoUpdate(BaseModel):
     @model_validator(mode="after")
     def validar_algum_campo(self):
         if self.relato_texto is None and self.parecer_medico is None:
-            raise ValueError("Informe relato_texto ou parecer_medico")
+            raise ValueError("Informe o relato ou o parecer médico")
         return self
 
 
@@ -195,7 +195,7 @@ class EncerramentoCreate(BaseModel):
     @classmethod
     def validar_data_retorno(cls, v: date) -> date:
         if v < date.today():
-            raise ValueError("Data de retorno nao pode ser no passado")
+            raise ValueError("Data de retorno não pode ser no passado")
         return v
 
     @field_validator("encaminhamentos")
@@ -204,7 +204,7 @@ class EncerramentoCreate(BaseModel):
         if v:
             invalidos = [e for e in v if e not in _ENCAMINHAMENTOS_VALIDOS]
             if invalidos:
-                raise ValueError(f"Encaminhamentos invalidos: {invalidos}")
+                raise ValueError(f"Encaminhamentos inválidos: {invalidos}")
         return v
 
 

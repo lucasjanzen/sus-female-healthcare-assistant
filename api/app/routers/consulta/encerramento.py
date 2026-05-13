@@ -48,7 +48,7 @@ def obter_sugestao_encerramento(
     )
     if not resultado:
         raise HTTPException(
-            status_code=404, detail="Resultado de analise nao encontrado"
+            status_code=404, detail="Resultado de análise não encontrado"
         )
     data_sugerida = calcular_data_sugerida(resultado.faixa_risco, consulta.ig_semanas)
 
@@ -100,14 +100,14 @@ def encerrar_consulta(
 ):
     consulta = _consulta_ou_404(id_consulta, db)
     if consulta.status == "ENCERRADA":
-        raise HTTPException(status_code=409, detail="Consulta ja encerrada")
+        raise HTTPException(status_code=409, detail="Consulta já encerrada")
     enc_existente = (
         db.query(ConsultaEncerramento)
         .filter(ConsultaEncerramento.id_consulta == id_consulta)
         .first()
     )
     if enc_existente:
-        raise HTTPException(status_code=409, detail="Encerramento ja registrado")
+        raise HTTPException(status_code=409, detail="Encerramento já registrado")
 
     encerramento = ConsultaEncerramento(
         id_consulta=id_consulta,
@@ -146,7 +146,7 @@ def obter_resumo_pec(
     consulta = _consulta_ou_404(id_consulta, db)
     if consulta.status != "ENCERRADA":
         raise HTTPException(
-            status_code=400, detail="Resumo disponivel apenas para consultas encerradas"
+            status_code=400, detail="Resumo disponível apenas para consultas encerradas"
         )
 
     triagem = (

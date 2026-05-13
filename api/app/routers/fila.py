@@ -121,12 +121,12 @@ def assumir_consulta(
         .first()
     )
     if not linha:
-        raise HTTPException(status_code=404, detail="Consulta nao encontrada")
+        raise HTTPException(status_code=404, detail="Consulta não encontrada")
 
     consulta, paciente, triagem = linha
     if consulta.medico_id and consulta.medico_id != current_user.id:
         raise HTTPException(
-            status_code=409, detail="Consulta assumida por outro medico"
+            status_code=409, detail="Consulta assumida por outro médico"
         )
 
     consulta.medico_id = current_user.id

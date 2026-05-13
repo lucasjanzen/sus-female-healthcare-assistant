@@ -105,7 +105,7 @@ def obter_relato(
         .first()
     )
     if not relato:
-        raise HTTPException(status_code=404, detail="Relato nao encontrado")
+        raise HTTPException(status_code=404, detail="Relato não encontrado")
     return _build_relato_out(relato)
 
 
@@ -141,7 +141,7 @@ async def analisar_consulta(
             )
         audio_content_type = audio.content_type or "audio/webm"
     elif not relato_texto:
-        raise HTTPException(status_code=400, detail="Informe o relato antes da analise")
+        raise HTTPException(status_code=400, detail="Informe o relato antes da análise")
 
     try:
         resultado_ia = await analise_service.analisar(
@@ -232,7 +232,7 @@ def obter_resultado(
         .first()
     )
     if not resultado:
-        raise HTTPException(status_code=404, detail="Resultado nao encontrado")
+        raise HTTPException(status_code=404, detail="Resultado não encontrado")
     return _build_resultado_out(resultado)
 
 
@@ -253,7 +253,7 @@ def confirmar_resultado(
         .first()
     )
     if not resultado:
-        raise HTTPException(status_code=404, detail="Resultado nao encontrado")
+        raise HTTPException(status_code=404, detail="Resultado não encontrado")
     resultado.confirmado = True
     resultado.confirmado_em = datetime.now(timezone.utc)
     db.commit()

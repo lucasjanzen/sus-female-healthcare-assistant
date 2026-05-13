@@ -9,10 +9,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { Router } from '@angular/router';
 
+import { HttpErrorResponse } from '@angular/common/http';
 import { PacienteListItem } from '../../models/paciente-admin.model';
 import { PacienteAdminService } from '../../services/paciente-admin.service';
 import { NotificationService } from 'app/core/services/notification.service';
 import { FormatDataPipe } from 'app/shared/pipes/format-data.pipe';
+import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
 
 @Component({
   selector: 'app-pacientes-lista',
@@ -57,8 +59,8 @@ export class PacientesListaComponent implements OnInit {
         this.total = resp.total;
         this.carregando = false;
       },
-      error: () => {
-        this.notification.erro('Erro ao carregar pacientes');
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao carregar pacientes'));
         this.carregando = false;
       },
     });
@@ -78,8 +80,8 @@ export class PacientesListaComponent implements OnInit {
         this.total = items.length;
         this.carregando = false;
       },
-      error: () => {
-        this.notification.erro('Erro ao buscar pacientes');
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao buscar pacientes'));
         this.carregando = false;
       },
     });
@@ -110,8 +112,8 @@ export class PacientesListaComponent implements OnInit {
         this.notification.sucesso('Paciente desativada com sucesso');
         this.carregar();
       },
-      error: () => {
-        this.notification.erro('Erro ao desativar paciente');
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao desativar paciente'));
       },
     });
   }

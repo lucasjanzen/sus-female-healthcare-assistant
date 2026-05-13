@@ -41,7 +41,7 @@ def _consulta_ou_404(id_consulta: UUID, db: Session) -> ConsultaIdentidade:
         .first()
     )
     if not consulta:
-        raise HTTPException(status_code=404, detail="Consulta nao encontrada")
+        raise HTTPException(status_code=404, detail="Consulta não encontrada")
     return consulta
 
 

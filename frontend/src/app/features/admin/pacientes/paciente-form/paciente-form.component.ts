@@ -17,10 +17,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { HttpErrorResponse } from '@angular/common/http';
 import { PacienteAdminCreate, PacienteAdminUpdate } from '../../models/paciente-admin.model';
 import { PacienteAdminService } from '../../services/paciente-admin.service';
 import { NotificationService } from 'app/core/services/notification.service';
 import { formatarDataIso } from 'app/core/utils/date.utils';
+import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
 
 function notFutureDate(control: AbstractControl): ValidationErrors | null {
   if (!control.value) return null;
@@ -187,8 +189,8 @@ export class PacienteFormComponent implements OnInit {
         this.notification.sucesso('Dados atualizados com sucesso');
         this.router.navigate(['/admin/pacientes']);
       },
-      error: (err) => {
-        this.notification.erro(err?.error?.detail ?? 'Erro ao atualizar paciente', 4000);
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao atualizar paciente'), 4000);
         this.salvando = false;
       },
     });
@@ -200,8 +202,8 @@ export class PacienteFormComponent implements OnInit {
         this.notification.sucesso('Paciente cadastrada com sucesso');
         this.router.navigate(['/admin/pacientes']);
       },
-      error: (err) => {
-        this.notification.erro(err?.error?.detail ?? 'Erro ao cadastrar paciente', 4000);
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao cadastrar paciente'), 4000);
         this.salvando = false;
       },
     });

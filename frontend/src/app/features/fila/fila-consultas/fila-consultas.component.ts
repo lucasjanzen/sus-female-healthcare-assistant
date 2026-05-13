@@ -5,8 +5,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { extrairMensagemErro } from '../../../core/utils/http-error.utils';
 import { ConsultaAssumidaOut, ConsultaFilaItem } from '../models/fila.model';
 import { FilaService } from '../services/fila.service';
 import { FormatDataPipe } from '../../../shared/pipes/format-data.pipe';
@@ -62,8 +64,8 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
         this.carregando.set(false);
         this._inicialCarregado = true;
       },
-      error: () => {
-        this.notification.erro('Erro ao carregar fila');
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao carregar fila'));
         this.carregando.set(false);
         this._inicialCarregado = true;
       },
@@ -71,7 +73,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
     if (this.isMedico()) {
       this.filaService.emAndamento().subscribe({
         next: (consulta) => this.emAndamento.set(consulta),
-        error: () => this.notification.erro('Erro ao verificar consulta em andamento'),
+        error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao verificar consulta em andamento')),
       });
     }
   }
@@ -80,14 +82,10 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
     this.assumindo.set(true);
     this.filaService.assumir(consulta.idConsulta).subscribe({
       next: () => this.router.navigate(['/consulta', consulta.idConsulta, 'atendimento']),
-      error: (erro) => {
+      error: (err: HttpErrorResponse) => {
         this.assumindo.set(false);
-        if (erro.status === 409) {
-          this.notification.erro('Consulta assumida por outro médico');
-          this.carregar();
-        } else {
-          this.notification.erro('Erro ao assumir consulta');
-        }
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao assumir consulta'));
+        if (err.status === 409) this.carregar();
       },
     });
   }

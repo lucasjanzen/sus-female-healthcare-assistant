@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, forkJoin, of } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from 'app/core/services/notification.service';
+import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
 
 import {
   ResultadoIAOut,
@@ -133,9 +135,9 @@ export class StepEncerramentoComponent {
         });
         this.carregando.set(false);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.carregando.set(false);
-        this.notification.erro('Erro ao carregar dados da consulta.');
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao carregar dados da consulta.'));
       },
     });
   }
@@ -177,9 +179,9 @@ export class StepEncerramentoComponent {
         this.salvando.set(false);
         this.encerrado.set(true);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.salvando.set(false);
-        this.notification.erro('Erro ao encerrar a consulta. Tente novamente.');
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao encerrar a consulta. Tente novamente.'));
       },
     });
   }
@@ -196,7 +198,7 @@ export class StepEncerramentoComponent {
         link.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.notification.erro('Erro ao gerar PDF.'),
+      error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao gerar PDF.')),
     });
   }
 

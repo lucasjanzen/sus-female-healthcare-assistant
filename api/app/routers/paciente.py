@@ -162,7 +162,7 @@ def obter_historico_peso(
         .first()
     )
     if not paciente:
-        raise HTTPException(status_code=404, detail="Paciente nao encontrada")
+        raise HTTPException(status_code=404, detail="Paciente não encontrada")
 
     registros = (
         db.query(HistoricoPeso)
