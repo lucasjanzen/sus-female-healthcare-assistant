@@ -70,14 +70,18 @@ docker-compose up --build
 Em outro terminal, após os serviços subirem:
 
 ```bash
+# Usuários e pacientes base (obrigatório)
 docker-compose exec api python seed.py
+
+# Histórico de consultas encerradas (opcional — habilita análise LLM com contexto histórico)
+docker-compose exec api python seed-history.py
 ```
 
-> **Desenvolvimento local (sem o container `api`):** execute direto com o Python do venv:
+> **Desenvolvimento local (sem o container `api`):** com o venv ativado, use os atalhos do taskipy:
 > ```bash
 > cd api
-> .venv\Scripts\python.exe seed.py   # Windows
-> # .venv/bin/python seed.py         # Linux/macOS
+> task seed          # usuários e pacientes
+> task seed-history  # histórico de consultas (requer seed antes)
 > ```
 
 ### 4. Acesse a aplicação
@@ -161,6 +165,8 @@ task dev
 | Comando | Descrição |
 |---------|-----------|
 | `task dev` | Sobe o servidor com hot-reload |
+| `task seed` | Insere usuários e pacientes de teste |
+| `task seed-history` | Insere histórico de consultas encerradas (requer `task seed`) |
 | `task format` | Formata todos os arquivos Python com ruff |
 | `task lint` | Lint + auto-fix com ruff |
 | `task check` | Verifica formatação e lint sem alterar arquivos (CI) |
@@ -207,7 +213,8 @@ sus-female-healthcare-assistant/
 │   │   ├── schemas/
 │   │   │   └── auth.py         # Pydantic schemas
 │   │   └── main.py
-│   ├── seed.py                 # Dados de teste
+│   ├── seed.py                 # Usuários e pacientes de teste
+│   ├── seed-history.py         # Histórico de consultas encerradas (requer seed.py)
 │   └── requirements.txt
 │
 ├── frontend/                   # Frontend Angular 21
