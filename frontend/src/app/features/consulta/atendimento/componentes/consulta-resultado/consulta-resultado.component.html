@@ -1,0 +1,198 @@
+@let res = resultado();
+
+<mat-divider />
+
+<div class="stack">
+<h2 class="resultado-titulo">Resultado da Análise IA</h2>
+
+<!-- CARD DE SCORE -->
+<mat-card
+  class="result-card"
+  [class.VERDE]="res.faixaRisco === 'VERDE'"
+  [class.AMARELO]="res.faixaRisco === 'AMARELO'"
+  [class.LARANJA]="res.faixaRisco === 'LARANJA'"
+  [class.VERMELHO]="res.faixaRisco === 'VERMELHO'"
+>
+  <mat-card-content>
+    <div class="score-header">
+      <span class="score-numero">{{ res.scoreGeral }}</span>
+      <div class="score-info">
+        <div class="score-faixa">
+          {{ res.faixaRisco }}
+          @if (modoFallback()) {
+            <span class="badge-fallback">Análise local</span>
+          }
+        </div>
+        <div class="score-descricao">{{ textoFaixa(res) }}</div>
+      </div>
+    </div>
+
+    @if (res.fontesUtilizadas; as fontes) {
+      <div class="fontes-row">
+        <span class="fonte-chip" [class.ativo]="fontes.relato">
+          <mat-icon>{{ fontes.relato ? 'check' : 'close' }}</mat-icon>
+          Relato
+        </span>
+        <span class="fonte-chip" [class.ativo]="fontes.transcricao">
+          <mat-icon>{{ fontes.transcricao ? 'check' : 'close' }}</mat-icon>
+          Transcrição
+        </span>
+        <span class="fonte-chip" [class.ativo]="fontes.sentimentoVoz">
+          <mat-icon>{{ fontes.sentimentoVoz ? 'check' : 'close' }}</mat-icon>
+          Análise vocal
+        </span>
+        <span class="fonte-chip" [class.ativo]="fontes.historico">
+          <mat-icon>{{ fontes.historico ? 'check' : 'close' }}</mat-icon>
+          Histórico
+        </span>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
+
+<!-- ANÁLISE VOCAL -->
+@if (res.sentimentoVoz; as sv) {
+  <section class="vocal-sentiment-card">
+    <h4>Análise Vocal — Paciente</h4>
+    <span [class]="'chip chip--' + sv.dominante.toLowerCase()">{{ sv.dominante }}</span>
+
+    <div class="progress-row progress-row--positivo">
+      <label>Positivo</label>
+      <progress [value]="sv.scores.positivo" max="1"></progress>
+      <span>{{ (sv.scores.positivo * 100).toFixed(0) }}%</span>
+    </div>
+    <div class="progress-row progress-row--negativo">
+      <label>Negativo</label>
+      <progress [value]="sv.scores.negativo" max="1"></progress>
+      <span>{{ (sv.scores.negativo * 100).toFixed(0) }}%</span>
+    </div>
+    <div class="progress-row progress-row--neutro">
+      <label>Neutro</label>
+      <progress [value]="sv.scores.neutro" max="1"></progress>
+      <span>{{ (sv.scores.neutro * 100).toFixed(0) }}%</span>
+    </div>
+
+    <p class="vocal-note">Análise baseada no padrão vocal da paciente detectado durante a consulta.</p>
+  </section>
+}
+
+<!-- INDICADORES DETECTADOS -->
+@if (indicadoresVisiveis().length > 0) {
+  <h3 class="secao-titulo">Indicadores Detectados</h3>
+  <div class="indicadores">
+    @for (ind of indicadoresVisiveis(); track ind.tipo) {
+      <mat-card
+        class="indicador-card"
+        [class.indicador--moderado]="ind.nivel === 'MODERADO'"
+        [class.indicador--alto]="ind.nivel === 'ALTO'"
+      >
+        <mat-card-header>
+          <mat-card-title class="indicador-titulo">
+            <mat-icon>{{ ind.nivel === 'ALTO' ? 'error' : 'warning' }}</mat-icon>
+            {{ formatarIndicador(ind) }}
+          </mat-card-title>
+          <mat-card-subtitle>
+            <span
+              class="nivel-badge"
+              [class.nivel-badge--moderado]="ind.nivel === 'MODERADO'"
+              [class.nivel-badge--alto]="ind.nivel === 'ALTO'"
+            >{{ ind.nivel }}</span>
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="evidencias-list">
+            @for (ev of ind.evidencias; track $index) {
+              <li>{{ ev }}</li>
+            }
+          </ul>
+          <p class="recomendacao">
+            <strong>Conduta sugerida:</strong>
+            {{ ind.recomendacao }}
+          </p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}
+
+<!-- PONTOS DE ATENÇÃO -->
+@if (pontosAtencao().length > 0) {
+  <mat-card class="pontos-card">
+    <mat-card-header>
+      <mat-card-title>Pontos de Atenção</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ul>
+        @for (ponto of pontosAtencao(); track $index) {
+          <li>{{ ponto }}</li>
+        }
+      </ul>
+    </mat-card-content>
+  </mat-card>
+}
+
+<!-- ENCAMINHAMENTOS SUGERIDOS -->
+@if (encaminhamentosSugeridos().length > 0) {
+  <div class="encaminhamentos-sugeridos">
+    <strong>Encaminhamentos sugeridos pela IA:</strong>
+    <mat-chip-set>
+      @for (enc of encaminhamentosSugeridos(); track enc) {
+        <mat-chip>{{ formatarEncaminhamento(enc) }}</mat-chip>
+      }
+    </mat-chip-set>
+  </div>
+}
+
+<!-- TEXTO CLÍNICO -->
+<mat-card class="texto-clinico-card">
+  <mat-card-header>
+    <mat-card-title class="texto-clinico-titulo">
+      Texto clínico para encaminhamento
+      <span class="badge-ia">Gerado pela IA</span>
+    </mat-card-title>
+    <mat-card-subtitle>Revise e adapte antes de usar — o conteúdo é sugestivo.</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-form-field appearance="outline">
+      <textarea
+        matInput
+        [formControl]="textoClinicoCtrl"
+        rows="10"
+        placeholder="Texto clínico gerado pela IA para encaminhamento..."
+        (blur)="salvarTextoClinico()"
+      ></textarea>
+    </mat-form-field>
+
+    <div class="texto-clinico-actions">
+      <button mat-stroked-button type="button" (click)="copiarTextoClinico()">
+        <mat-icon>content_copy</mat-icon>
+        Copiar texto
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<!-- CONTEXTO HISTÓRICO -->
+@if (res.sumarioEstruturado?.contextoHistorico) {
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>Histórico considerado na análise</mat-panel-title>
+    </mat-expansion-panel-header>
+    <p>{{ res.sumarioEstruturado?.contextoHistorico }}</p>
+  </mat-expansion-panel>
+}
+
+<!-- AVISO CLÍNICO -->
+<div class="aviso-clinico">
+  <mat-icon>info</mat-icon>
+  <span>
+    Esta análise é um apoio à decisão clínica gerado por inteligência artificial. O diagnóstico e a conduta final
+    são responsabilidade exclusiva do profissional de saúde.
+  </span>
+</div>
+
+<button mat-raised-button color="primary" type="button" (click)="confirmarAnalise()">
+  Confirmar Análise e Avançar
+</button>
+</div>

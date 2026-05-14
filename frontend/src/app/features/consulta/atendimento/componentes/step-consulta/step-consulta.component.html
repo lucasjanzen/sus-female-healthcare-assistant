@@ -1,0 +1,78 @@
+<div class="stack">
+  <app-consulta-triagem
+    [dadosConsulta]="dadosConsulta()"
+    [historicoPeso]="historicoPeso()"
+  />
+
+  <form class="stack" [formGroup]="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Observações do profissional</mat-label>
+      <textarea
+        matInput
+        formControlName="relatoTexto"
+        rows="7"
+        placeholder="Registre aqui suas observações sobre a consulta, complementando o áudio ou descrevendo o relato da paciente..."
+        (blur)="salvarRelato()"
+      ></textarea>
+      @if (relatoSalvo()) {
+        <mat-hint>Salvo ✓</mat-hint>
+      } @else if (form.controls.relatoTexto.value.trim().length < 20) {
+        <mat-hint align="end">{{ form.controls.relatoTexto.value.trim().length }}/20 mín.</mat-hint>
+      }
+    </mat-form-field>
+
+    <div class="acoes-analise">
+      <div class="gravacao-controles">
+        @if (!recordingService.gravando()) {
+          <button mat-stroked-button type="button" (click)="iniciarGravacao()">
+            <mat-icon>mic</mat-icon>
+            Iniciar Gravação
+          </button>
+        } @else {
+          <span class="gravando-status">
+            <mat-icon class="recording">mic</mat-icon>
+            {{ tempoGravacao() }}
+          </span>
+          <button mat-raised-button color="warn" type="button" (click)="encerrarGravacao()">
+            <mat-icon>stop</mat-icon>
+            Encerrar Gravação
+          </button>
+        }
+
+        @if (recordingService.gravacaoConcluida()) {
+          <span class="audio-pronta">
+            <mat-icon>check_circle</mat-icon>
+            Gravação pronta
+          </span>
+        }
+      </div>
+
+      @if (analisando()) {
+        <div class="analisando-status">
+          <mat-spinner diameter="24" />
+          <span>Analisando áudio e relato… isso pode levar alguns minutos.</span>
+        </div>
+      } @else {
+        <button
+          mat-raised-button
+          color="accent"
+          type="button"
+          [disabled]="!recordingService.gravacaoConcluida() && !form.controls.relatoTexto.value.trim()"
+          (click)="analisar()"
+        >
+          <mat-icon>auto_awesome</mat-icon>
+          Analisar com IA
+        </button>
+      }
+    </div>
+
+    @if (resultado(); as res) {
+      <app-consulta-resultado
+        [resultado]="res"
+        [idConsulta]="consultaAtiva()!.idConsulta"
+        [textoClinicoCtrl]="form.controls.textoClinico"
+        (confirmado)="confirmado.emit()"
+      />
+    }
+  </form>
+</div>

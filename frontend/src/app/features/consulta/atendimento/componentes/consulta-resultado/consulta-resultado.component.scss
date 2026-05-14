@@ -1,0 +1,331 @@
+// ── Layout ────────────────────────────────────────────────────────────────────
+.stack {
+  display: grid;
+  gap: 18px;
+}
+
+// ── Resultado IA ──────────────────────────────────────────────────────────────
+.resultado-titulo {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+}
+
+.result-card {
+  border-left: 5px solid #2e7d32;
+
+  &.VERDE    { border-left-color: #2e7d32; background: #f1f8f1; }
+  &.AMARELO  { border-left-color: #f9a825; background: #fffde7; }
+  &.LARANJA  { border-left-color: #ef6c00; background: #fff3e0; }
+  &.VERMELHO { border-left-color: #c62828; background: #ffebee; }
+}
+
+.score-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.score-numero {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+}
+
+.score-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-faixa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #333;
+}
+
+.score-descricao {
+  font-size: 13px;
+  color: #666;
+}
+
+.badge-fallback {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #e0e0e0;
+  color: #555;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.fontes-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.fonte-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  background: #f0f0f0;
+  color: #aaa;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &.ativo {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+}
+
+// ── Análise vocal ─────────────────────────────────────────────────────────────
+.vocal-sentiment-card {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+
+  h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 14px;
+
+  &.chip--positivo { background: #e8f5e9; color: #2e7d32; }
+  &.chip--negativo { background: #ffebee; color: #c62828; }
+  &.chip--neutro   { background: #f5f5f5; color: #555;    }
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+
+  label {
+    width: 58px;
+    color: #555;
+    flex-shrink: 0;
+  }
+
+  progress {
+    flex: 1;
+    height: 7px;
+    border-radius: 4px;
+    appearance: none;
+    overflow: hidden;
+
+    &::-webkit-progress-bar   { background: #e0e0e0; border-radius: 4px; }
+    &::-webkit-progress-value { border-radius: 4px; }
+    &::-moz-progress-bar      { border-radius: 4px; }
+  }
+
+  span {
+    width: 34px;
+    text-align: right;
+    color: #444;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.progress-row--positivo progress {
+    &::-webkit-progress-value { background: #2e7d32; }
+    &::-moz-progress-bar      { background: #2e7d32; }
+  }
+  &.progress-row--negativo progress {
+    &::-webkit-progress-value { background: #c62828; }
+    &::-moz-progress-bar      { background: #c62828; }
+  }
+  &.progress-row--neutro progress {
+    &::-webkit-progress-value { background: #9e9e9e; }
+    &::-moz-progress-bar      { background: #9e9e9e; }
+  }
+}
+
+.vocal-note {
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+  margin: 12px 0 0;
+}
+
+// ── Indicadores ───────────────────────────────────────────────────────────────
+.secao-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.indicador-card {
+  &.indicador--moderado {
+    border-left: 4px solid #ef6c00;
+    background: #fffaf5;
+  }
+  &.indicador--alto {
+    border-left: 4px solid #c62828;
+    background: #fff8f8;
+  }
+}
+
+.indicador-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .indicador--moderado & mat-icon { color: #ef6c00; }
+  .indicador--alto & mat-icon     { color: #c62828; }
+}
+
+.nivel-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+
+  &.nivel-badge--moderado { background: #ef6c00; }
+  &.nivel-badge--alto     { background: #c62828; }
+}
+
+.evidencias-list {
+  padding-left: 18px;
+  margin: 0 0 12px;
+  font-size: 13px;
+
+  li {
+    margin-bottom: 4px;
+    color: #444;
+  }
+}
+
+.recomendacao {
+  font-size: 13px;
+  padding: 10px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  margin: 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+// ── Pontos de atenção ─────────────────────────────────────────────────────────
+.pontos-card ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+
+  li {
+    margin-bottom: 6px;
+    color: #444;
+    line-height: 1.5;
+  }
+}
+
+// ── Encaminhamentos ───────────────────────────────────────────────────────────
+.encaminhamentos-sugeridos {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+// ── Texto clínico ─────────────────────────────────────────────────────────────
+.texto-clinico-card {
+  .mat-mdc-form-field {
+    width: 100%;
+  }
+}
+
+.texto-clinico-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-ia {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #e3f2fd;
+  color: #1565c0;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.texto-clinico-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+// ── Aviso clínico ─────────────────────────────────────────────────────────────
+.aviso-clinico {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff8e1;
+  border-left: 4px solid #f9a825;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+
+  mat-icon {
+    color: #f9a825;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}

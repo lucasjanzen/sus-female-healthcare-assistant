@@ -2,8 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { ConsultaService } from '../services/consulta.service';
-import { StepConsultaComponent } from './steps/step-consulta/step-consulta.component';
-import { StepEncerramentoComponent } from './steps/step-encerramento/step-encerramento.component';
+import { StepConsultaComponent } from './componentes/step-consulta/step-consulta.component';
+import { StepEncerramentoComponent } from './componentes/step-encerramento/step-encerramento.component';
 
 @Component({
   selector: 'app-atendimento',
@@ -19,7 +19,6 @@ export class AtendimentoComponent implements OnInit {
   readonly consultaAtiva = computed(() => this.consultaService.consultaAtiva());
   readonly encerramentoPronto = signal(false);
   readonly titulo = computed(() => (this.encerramentoPronto() ? 'Encerramento' : 'Consulta'));
-  readonly faseBadge = computed(() => (this.encerramentoPronto() ? '3 / 3' : '2 / 3'));
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;

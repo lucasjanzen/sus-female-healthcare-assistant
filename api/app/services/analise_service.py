@@ -206,7 +206,7 @@ async def analisar(
             transcricao_audio = resultado_voz["transcricao"]
         sentimento_voz = resultado_voz["sentimento_voz"]
 
-    texto_para_analise = transcricao_audio or relato_texto
+    texto_para_analise = " ".join(filter(None, [transcricao_audio, relato_texto])) or None
     sentimento_azure = analisar_sentimento_azure(texto_para_analise) if texto_para_analise else None
 
     negativo_forte: Optional[bool] = None

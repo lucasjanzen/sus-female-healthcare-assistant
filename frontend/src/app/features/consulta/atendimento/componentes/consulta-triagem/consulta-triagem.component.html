@@ -1,0 +1,78 @@
+@if (dadosConsulta(); as dados) {
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>Triagem realizada pelo enfermeiro</mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <div class="triagem-grid">
+      <div>
+        <strong>Paciente</strong>
+        <br />
+        {{ dados.pacienteNome }}
+      </div>
+      <div>
+        <strong>Tipo</strong>
+        <br />
+        {{ dados.tipoConsulta }}
+      </div>
+      @if (dados.igSemanas !== undefined) {
+        <div>
+          <strong>IG</strong>
+          <br />
+          {{ dados.igSemanas }} semanas e {{ dados.igDias }} dias
+        </div>
+      }
+      <div>
+        <strong>Peso</strong>
+        <br />
+        {{ dados.triagemResumo.pesoKg }} kg
+      </div>
+      <div>
+        <strong>PA</strong>
+        <br />
+        {{ dados.triagemResumo.paSistolica }}/{{ dados.triagemResumo.paDiastolica }} mmHg
+      </div>
+    </div>
+
+    <mat-expansion-panel class="historico-panel">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Histórico de peso</mat-panel-title>
+        @if (historicoPeso().length >= 3) {
+          <mat-panel-description [style.color]="tendenciaCor()">
+            {{ tendenciaPeso() }}
+          </mat-panel-description>
+        }
+      </mat-expansion-panel-header>
+
+      @if (historicoPeso().length <= 1) {
+        <p class="sem-historico">Nenhum histórico anterior disponível.</p>
+      } @else {
+        <table mat-table [dataSource]="linhasPeso()" class="historico-peso-table">
+          <ng-container matColumnDef="data">
+            <th mat-header-cell *matHeaderCellDef>Data</th>
+            <td mat-cell *matCellDef="let row; let i = index" [class.peso-atual]="i === 0">
+              {{ formatarDataPeso(row.registradoEm) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="peso">
+            <th mat-header-cell *matHeaderCellDef>Peso</th>
+            <td mat-cell *matCellDef="let row; let i = index" [class.peso-atual]="i === 0">
+              {{ formatarPeso(row.pesoKg) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="variacao">
+            <th mat-header-cell *matHeaderCellDef>Variação</th>
+            <td mat-cell *matCellDef="let row; let i = index" [class.peso-atual]="i === 0">
+              <span [style.color]="row.variacaoCor">{{ row.variacaoTexto }}</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="colunasPeso"></tr>
+          <tr mat-row *matRowDef="let row; columns: colunasPeso"></tr>
+        </table>
+      }
+    </mat-expansion-panel>
+  </mat-expansion-panel>
+}

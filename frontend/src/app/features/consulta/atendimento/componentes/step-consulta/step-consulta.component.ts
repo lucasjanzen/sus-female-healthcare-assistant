@@ -14,35 +14,24 @@ import { catchError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { NotificationService } from 'app/core/services/notification.service';
 import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
-
 import { ConsultaAssumidaOut } from 'app/features/fila/models/fila.model';
 import { FilaService } from 'app/features/fila/services/fila.service';
-import { IndicadorIA, IndicadorRisco, ResultadoIAOut } from 'app/features/consulta/models/consulta.model';
+import { ResultadoIAOut } from 'app/features/consulta/models/consulta.model';
 import { ConsultaService } from 'app/features/consulta/services/consulta.service';
 import { RelatoService } from 'app/features/consulta/services/relato.service';
 import { ResultadoService } from 'app/features/consulta/services/resultado.service';
 import { ConsultaRecordingService } from 'app/features/consulta/services/consulta-recording.service';
 import { HistoricoService, HistoricoPesoItem } from 'app/features/consulta/services/historico.service';
-
-interface LinhaPeso {
-  pesoKg: number;
-  registradoEm: string;
-  variacaoTexto: string;
-  variacaoCor: string;
-}
+import { ConsultaTriagemComponent } from '../consulta-triagem/consulta-triagem.component';
+import { ConsultaResultadoComponent } from '../consulta-resultado/consulta-resultado.component';
 
 @Component({
   selector: 'app-step-consulta',
@@ -50,17 +39,13 @@ interface LinhaPeso {
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
-    MatCardModule,
-    MatChipsModule,
-    MatDividerModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatTableModule,
-    MatTooltipModule,
+    ConsultaTriagemComponent,
+    ConsultaResultadoComponent,
   ],
   templateUrl: './step-consulta.component.html',
   styleUrl: './step-consulta.component.scss',
@@ -88,37 +73,12 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly segundosGravacao = signal(0);
   readonly relatoSalvo = signal(false);
   readonly historicoPeso = signal<HistoricoPesoItem[]>([]);
-  readonly colunasPeso = ['data', 'peso', 'variacao'];
-  readonly linhasPeso = computed(() => this.mapearLinhas(this.historicoPeso()));
-  readonly tendenciaPeso = computed(() => this.calcularTendencia(this.historicoPeso()));
-  readonly tendenciaCor = computed(() => {
-    const t = this.tendenciaPeso();
-    return t === 'perda progressiva' || t === 'ganho progressivo' ? '#e65100' : null;
-  });
-  private idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
+  private readonly idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
 
   readonly form = this.fb.nonNullable.group({
     relatoTexto: ['', [Validators.minLength(20)]],
     textoClinico: [''],
   });
-
-  readonly indicadoresVisiveis = computed(() =>
-    (this.resultado()?.sumarioEstruturado?.indicadores ?? []).filter(
-      (i): i is IndicadorRisco => i.nivel === 'MODERADO' || i.nivel === 'ALTO',
-    ),
-  );
-
-  readonly pontosAtencao = computed(
-    () => this.resultado()?.sumarioEstruturado?.pontosAtencao ?? [],
-  );
-
-  readonly encaminhamentosSugeridos = computed(
-    () => this.resultado()?.sumarioEstruturado?.encaminhamentosSugeridos ?? [],
-  );
-
-  readonly modoFallback = computed(
-    () => this.resultado()?.sumarioEstruturado?.modoFallback ?? false,
-  );
 
   ngOnInit(): void {
     this.carregarDadosConsulta();
@@ -202,26 +162,6 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     this.saveTimer = window.setTimeout(() => this.relatoSalvo.set(false), 2000);
   }
 
-  salvarTextoClinico(): void {
-    const id = this.idConsulta();
-    if (!id) return;
-    this.relatoService
-      .atualizar(id, { parecerMedico: this.form.controls.textoClinico.value })
-      .subscribe({
-        next: () => this.snackBar.open('Texto clínico salvo.', '', { duration: 2000 }),
-        error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao salvar texto clínico')),
-      });
-  }
-
-  copiarTextoClinico(): void {
-    const texto = this.form.controls.textoClinico.value;
-    if (!texto) return;
-    navigator.clipboard.writeText(texto).then(
-      () => this.snackBar.open('Texto copiado!', '', { duration: 2000 }),
-      () => this.notification.erro('Não foi possível copiar o texto'),
-    );
-  }
-
   async iniciarGravacao(): Promise<void> {
     try {
       await this.recordingService.iniciar();
@@ -265,113 +205,8 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     });
   }
 
-  confirmarAnalise(): void {
-    const id = this.idConsulta();
-    if (!id) return;
-    this.salvarTextoClinico();
-    this.resultadoService.confirmar(id).subscribe({
-      next: () => this.confirmado.emit(),
-      error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao confirmar análise')),
-    });
-  }
-
   tempoGravacao(): string {
     const segundos = this.segundosGravacao();
     return `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;
-  }
-
-  textoFaixa(resultado: ResultadoIAOut): string {
-    const textos: Record<string, string> = {
-      VERDE: 'Nenhum indicador significativo',
-      AMARELO: 'Indicadores leves - atenção recomendada',
-      LARANJA: 'Indicadores moderados - intervenção recomendada',
-      VERMELHO: 'Indicadores críticos - encaminhamento imediato',
-    };
-    return textos[resultado.faixaRisco] ?? '';
-  }
-
-  corFaixa(faixa: string): string {
-    const mapa: Record<string, string> = {
-      VERDE: '#2e7d32',
-      AMARELO: '#f57f17',
-      LARANJA: '#e65100',
-      VERMELHO: '#b71c1c',
-    };
-    return mapa[faixa] ?? '#757575';
-  }
-
-  corNivel(nivel: string): string {
-    const mapa: Record<string, string> = {
-      BAIXO: '#2e7d32',
-      MODERADO: '#e65100',
-      ALTO: '#b71c1c',
-    };
-    return mapa[nivel] ?? '#757575';
-  }
-
-  formatarIndicador(indicador: IndicadorIA | IndicadorRisco): string {
-    return indicador.tipo.replaceAll('_', ' ');
-  }
-
-  formatarEncaminhamento(valor: string): string {
-    const mapa: Record<string, string> = {
-      CAPS: 'CAPS',
-      CVR: 'CVR',
-      ASSISTENCIA_SOCIAL: 'Assistência Social',
-      PSICOLOGIA: 'Psicologia',
-      SERVICO_SOCIAL: 'Serviço Social',
-      DELEGACIA_MULHER: 'Delegacia da Mulher',
-      PRE_NATAL_ALTO_RISCO: 'Pré-natal Alto Risco',
-    };
-    return mapa[valor] ?? valor;
-  }
-
-  formatarDataPeso(iso: string): string {
-    return new Date(iso).toLocaleDateString('pt-BR');
-  }
-
-  formatarPeso(kg: number): string {
-    return kg.toFixed(1).replace('.', ',') + ' kg';
-  }
-
-  private mapearLinhas(hist: HistoricoPesoItem[]): LinhaPeso[] {
-    return hist.map((item, i) => ({
-      pesoKg: item.pesoKg,
-      registradoEm: item.registradoEm,
-      variacaoTexto: this.calcularVariacaoTexto(hist, i),
-      variacaoCor: this.calcularVariacaoCor(hist, i),
-    }));
-  }
-
-  private calcularVariacaoTexto(hist: HistoricoPesoItem[], index: number): string {
-    if (index >= hist.length - 1) return '—';
-    const diff = hist[index].pesoKg - hist[index + 1].pesoKg;
-    if (diff === 0) return '—';
-    const abs = Math.abs(diff).toFixed(1).replace('.', ',');
-    return diff > 0 ? `▲ +${abs} kg` : `▼ −${abs} kg`;
-  }
-
-  private calcularVariacaoCor(hist: HistoricoPesoItem[], index: number): string {
-    if (index >= hist.length - 1) return '';
-    const diff = hist[index].pesoKg - hist[index + 1].pesoKg;
-    if (diff > 5 || diff < -5) return '#b71c1c';
-    if (diff > 2 || diff < -2) return '#e65100';
-    return '';
-  }
-
-  private calcularTendencia(hist: HistoricoPesoItem[]): string {
-    if (hist.length < 3) return '';
-    const totalDiff = Math.abs(hist[0].pesoKg - hist[hist.length - 1].pesoKg);
-    if (totalDiff < 1) return 'estável';
-    let todosGanhos = true;
-    let todasPerdas = true;
-    for (let i = 0; i < hist.length - 1; i++) {
-      const diff = hist[i].pesoKg - hist[i + 1].pesoKg;
-      if (diff <= 0) todosGanhos = false;
-      if (diff >= 0) todasPerdas = false;
-    }
-    if (todosGanhos) return 'ganho progressivo';
-    if (todasPerdas) return 'perda progressiva';
-    return 'variação irregular';
   }
 }
