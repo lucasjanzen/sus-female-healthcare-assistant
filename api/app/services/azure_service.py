@@ -85,12 +85,20 @@ def _converter_para_wav(audio_bytes: bytes, content_type: str) -> bytes:
     """Converte webm/ogg para WAV 16 kHz mono exigido pelo SDK de fala."""
     from pydub import AudioSegment
 
-    fmt = "webm" if "webm" in content_type else "ogg"
-    seg = AudioSegment.from_file(io.BytesIO(audio_bytes), format=fmt)
-    seg = seg.set_frame_rate(16000).set_channels(1).set_sample_width(2)
-    buf = io.BytesIO()
-    seg.export(buf, format="wav")
-    return buf.getvalue()
+    tmp_in = None
+    try:
+        # Sem extensão reconhecida → pydub não passa -f ao ffmpeg → auto-detecção
+        with tempfile.NamedTemporaryFile(suffix=".audio", delete=False) as f:
+            f.write(audio_bytes)
+            tmp_in = f.name
+        seg = AudioSegment.from_file(tmp_in)
+        seg = seg.set_frame_rate(16000).set_channels(1).set_sample_width(2)
+        buf = io.BytesIO()
+        seg.export(buf, format="wav")
+        return buf.getvalue()
+    finally:
+        if tmp_in and os.path.exists(tmp_in):
+            os.remove(tmp_in)
 
 
 def _identificar_speaker_paciente(trechos: list[dict]) -> str:
@@ -162,9 +170,9 @@ def transcrever_e_analisar_voz(
         transcriber.session_stopped.connect(on_session_stopped)
         transcriber.canceled.connect(on_session_stopped)
 
-        transcriber.start_transcribing_async()
+        transcriber.start_transcribing_async().get()
         done.wait(timeout=600)
-        transcriber.stop_transcribing_async()
+        transcriber.stop_transcribing_async().get()
 
         texto_completo = " ".join(t["texto"] for t in trechos)
         speaker_paciente = _identificar_speaker_paciente(trechos)
@@ -206,4 +214,7 @@ def transcrever_e_analisar_voz(
         return {"transcricao": "", "sentimento_voz": None}
     finally:
         if tmp_path and os.path.exists(tmp_path):
-            os.remove(tmp_path)
+            try:
+                os.remove(tmp_path)
+            except OSError as e:
+                logger.warning("Nao foi possivel remover arquivo temp %s: %s", tmp_path, e)

@@ -236,11 +236,19 @@ def montar_prompt(ctx: dict) -> str:
 
 def chamar_gpt4o(prompt_usuario: str) -> tuple[dict, int]:
     """Chama o Azure OpenAI GPT-4o e retorna (resposta_json, tokens_utilizados)."""
-    client = AzureOpenAI(
-        azure_endpoint=settings.azure_openai_endpoint,
-        api_key=settings.azure_openai_api_key,
-        api_version=settings.azure_openai_api_version,
-    )
+    endpoint = settings.azure_openai_endpoint
+    if "/v1" in endpoint:
+        # Endpoint OpenAI-compatível: não aceita ?api-version
+        client = openai.OpenAI(
+            base_url=endpoint,
+            api_key=settings.azure_openai_api_key,
+        )
+    else:
+        client = AzureOpenAI(
+            azure_endpoint=endpoint,
+            api_key=settings.azure_openai_api_key,
+            api_version=settings.azure_openai_api_version,
+        )
 
     response = client.chat.completions.create(
         model=settings.azure_openai_deployment_name,
