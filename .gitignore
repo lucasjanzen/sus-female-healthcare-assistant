@@ -36,3 +36,6 @@ Thumbs.db
 .vscode/settings.json
 *.swp
 *.swo
+
+# Others
+_temp

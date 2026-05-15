@@ -1,0 +1,47 @@
+# CASF — Roteiro de Teste
+# Paciente: Maria Oliveira
+# Tipo: Ginecológica
+# Indicadores esperados: Ansiedade (ALTO) + Isolamento Social (MODERADO)
+# Faixa esperada: LARANJA / VERMELHO
+
+MÉDICO:
+Boa tarde, Maria. Como você está?
+
+PACIENTE:
+Não tô bem não, doutor. Fui mandada embora do trabalho faz duas semanas e desde aí tô um caos.
+
+MÉDICO:
+Me conta o que está sentindo.
+
+PACIENTE:
+Não consigo dormir. Fico acordada até de manhã com a cabeça a mil. Fico pensando nas contas, no que vai acontecer, se vou conseguir outro emprego. Não consigo desligar.
+
+MÉDICO:
+Além do sono, está sentindo mais alguma coisa?
+
+PACIENTE:
+O coração dispara do nada, mesmo quando tô parada. Aí fico com medo de passar mal, aí fico com mais medo ainda, é um ciclo que não para.
+
+MÉDICO:
+Você tem saído de casa, conversado com pessoas?
+
+PACIENTE:
+Parei de sair. Fico com medo de passar mal na rua longe de casa. Já cancelei uns encontros com amigas. Elas ligam mas eu não atendo.
+
+MÉDICO:
+Você está se sentindo sozinha com isso tudo?
+
+PACIENTE:
+Completamente. Minha família é tudo longe, não tenho ninguém aqui perto pra me ajudar. Tenho que resolver tudo sozinha e não tô conseguindo.
+
+MÉDICO:
+Entendo, Maria. O que você está descrevendo são sintomas de ansiedade intensa. Isso tem tratamento e você não precisa passar por isso sozinha.
+
+PACIENTE:
+Achei que fosse frescura minha, que eu tinha que me controlar.
+
+MÉDICO:
+Não é frescura. É uma condição real que precisa de cuidado. Vou te encaminhar para a psicóloga do centro, tá?
+
+PACIENTE:
+Tá bom. Espero que ajude porque assim eu não tô conseguindo viver.

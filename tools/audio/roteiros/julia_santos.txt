@@ -1,0 +1,60 @@
+# CASF — Roteiro de Teste
+# Paciente: Julia Santos
+# Tipo: Pré-natal
+# Indicadores esperados: Violência Doméstica (ALTO) + Depressão (MODERADO)
+# Faixa esperada: VERMELHO
+
+MÉDICO:
+Boa tarde, Julia. Como você está?
+
+PACIENTE:
+Tô bem.
+
+MÉDICO:
+Você parece um pouco quieta hoje. Tá tudo bem em casa?
+
+PACIENTE:
+Tá sim. É que meu marido tá muito estressado com o trabalho. É difícil pra ele também.
+
+MÉDICO:
+Entendo. Julia, eu notei uma marca no seu pulso. O que aconteceu?
+
+PACIENTE:
+(pausa)
+Fui sem querer. Bati numa porta.
+
+MÉDICO:
+Tá bom. Julia, preciso te perguntar uma coisa com cuidado. Você está se sentindo segura em casa?
+
+PACIENTE:
+(pausa longa)
+Tô sim.
+
+MÉDICO:
+Você tem conseguido comer bem, dormir?
+
+PACIENTE:
+Não tenho muito apetite. Fico no quarto bastante quando ele tá em casa. É mais tranquilo assim.
+
+MÉDICO:
+Você falou que fica no quarto quando ele está em casa. Por quê é mais tranquilo assim?
+
+PACIENTE:
+(pausa)
+Ele fica irritado fácil. Às vezes é melhor não aparecer muito.
+
+MÉDICO:
+Julia, eu quero que você saiba que o que você me conta aqui fica entre a gente e que eu estou aqui pra te ajudar. Você está com medo dele?
+
+PACIENTE:
+(pausa longa)
+Às vezes.
+
+MÉDICO:
+Obrigado por confiar em mim. Isso que você está descrevendo é muito sério e você não precisa passar por isso sozinha. Existe ajuda disponível e vou te conectar com ela agora, tá?
+
+PACIENTE:
+Ele não pode saber que eu falei isso.
+
+MÉDICO:
+Ele não vai saber. Isso é sigiloso. Você fez a coisa certa em falar.

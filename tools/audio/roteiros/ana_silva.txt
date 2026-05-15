@@ -1,0 +1,42 @@
+# CASF — Roteiro de Teste
+# Paciente: Ana Silva
+# Tipo: Pré-natal
+# Indicadores esperados: Depressão (ALTO) + Ideação + Isolamento Social
+# Faixa esperada: VERMELHO
+
+MÉDICO:
+Boa tarde, Ana. Tudo bem? Como você está se sentindo desde a última consulta?
+
+PACIENTE:
+Mais ou menos, doutor. Tenho chorado bastante, sem motivo assim. Acordo de madrugada e não consigo dormir mais.
+
+MÉDICO:
+Você consegue identificar o que está te preocupando?
+
+PACIENTE:
+É muita coisa. Meu marido viaja a semana toda a trabalho, fico sozinha em casa o dia inteiro. Fico pensando se vou dar conta quando o bebê nascer. Não me sinto preparada pra nada.
+
+MÉDICO:
+Você tem conversado com alguém? Amigas, família?
+
+PACIENTE:
+Parei de responder as mensagens. Não tenho ânimo pra conversar com ninguém. Fico deitada na cama a maior parte do tempo.
+
+MÉDICO:
+Entendo. Ana, preciso te fazer uma pergunta importante e quero que você responda com sinceridade. Você já teve pensamentos de se machucar ou de que seria melhor não estar aqui?
+
+PACIENTE:
+(pausa longa)
+Às vezes passa pela cabeça que seria mais fácil se eu não estivesse aqui. Mas eu não faria nada, juro. É só um pensamento.
+
+MÉDICO:
+Obrigado por confiar em mim com isso, Ana. Esse tipo de pensamento é um sinal importante de que você precisa de apoio agora. Vamos cuidar disso juntos, tá bem?
+
+PACIENTE:
+Tô com medo de falar isso pra alguém. Vai achar que sou louca.
+
+MÉDICO:
+Não vai. Você está passando por um momento muito difícil e pedir ajuda é o mais corajoso que existe. Vou te encaminhar para um acompanhamento, pode ser?
+
+PACIENTE:
+Tá bom, doutor. Se o senhor acha que precisa.
