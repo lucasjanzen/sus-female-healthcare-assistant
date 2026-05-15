@@ -205,6 +205,12 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     });
   }
 
+  onAudioUpload(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.recordingService.setAudioBlob(file);
+  }
+
   tempoGravacao(): string {
     const segundos = this.segundosGravacao();
     return `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;

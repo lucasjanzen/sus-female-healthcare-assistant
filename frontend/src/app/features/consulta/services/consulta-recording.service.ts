@@ -46,4 +46,9 @@ export class ConsultaRecordingService {
   getAudioBlob(): Blob | null {
     return this.audioBlob;
   }
+
+  setAudioBlob(blob: Blob): void {
+    this.audioBlob = blob;
+    this.gravacaoConcluida.set(true);
+  }
 }

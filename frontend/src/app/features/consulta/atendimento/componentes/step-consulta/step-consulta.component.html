@@ -28,6 +28,11 @@
             <mat-icon>mic</mat-icon>
             Iniciar Gravação
           </button>
+          <input type="file" accept="audio/*" #audioUploadInput style="display:none" (change)="onAudioUpload($event)">
+          <button mat-stroked-button type="button" (click)="audioUploadInput.click()">
+            <mat-icon>upload_file</mat-icon>
+            Enviar Áudio
+          </button>
         } @else {
           <span class="gravando-status">
             <mat-icon class="recording">mic</mat-icon>
