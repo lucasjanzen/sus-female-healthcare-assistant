@@ -151,6 +151,16 @@ class SentimentoVozOut(BaseModel):
     scores: SentimentoVozScores
 
 
+class FontesUtilizadasOut(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    relato: bool = False
+    transcricao: bool = False
+    sentimento_voz: bool = False
+    dados_consulta: bool = False
+    historico: bool = False
+
+
 class ResultadoIAOut(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
@@ -164,9 +174,10 @@ class ResultadoIAOut(BaseModel):
     sentimento_voz: Optional[SentimentoVozOut] = None
     sumario_estruturado: Optional[SumarioEstruturado] = None
     texto_clinico: Optional[str] = None
-    fontes_utilizadas: Optional[dict] = None
+    fontes_utilizadas: Optional[FontesUtilizadasOut] = None
     tokens_utilizados: Optional[int] = None
-    transcricao: Optional[str] = None
+    prompt_enviado: Optional[str] = None
+    resposta_bruta_llm: Optional[str] = None
 
 
 _ENCAMINHAMENTOS_VALIDOS = frozenset(

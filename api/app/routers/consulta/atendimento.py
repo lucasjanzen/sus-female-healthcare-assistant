@@ -144,7 +144,7 @@ async def analisar_consulta(
         raise HTTPException(status_code=400, detail="Informe o relato antes da análise")
 
     try:
-        resultado_ia = await analise_service.analisar(
+        resultado_ia, transcricao_audio = await analise_service.analisar(
             relato_texto=relato_texto,
             id_consulta=id_consulta,
             audio_bytes=audio_bytes,
@@ -183,7 +183,7 @@ async def analisar_consulta(
         analise_llm_service.analisar_com_llm,
         id_consulta,
         db,
-        resultado_ia.transcricao or "",
+        transcricao_audio or "",
         sentimento_voz_dict,
     )
 
@@ -195,6 +195,8 @@ async def analisar_consulta(
     resultado.texto_clinico = resultado_llm["texto_clinico"]
     resultado.fontes_utilizadas = resultado_llm["fontes_utilizadas"]
     resultado.tokens_utilizados = resultado_llm["tokens_utilizados"]
+    resultado.prompt_enviado = resultado_llm.get("prompt_enviado")
+    resultado.resposta_bruta_llm = resultado_llm.get("resposta_bruta_llm")
 
     db.commit()
     db.refresh(resultado)

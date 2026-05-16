@@ -14,6 +14,7 @@ from app.models.consulta import (
 )
 from app.schemas.consulta import (
     Etapa1Out,
+    FontesUtilizadasOut,
     IndicadorRisco,
     RelatoOut,
     ResultadoIAOut,
@@ -127,6 +128,11 @@ def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
         sentimento_voz=sentimento_voz_out,
         sumario_estruturado=sumario_out,
         texto_clinico=resultado.texto_clinico,
-        fontes_utilizadas=resultado.fontes_utilizadas,
+        fontes_utilizadas=(
+            FontesUtilizadasOut(**resultado.fontes_utilizadas)
+            if resultado.fontes_utilizadas else None
+        ),
         tokens_utilizados=resultado.tokens_utilizados,
+        prompt_enviado=resultado.prompt_enviado,
+        resposta_bruta_llm=resultado.resposta_bruta_llm,
     )

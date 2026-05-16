@@ -60,6 +60,7 @@ export interface FontesUtilizadas {
   relato: boolean;
   transcricao: boolean;
   sentimentoVoz: boolean;
+  dadosConsulta: boolean;
   historico: boolean;
 }
 
@@ -76,6 +77,8 @@ export interface ResultadoIAOut {
   textoClinico?: string;
   fontesUtilizadas?: FontesUtilizadas;
   tokensUtilizados?: number;
+  promptEnviado?: string;
+  respostaBrutaLlm?: string;
 }
 
 export interface RelatoOut {

@@ -309,6 +309,25 @@
   margin-top: 4px;
 }
 
+// ── Debug LLM ─────────────────────────────────────────────────────────────────
+.debug-pre {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0 0 16px;
+}
+
+.debug-actions {
+  margin-bottom: 8px;
+}
+
 // ── Aviso clínico ─────────────────────────────────────────────────────────────
 .aviso-clinico {
   display: flex;

@@ -1,5 +1,4 @@
 import io
-import json
 import logging
 import os
 import tempfile
@@ -92,35 +91,29 @@ def _converter_para_wav(audio_bytes: bytes, content_type: str) -> bytes:
             f.write(audio_bytes)
             tmp_in = f.name
         seg = AudioSegment.from_file(tmp_in)
+        logger.info("Audio original — duracao=%.1fs canais=%d frame_rate=%d", seg.duration_seconds, seg.channels, seg.frame_rate)
         seg = seg.set_frame_rate(16000).set_channels(1).set_sample_width(2)
         buf = io.BytesIO()
         seg.export(buf, format="wav")
-        return buf.getvalue()
+        wav_bytes = buf.getvalue()
+        logger.info("WAV convertido — tamanho=%d bytes duracao=%.1fs", len(wav_bytes), seg.duration_seconds)
+        return wav_bytes
     finally:
         if tmp_in and os.path.exists(tmp_in):
             os.remove(tmp_in)
 
-
-def _identificar_speaker_paciente(trechos: list[dict]) -> str:
-    """Heurística: paciente = speaker com maior tempo total de fala."""
-    tempo_por_speaker: dict[str, float] = {}
-    for t in trechos:
-        sid = t.get("speaker_id", "")
-        tempo_por_speaker[sid] = tempo_por_speaker.get(sid, 0) + t.get("duracao_ms", 0)
-    return max(tempo_por_speaker, key=tempo_por_speaker.get) if tempo_por_speaker else ""
 
 
 def transcrever_e_analisar_voz(
     audio_bytes: bytes,
     content_type: str = "audio/webm",
 ) -> dict:
-    """Transcrição + sentimento vocal via Azure Conversation Transcription com diarização.
+    """Transcrição via Azure SpeechRecognizer contínuo + sentimento via Language Analytics.
 
     Retorna dict com 'transcricao' (str) e 'sentimento_voz' (dict | None).
-    sentimento_voz inclui 'dominante', 'scores', '_por_trecho_interno', '_speaker_paciente'.
     """
     if not settings.azure_speech_key or not settings.azure_speech_region:
-        logger.info("Azure Speech nao configurado; transcricao indisponivel.")
+        logger.warning("Azure Speech nao configurado; transcricao indisponivel.")
         return {"transcricao": "", "sentimento_voz": None}
 
     tmp_path = None
@@ -137,75 +130,56 @@ def transcrever_e_analisar_voz(
             subscription=settings.azure_speech_key,
             region=settings.azure_speech_region,
         )
-        speech_config.output_format = speechsdk.OutputFormat.Detailed
-        speech_config.set_property(
-            speechsdk.PropertyId.SpeechServiceResponse_DiarizeIntermediateResults,
-            "false",
-        )
+        speech_config.speech_recognition_language = "pt-BR"
 
         audio_config = speechsdk.audio.AudioConfig(filename=tmp_path)
-        transcriber = speechsdk.transcription.ConversationTranscriber(
+        recognizer = speechsdk.SpeechRecognizer(
             speech_config=speech_config,
             audio_config=audio_config,
         )
 
-        trechos: list[dict] = []
+        segmentos: list[str] = []
         done = threading.Event()
 
-        def on_transcribed(evt):
-            if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
-                payload = json.loads(evt.result.json)
-                nbest = payload.get("NBest", [{}])
-                trechos.append({
-                    "speaker_id": evt.result.speaker_id,
-                    "texto": evt.result.text,
-                    "duracao_ms": evt.result.duration / 10_000,
-                    "sentiment": nbest[0].get("Sentiment"),
-                })
+        def on_recognized(evt):
+            if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech and evt.result.text:
+                segmentos.append(evt.result.text)
+                logger.warning("Segmento reconhecido: %r", evt.result.text[:80])
 
         def on_session_stopped(evt):
             done.set()
 
-        transcriber.transcribed.connect(on_transcribed)
-        transcriber.session_stopped.connect(on_session_stopped)
-        transcriber.canceled.connect(on_session_stopped)
+        def on_canceled(evt):
+            details = evt.result.cancellation_details
+            if details.reason != speechsdk.CancellationReason.EndOfStream:
+                logger.warning("SpeechRecognizer cancelado — %s: %s", details.reason, details.error_details)
+            done.set()
 
-        transcriber.start_transcribing_async().get()
-        done.wait(timeout=600)
-        transcriber.stop_transcribing_async().get()
+        recognizer.recognized.connect(on_recognized)
+        recognizer.session_stopped.connect(on_session_stopped)
+        recognizer.canceled.connect(on_canceled)
 
-        texto_completo = " ".join(t["texto"] for t in trechos)
-        speaker_paciente = _identificar_speaker_paciente(trechos)
+        recognizer.start_continuous_recognition_async().get()
+        done.wait(timeout=120)
+        recognizer.stop_continuous_recognition_async().get()
 
-        trechos_paciente = [
-            t for t in trechos
-            if t["speaker_id"] == speaker_paciente and t["sentiment"] is not None
-        ]
+        texto_completo = " ".join(segmentos)
+        logger.warning("Transcricao concluida — %d segmentos, texto=%r", len(segmentos), texto_completo[:120])
 
-        if not trechos_paciente:
-            logger.info("Nenhum trecho com sentimento detectado (regiao sem suporte ou paciente nao identificado).")
+        if not texto_completo:
+            return {"transcricao": "", "sentimento_voz": None}
+
+        sentimento = analisar_sentimento_azure(texto_completo)
+        if not sentimento:
             return {"transcricao": texto_completo, "sentimento_voz": None}
 
-        total_ms = sum(t["duracao_ms"] for t in trechos_paciente) or 1
-        scores: dict[str, float] = {"positivo": 0.0, "negativo": 0.0, "neutro": 0.0}
-        for t in trechos_paciente:
-            peso = t["duracao_ms"] / total_ms
-            scores["positivo"] += t["sentiment"]["Positive"] * peso
-            scores["negativo"] += t["sentiment"]["Negative"] * peso
-            scores["neutro"] += t["sentiment"]["Neutral"] * peso
-
+        scores = sentimento["scores"]
         dominante = max(scores, key=scores.get).upper()
-
         return {
             "transcricao": texto_completo,
             "sentimento_voz": {
                 "dominante": dominante,
                 "scores": scores,
-                "_por_trecho_interno": [
-                    {"speaker_id": t["speaker_id"], **t["sentiment"]}
-                    for t in trechos_paciente
-                ],
-                "_speaker_paciente": speaker_paciente,
             },
         }
 

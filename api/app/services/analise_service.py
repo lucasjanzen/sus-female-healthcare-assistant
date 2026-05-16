@@ -192,7 +192,7 @@ async def analisar(
     id_consulta: Optional[UUID] = None,
     audio_bytes: Optional[bytes] = None,
     audio_content_type: str = "audio/webm",
-) -> ResultadoIAOut:
+) -> tuple[ResultadoIAOut, Optional[str]]:
     from app.services.azure_service import analisar_sentimento_azure, transcrever_e_analisar_voz
 
     sentimento_voz: Optional[dict] = None
@@ -259,5 +259,4 @@ async def analisar(
         confirmado=False,
         calculado_em=datetime.now(timezone.utc),
         sentimento_voz=sentimento_voz_out,
-        transcricao=transcricao_audio,
-    )
+    ), transcricao_audio

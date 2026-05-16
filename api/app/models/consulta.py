@@ -101,6 +101,8 @@ class ConsultaResultado(Base):
     texto_clinico = Column(Text, nullable=True)
     fontes_utilizadas = Column(JSON, nullable=True)
     tokens_utilizados = Column(Integer, nullable=True)
+    prompt_enviado = Column(Text, nullable=True)
+    resposta_bruta_llm = Column(Text, nullable=True)
     confirmado = Column(Boolean, nullable=False, default=False)
     confirmado_em = Column(DateTime(timezone=True), nullable=True)
 

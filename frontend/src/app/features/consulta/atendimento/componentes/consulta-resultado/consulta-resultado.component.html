@@ -183,6 +183,41 @@
   </mat-expansion-panel>
 }
 
+<!-- DEBUG LLM -->
+@if (resultado().promptEnviado || respostaBrutaFormatada()) {
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>science</mat-icon>
+        Dados de análise (Debug LLM)
+      </mat-panel-title>
+      <mat-panel-description>
+        {{ resultado().tokensUtilizados }} tokens utilizados
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    @if (resultado().promptEnviado) {
+      <h4>Prompt enviado</h4>
+      <div class="debug-actions">
+        <button mat-stroked-button type="button" (click)="copiarDebug(resultado().promptEnviado!)">
+          <mat-icon>content_copy</mat-icon> Copiar
+        </button>
+      </div>
+      <pre class="debug-pre">{{ resultado().promptEnviado }}</pre>
+    }
+
+    @if (respostaBrutaFormatada()) {
+      <h4>Resposta bruta da LLM</h4>
+      <div class="debug-actions">
+        <button mat-stroked-button type="button" (click)="copiarDebug(respostaBrutaFormatada())">
+          <mat-icon>content_copy</mat-icon> Copiar
+        </button>
+      </div>
+      <pre class="debug-pre">{{ respostaBrutaFormatada() }}</pre>
+    }
+  </mat-expansion-panel>
+}
+
 <!-- AVISO CLÍNICO -->
 <div class="aviso-clinico">
   <mat-icon>info</mat-icon>

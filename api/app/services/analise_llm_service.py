@@ -234,8 +234,8 @@ def montar_prompt(ctx: dict) -> str:
 # CHAMADA AO GPT-4o
 # -------------------------------------------------------
 
-def chamar_gpt4o(prompt_usuario: str) -> tuple[dict, int]:
-    """Chama o Azure OpenAI GPT-4o e retorna (resposta_json, tokens_utilizados)."""
+def chamar_gpt4o(prompt_usuario: str) -> tuple[dict, int, str]:
+    """Chama o Azure OpenAI GPT-4o e retorna (resposta_json, tokens_utilizados, conteudo_raw)."""
     endpoint = settings.azure_openai_endpoint
     if "/v1" in endpoint:
         # Endpoint OpenAI-compatível: não aceita ?api-version
@@ -264,7 +264,7 @@ def chamar_gpt4o(prompt_usuario: str) -> tuple[dict, int]:
     tokens = response.usage.total_tokens if response.usage else 0
     conteudo = response.choices[0].message.content
     try:
-        return json.loads(conteudo), tokens
+        return json.loads(conteudo), tokens, conteudo
     except json.JSONDecodeError as exc:
         raise ValueError(f"GPT-4o retornou JSON inválido: {exc}. Conteúdo: {conteudo[:200]!r}") from exc
 
@@ -288,9 +288,10 @@ def analisar_com_llm(
     """
     ctx = coletar_contexto(id_consulta, db, transcricao, sentimento_voz)
     prompt = montar_prompt(ctx)
+    prompt_completo = f"[SYSTEM]\n{SYSTEM_PROMPT}\n\n[USER]\n{prompt}"
 
     try:
-        resposta, tokens = chamar_gpt4o(prompt)
+        resposta, tokens, conteudo_raw = chamar_gpt4o(prompt)
 
         sumario = {
             "indicadores": resposta.get("indicadores", []),
@@ -311,14 +312,16 @@ def analisar_com_llm(
             "faixa_risco": sumario["faixa_risco"],
             "indicadores": sumario["indicadores"],
             "resumo_ia": resposta.get("texto_clinico", ""),
+            "prompt_enviado": prompt_completo,
+            "resposta_bruta_llm": conteudo_raw,
         }
 
     except (openai.OpenAIError, ValueError, json.JSONDecodeError) as e:
         logger.error("Azure OpenAI indisponível — usando fallback local. Erro: %s", e)
-        return _fallback_local(ctx)
+        return _fallback_local(ctx, prompt_completo)
 
 
-def _fallback_local(ctx: dict) -> dict:
+def _fallback_local(ctx: dict, prompt_completo: str = "") -> dict:
     """Fallback baseado em palavras-chave quando o GPT-4o está indisponível."""
     texto = f"{ctx['relato_texto']} {ctx['transcricao']}".strip()
     from app.services.analise_service import calcular_faixa
@@ -345,6 +348,8 @@ def _fallback_local(ctx: dict) -> dict:
         "faixa_risco": faixa,
         "indicadores": sumario["indicadores"],
         "resumo_ia": resumo,
+        "prompt_enviado": prompt_completo,
+        "resposta_bruta_llm": "",
     }
 
 

@@ -72,6 +72,12 @@ export class ConsultaResultadoComponent {
     () => this.resultado().sumarioEstruturado?.modoFallback ?? false,
   );
 
+  readonly respostaBrutaFormatada = computed(() => {
+    const raw = this.resultado().respostaBrutaLlm;
+    if (!raw) return '';
+    try { return JSON.stringify(JSON.parse(raw), null, 2); } catch { return raw; }
+  });
+
   salvarTextoClinico(): void {
     this.relatoService
       .atualizar(this.idConsulta(), { parecerMedico: this.textoClinicoCtrl.value })
@@ -88,6 +94,14 @@ export class ConsultaResultadoComponent {
     navigator.clipboard.writeText(texto).then(
       () => this.snackBar.open('Texto copiado!', '', { duration: 2000 }),
       () => this.notification.erro('Não foi possível copiar o texto'),
+    );
+  }
+
+  copiarDebug(texto: string): void {
+    if (!texto) return;
+    navigator.clipboard.writeText(texto).then(
+      () => this.snackBar.open('Copiado!', '', { duration: 1500 }),
+      () => this.notification.erro('Não foi possível copiar'),
     );
   }
 
