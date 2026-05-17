@@ -11,13 +11,16 @@ export class ResultadoService {
   private readonly base = `${environment.apiUrl}/consulta`;
   private readonly cache = new Map<string, ResultadoIAOut>();
 
-  analisar(idConsulta: string, audioBlob?: Blob): Observable<ResultadoIAOut> {
-    const body = audioBlob
-      ? (() => { const f = new FormData(); f.append('audio', audioBlob, 'consulta.webm'); return f; })()
-      : {};
+  analisar(idConsulta: string): Observable<ResultadoIAOut> {
     return this.http
-      .post<ResultadoIAOut>(`${this.base}/${idConsulta}/analisar`, body)
+      .post<ResultadoIAOut>(`${this.base}/${idConsulta}/analisar`, {})
       .pipe(tap((r) => { this.cache.set(idConsulta, r); this.evictIfNeeded(); }));
+  }
+
+  enviarComAudio(idConsulta: string, audioBlob: Blob): Observable<{ status: string; mensagem: string }> {
+    const f = new FormData();
+    f.append('audio', audioBlob, 'consulta.webm');
+    return this.http.post<{ status: string; mensagem: string }>(`${this.base}/${idConsulta}/analisar`, f);
   }
 
   obter(idConsulta: string): Observable<ResultadoIAOut> {

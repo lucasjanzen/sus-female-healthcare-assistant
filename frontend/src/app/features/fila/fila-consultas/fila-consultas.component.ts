@@ -9,7 +9,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { extrairMensagemErro } from '../../../core/utils/http-error.utils';
-import { ConsultaAssumidaOut, ConsultaFilaItem } from '../models/fila.model';
+import { ConsultaAssumidaOut, ConsultaFilaItem, ConsultaParaFinalizarItem } from '../models/fila.model';
 import { FilaService } from '../services/fila.service';
 import { FormatDataPipe } from '../../../shared/pipes/format-data.pipe';
 
@@ -34,6 +34,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
   private readonly notification = inject(NotificationService);
 
   readonly consultas = signal<ConsultaFilaItem[]>([]);
+  readonly paraFinalizar = signal<ConsultaParaFinalizarItem[]>([]);
   readonly emAndamento = signal<ConsultaAssumidaOut | null>(null);
   readonly carregando = signal(false);
   readonly assumindo = signal(false);
@@ -75,6 +76,10 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
         next: (consulta) => this.emAndamento.set(consulta),
         error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao verificar consulta em andamento')),
       });
+      this.filaService.listarParaFinalizar().subscribe({
+        next: (items) => this.paraFinalizar.set(items),
+        error: () => {},
+      });
     }
   }
 
@@ -95,6 +100,10 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
     if (consulta) this.router.navigate(['/consulta', consulta.idConsulta, 'atendimento']);
   }
 
+  finalizarConsulta(idConsulta: string): void {
+    this.router.navigate(['/consulta', idConsulta, 'atendimento']);
+  }
+
   tempoAguardando(item: ConsultaFilaItem): string {
     const minutos = Math.max(
       Math.floor((Date.now() - new Date(item.triagemConcluidaEm).getTime()) / 60000),
@@ -102,6 +111,25 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
     );
     if (minutos < 60) return `${minutos} min`;
     return `${Math.floor(minutos / 60)}h ${minutos % 60}min`;
+  }
+
+  tempoDecorrido(item: ConsultaParaFinalizarItem): string {
+    const minutos = Math.max(
+      Math.floor((Date.now() - new Date(item.concluidaEm).getTime()) / 60000),
+      0,
+    );
+    if (minutos < 60) return `${minutos} min`;
+    return `${Math.floor(minutos / 60)}h ${minutos % 60}min`;
+  }
+
+  corFaixa(faixa: string): string {
+    const mapa: Record<string, string> = {
+      VERDE: '#2e7d32',
+      AMARELO: '#f57f17',
+      LARANJA: '#e65100',
+      VERMELHO: '#b71c1c',
+    };
+    return mapa[faixa] ?? '#757575';
   }
 
   horaAtualizacao(): string {

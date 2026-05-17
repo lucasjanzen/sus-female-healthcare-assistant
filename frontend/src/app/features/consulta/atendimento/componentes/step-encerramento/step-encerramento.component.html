@@ -76,15 +76,15 @@
       <!-- BLOCO 1 — Conduta -->
       <div class="section">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Conduta adotada</mat-label>
+          <mat-label>Parecer Médico (revisado)</mat-label>
           <textarea
             matInput
             formControlName="conduta"
             rows="5"
-            placeholder="Descreva a conduta adotada na consulta..."
+            placeholder="Revise e complemente o parecer gerado pela IA..."
           ></textarea>
           @if (form.controls.conduta.invalid && form.controls.conduta.touched) {
-            <mat-error>Conduta deve ter no mínimo 10 caracteres.</mat-error>
+            <mat-error>Parecer deve ter no mínimo 10 caracteres.</mat-error>
           }
         </mat-form-field>
       </div>

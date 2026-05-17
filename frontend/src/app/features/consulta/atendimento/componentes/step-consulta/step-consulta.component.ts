@@ -12,6 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,6 +33,7 @@ import { ConsultaRecordingService } from 'app/features/consulta/services/consult
 import { HistoricoService, HistoricoPesoItem } from 'app/features/consulta/services/historico.service';
 import { ConsultaTriagemComponent } from '../consulta-triagem/consulta-triagem.component';
 import { ConsultaResultadoComponent } from '../consulta-resultado/consulta-resultado.component';
+import { StepEncerramentoComponent } from '../step-encerramento/step-encerramento.component';
 
 @Component({
   selector: 'app-step-consulta',
@@ -46,6 +48,7 @@ import { ConsultaResultadoComponent } from '../consulta-resultado/consulta-resul
     MatSnackBarModule,
     ConsultaTriagemComponent,
     ConsultaResultadoComponent,
+    StepEncerramentoComponent,
   ],
   templateUrl: './step-consulta.component.html',
   styleUrl: './step-consulta.component.scss',
@@ -55,6 +58,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
   private readonly consultaService = inject(ConsultaService);
   private readonly relatoService = inject(RelatoService);
   protected readonly recordingService = inject(ConsultaRecordingService);
@@ -73,6 +77,11 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   readonly segundosGravacao = signal(0);
   readonly relatoSalvo = signal(false);
   readonly historicoPeso = signal<HistoricoPesoItem[]>([]);
+  readonly mostrarEncerramento = signal(false);
+
+  /** 'COM_AUDIO' quando o médico enviou áudio nesta sessão; 'SEM_AUDIO' quando analisou só texto. */
+  private readonly tipoAnalise = signal<'COM_AUDIO' | 'SEM_AUDIO' | null>(null);
+
   private readonly idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
 
   readonly form = this.fb.nonNullable.group({
@@ -83,6 +92,7 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.carregarDadosConsulta();
     this.carregarRelato();
+    this.carregarResultadoExistente();
   }
 
   ngOnDestroy(): void {
@@ -140,6 +150,21 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
     });
   }
 
+  private carregarResultadoExistente(): void {
+    const id = this.idConsulta();
+    if (!id) return;
+    this.resultadoService.obter(id).subscribe({
+      next: (res) => {
+        this.resultado.set(res);
+        const textoClinico = res.textoClinico ?? res.resumoIa;
+        if (textoClinico && !this.form.controls.textoClinico.value) {
+          this.form.controls.textoClinico.setValue(textoClinico);
+        }
+      },
+      error: () => {}, // 404 = sem resultado ainda, ignorar
+    });
+  }
+
   salvarRelato(): void {
     const id = this.idConsulta();
     const relatoTexto = this.form.controls.relatoTexto.value.trim();
@@ -178,12 +203,41 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
   }
 
   analisar(): void {
+    if (this.recordingService.gravacaoConcluida()) {
+      this.enviarParaAnaliseComAudio();
+    } else {
+      this.analisarSemAudio();
+    }
+  }
+
+  private enviarParaAnaliseComAudio(): void {
     const id = this.idConsulta();
     if (!id) return;
     this.salvarRelato();
     this.analisando.set(true);
-    const audioBlob = this.recordingService.getAudioBlob() ?? undefined;
-    this.resultadoService.analisar(id, audioBlob).subscribe({
+    this.tipoAnalise.set('COM_AUDIO');
+    const audioBlob = this.recordingService.getAudioBlob()!;
+    this.resultadoService.enviarComAudio(id, audioBlob).subscribe({
+      next: () => {
+        this.analisando.set(false);
+        this.notification.sucesso('Análise enviada! O resultado estará disponível na fila.', 5000);
+        this.router.navigate(['/fila']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao enviar análise com áudio'));
+        this.analisando.set(false);
+        this.tipoAnalise.set(null);
+      },
+    });
+  }
+
+  private analisarSemAudio(): void {
+    const id = this.idConsulta();
+    if (!id) return;
+    this.salvarRelato();
+    this.analisando.set(true);
+    this.tipoAnalise.set('SEM_AUDIO');
+    this.resultadoService.analisar(id).subscribe({
       next: (res) => {
         this.resultado.set(res);
         this.analisando.set(false);
@@ -201,8 +255,19 @@ export class StepConsultaComponent implements OnInit, OnDestroy {
       error: (err: HttpErrorResponse) => {
         this.notification.erro(extrairMensagemErro(err, 'Erro ao analisar relato'));
         this.analisando.set(false);
+        this.tipoAnalise.set(null);
       },
     });
+  }
+
+  onResultadoConfirmado(): void {
+    if (this.tipoAnalise() === 'SEM_AUDIO') {
+      // Cenário B: mostra encerramento inline sem avançar o stepper
+      this.mostrarEncerramento.set(true);
+    } else {
+      // Cenário A (retorno) ou padrão: avança o stepper para StepEncerramento
+      this.confirmado.emit();
+    }
   }
 
   onAudioUpload(event: Event): void {

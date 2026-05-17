@@ -4,12 +4,13 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
-from app.db.session import get_db
-from app.models.consulta import ConsultaRelato, ConsultaResultado
+from app.db.session import SessionLocal, get_db
+from app.models.consulta import ConsultaIdentidade, ConsultaRelato, ConsultaResultado
 from app.models.user import User
 from app.schemas.consulta import (
     RelatoCreate,
@@ -17,7 +18,6 @@ from app.schemas.consulta import (
     RelatoUpdate,
     ResultadoIAOut,
 )
-import app.services.analise_service as analise_service
 import app.services.analise_llm_service as analise_llm_service
 
 from .helpers import (
@@ -31,6 +31,10 @@ MAX_AUDIO_SIZE_BYTES = 60 * 1024 * 1024  # 60 MB
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+
+# ---------------------------------------------------------------------------
+# Relato
+# ---------------------------------------------------------------------------
 
 @router.post(
     "/{id_consulta}/relato", response_model=RelatoOut, response_model_by_alias=True
@@ -109,99 +113,9 @@ def obter_relato(
     return _build_relato_out(relato)
 
 
-@router.post(
-    "/{id_consulta}/analisar",
-    response_model=ResultadoIAOut,
-    response_model_by_alias=True,
-)
-async def analisar_consulta(
-    id_consulta: UUID,
-    audio: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("MEDICO")),
-):
-    _consulta_ou_404(id_consulta, db)
-
-    relato = (
-        db.query(ConsultaRelato)
-        .filter(ConsultaRelato.id_consulta == id_consulta)
-        .first()
-    )
-    relato_texto = relato.relato_texto if relato else ""
-
-    audio_bytes: Optional[bytes] = None
-    audio_content_type = "audio/webm"
-
-    if audio:
-        audio_bytes = await audio.read()
-        if len(audio_bytes) > MAX_AUDIO_SIZE_BYTES:
-            raise HTTPException(
-                status_code=413,
-                detail=f"Arquivo de audio excede o limite de {MAX_AUDIO_SIZE_BYTES // (1024 * 1024)} MB.",
-            )
-        audio_content_type = audio.content_type or "audio/webm"
-    elif not relato_texto:
-        raise HTTPException(status_code=400, detail="Informe o relato antes da análise")
-
-    try:
-        resultado_ia, transcricao_audio = await analise_service.analisar(
-            relato_texto=relato_texto,
-            id_consulta=id_consulta,
-            audio_bytes=audio_bytes,
-            audio_content_type=audio_content_type,
-        )
-    except Exception as exc:
-        logger.error("Falha no processamento de áudio para consulta %s: %s", id_consulta, exc)
-        raise HTTPException(status_code=502, detail="Serviço de análise indisponível. Tente novamente.")
-
-    sentimento_voz_dict = (
-        resultado_ia.sentimento_voz.model_dump() if resultado_ia.sentimento_voz else None
-    )
-
-    # Cria / atualiza resultado parcial com sentimento_voz antes de chamar o LLM
-    resultado = (
-        db.query(ConsultaResultado)
-        .filter(ConsultaResultado.id_consulta == id_consulta)
-        .first()
-    )
-    if not resultado:
-        resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
-        db.add(resultado)
-
-    resultado.sentimento_voz = sentimento_voz_dict
-    resultado.score_geral = resultado_ia.score_geral
-    resultado.faixa_risco = resultado_ia.faixa_risco
-    resultado.indicadores = [i.model_dump() for i in resultado_ia.indicadores]
-    resultado.resumo_ia = resultado_ia.resumo_ia
-    resultado.calculado_em = datetime.now(timezone.utc)
-    resultado.confirmado = False
-    resultado.confirmado_em = None
-    db.flush()
-
-    # Análise LLM (GPT-4o com fallback local) — executado em thread para não bloquear o event loop
-    resultado_llm = await asyncio.to_thread(
-        analise_llm_service.analisar_com_llm,
-        id_consulta,
-        db,
-        transcricao_audio or "",
-        sentimento_voz_dict,
-    )
-
-    resultado.score_geral = int(resultado_llm["score_geral"])
-    resultado.faixa_risco = resultado_llm["faixa_risco"]
-    resultado.resumo_ia = resultado_llm["resumo_ia"]
-    resultado.indicadores = _llm_indicadores_para_ia(resultado_llm["indicadores"])
-    resultado.sumario_estruturado = resultado_llm["sumario_estruturado"]
-    resultado.texto_clinico = resultado_llm["texto_clinico"]
-    resultado.fontes_utilizadas = resultado_llm["fontes_utilizadas"]
-    resultado.tokens_utilizados = resultado_llm["tokens_utilizados"]
-    resultado.prompt_enviado = resultado_llm.get("prompt_enviado")
-    resultado.resposta_bruta_llm = resultado_llm.get("resposta_bruta_llm")
-
-    db.commit()
-    db.refresh(resultado)
-    return _build_resultado_out(resultado)
-
+# ---------------------------------------------------------------------------
+# Análise — lógica híbrida
+# ---------------------------------------------------------------------------
 
 def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
     """Converte IndicadorRisco (LLM) para formato legado IndicadorIA."""
@@ -217,6 +131,177 @@ def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
     return result
 
 
+def _processar_audio_background(
+    id_consulta: UUID,
+    audio_bytes: bytes,
+    content_type: str,
+    relato_texto: str,
+) -> None:
+    """Processa áudio em background (roda em thread pool via BackgroundTasks)."""
+    db = SessionLocal()
+    try:
+        from app.services.azure_service import transcrever_e_analisar_voz
+
+        resultado_voz = transcrever_e_analisar_voz(audio_bytes, content_type)
+        transcricao = resultado_voz.get("transcricao", "")
+        sentimento_voz = resultado_voz.get("sentimento_voz")
+
+        resultado_llm = analise_llm_service.analisar_com_llm(
+            id_consulta, db, transcricao or "", sentimento_voz
+        )
+
+        resultado = (
+            db.query(ConsultaResultado)
+            .filter(ConsultaResultado.id_consulta == id_consulta)
+            .first()
+        )
+        if not resultado:
+            resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
+            db.add(resultado)
+
+        resultado.sentimento_voz = sentimento_voz
+        resultado.score_geral = int(resultado_llm["score_geral"])
+        resultado.faixa_risco = resultado_llm["faixa_risco"]
+        resultado.resumo_ia = resultado_llm["resumo_ia"]
+        resultado.indicadores = _llm_indicadores_para_ia(resultado_llm["indicadores"])
+        resultado.sumario_estruturado = resultado_llm["sumario_estruturado"]
+        resultado.texto_clinico = resultado_llm["texto_clinico"]
+        resultado.fontes_utilizadas = resultado_llm["fontes_utilizadas"]
+        resultado.tokens_utilizados = resultado_llm["tokens_utilizados"]
+        resultado.prompt_enviado = resultado_llm.get("prompt_enviado")
+        resultado.resposta_bruta_llm = resultado_llm.get("resposta_bruta_llm")
+        resultado.calculado_em = datetime.now(timezone.utc)
+        resultado.confirmado = False
+        resultado.confirmado_em = None
+
+        # Volta para EM_ATENDIMENTO → aparece na seção "Para Finalizar" da fila
+        consulta = (
+            db.query(ConsultaIdentidade)
+            .filter(ConsultaIdentidade.id_consulta == id_consulta)
+            .first()
+        )
+        if consulta:
+            consulta.status = "EM_ATENDIMENTO"
+
+        db.commit()
+        logger.warning("Análise em background concluída para consulta %s", id_consulta)
+
+    except Exception as exc:
+        logger.error("Falha na análise em background para consulta %s: %s", id_consulta, exc)
+        try:
+            consulta = (
+                db.query(ConsultaIdentidade)
+                .filter(ConsultaIdentidade.id_consulta == id_consulta)
+                .first()
+            )
+            if consulta:
+                consulta.status = "EM_ATENDIMENTO"
+            db.commit()
+        except Exception:
+            pass
+    finally:
+        db.close()
+
+
+@router.post("/{id_consulta}/analisar")
+async def analisar_consulta(
+    id_consulta: UUID,
+    background_tasks: BackgroundTasks,
+    audio: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("MEDICO")),
+):
+    consulta = _consulta_ou_404(id_consulta, db)
+
+    relato = (
+        db.query(ConsultaRelato)
+        .filter(ConsultaRelato.id_consulta == id_consulta)
+        .first()
+    )
+    relato_texto = relato.relato_texto if relato else ""
+
+    # ------------------------------------------------------------------
+    # CENÁRIO A — com áudio: libera o médico imediatamente
+    # ------------------------------------------------------------------
+    if audio:
+        audio_bytes = await audio.read()
+        if len(audio_bytes) > MAX_AUDIO_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Arquivo de áudio excede o limite de {MAX_AUDIO_SIZE_BYTES // (1024 * 1024)} MB.",
+            )
+        audio_content_type = audio.content_type or "audio/webm"
+
+        consulta.status = "AGUARDANDO_ANALISE"
+        db.commit()
+
+        background_tasks.add_task(
+            _processar_audio_background,
+            id_consulta,
+            audio_bytes,
+            audio_content_type,
+            relato_texto,
+        )
+
+        return JSONResponse(
+            status_code=202,
+            content={
+                "status": "AGUARDANDO_ANALISE",
+                "mensagem": "Análise em processamento. O resultado estará disponível em breve na fila.",
+            },
+        )
+
+    # ------------------------------------------------------------------
+    # CENÁRIO B — sem áudio: resposta síncrona com resultado inline
+    # ------------------------------------------------------------------
+    if not relato_texto:
+        raise HTTPException(status_code=400, detail="Informe o relato antes da análise")
+
+    try:
+        resultado_llm = await asyncio.to_thread(
+            analise_llm_service.analisar_com_llm,
+            id_consulta,
+            db,
+            "",
+            None,
+        )
+    except Exception as exc:
+        logger.error("Falha na análise LLM para consulta %s: %s", id_consulta, exc)
+        raise HTTPException(status_code=502, detail="Serviço de análise indisponível. Tente novamente.")
+
+    resultado = (
+        db.query(ConsultaResultado)
+        .filter(ConsultaResultado.id_consulta == id_consulta)
+        .first()
+    )
+    if not resultado:
+        resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
+        db.add(resultado)
+
+    resultado.sentimento_voz = None
+    resultado.score_geral = int(resultado_llm["score_geral"])
+    resultado.faixa_risco = resultado_llm["faixa_risco"]
+    resultado.resumo_ia = resultado_llm["resumo_ia"]
+    resultado.indicadores = _llm_indicadores_para_ia(resultado_llm["indicadores"])
+    resultado.sumario_estruturado = resultado_llm["sumario_estruturado"]
+    resultado.texto_clinico = resultado_llm["texto_clinico"]
+    resultado.fontes_utilizadas = resultado_llm["fontes_utilizadas"]
+    resultado.tokens_utilizados = resultado_llm["tokens_utilizados"]
+    resultado.prompt_enviado = resultado_llm.get("prompt_enviado")
+    resultado.resposta_bruta_llm = resultado_llm.get("resposta_bruta_llm")
+    resultado.calculado_em = datetime.now(timezone.utc)
+    resultado.confirmado = False
+    resultado.confirmado_em = None
+
+    db.commit()
+    db.refresh(resultado)
+    return _build_resultado_out(resultado)
+
+
+# ---------------------------------------------------------------------------
+# Resultado
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/{id_consulta}/resultado",
     response_model=ResultadoIAOut,
@@ -227,7 +312,7 @@ def obter_resultado(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
-    _consulta_ou_404(id_consulta, db)
+    consulta = _consulta_ou_404(id_consulta, db)
     resultado = (
         db.query(ConsultaResultado)
         .filter(ConsultaResultado.id_consulta == id_consulta)
@@ -235,6 +320,14 @@ def obter_resultado(
     )
     if not resultado:
         raise HTTPException(status_code=404, detail="Resultado não encontrado")
+
+    # Apenas o médico responsável vê o resultado antes do encerramento
+    if consulta.status != "ENCERRADA" and consulta.medico_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Resultado disponível apenas para o médico responsável.",
+        )
+
     return _build_resultado_out(resultado)
 
 

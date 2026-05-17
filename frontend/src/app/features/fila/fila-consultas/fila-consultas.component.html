@@ -6,6 +6,51 @@
     </div>
   }
 
+  <!-- Seção: Para Finalizar -->
+  @if (isMedico() && paraFinalizar().length > 0) {
+    <div class="section-finalizar">
+      <h2 class="section-title">
+        <mat-icon>check_circle</mat-icon>
+        Para Finalizar
+      </h2>
+      @for (consulta of paraFinalizar(); track consulta.idConsulta) {
+        <mat-card class="item item--finalizar">
+          <mat-card-content>
+            <div class="row">
+              <div>
+                <div class="patient">
+                  {{ consulta.pacienteNome }}
+                  <span class="badge badge--concluida">Análise concluída</span>
+                </div>
+                <div class="muted">Nascimento: {{ consulta.pacienteDataNascimento | formatarData }}</div>
+              </div>
+              <div class="row">
+                <span
+                  class="score-badge"
+                  [style.color]="corFaixa(consulta.faixaRisco)"
+                  [style.border-color]="corFaixa(consulta.faixaRisco)"
+                >
+                  {{ consulta.scoreRisco }}/100
+                </span>
+                <mat-chip>{{ consulta.tipoConsulta }}</mat-chip>
+                @if (consulta.igSemanas !== undefined) {
+                  <mat-chip>{{ consulta.igSemanas }}s {{ consulta.igDias }}d</mat-chip>
+                }
+              </div>
+            </div>
+            <div class="row" style="margin-top: 12px">
+              <span class="muted">Concluída há {{ tempoDecorrido(consulta) }}</span>
+              <button mat-raised-button color="accent" (click)="finalizarConsulta(consulta.idConsulta)">
+                <mat-icon>edit_note</mat-icon>
+                Finalizar
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+
   <div class="header">
     <div class="title">
       <h1>Fila de Consultas</h1>

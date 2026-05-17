@@ -6,12 +6,12 @@
 
   <form class="stack" [formGroup]="form">
     <mat-form-field appearance="outline">
-      <mat-label>Observações do profissional</mat-label>
+      <mat-label>Parecer Médico</mat-label>
       <textarea
         matInput
         formControlName="relatoTexto"
         rows="7"
-        placeholder="Registre aqui suas observações sobre a consulta, complementando o áudio ou descrevendo o relato da paciente..."
+        placeholder="Registre aqui seu parecer sobre a consulta..."
         (blur)="salvarRelato()"
       ></textarea>
       @if (relatoSalvo()) {
@@ -55,19 +55,38 @@
       @if (analisando()) {
         <div class="analisando-status">
           <mat-spinner diameter="24" />
-          <span>Analisando áudio e relato… isso pode levar alguns minutos.</span>
+          @if (recordingService.gravacaoConcluida()) {
+            <span>Enviando para análise… aguarde.</span>
+          } @else {
+            <span>Analisando parecer…</span>
+          }
         </div>
-      } @else {
-        <button
-          mat-raised-button
-          color="accent"
-          type="button"
-          [disabled]="!recordingService.gravacaoConcluida() && !form.controls.relatoTexto.value.trim()"
-          (click)="analisar()"
-        >
-          <mat-icon>auto_awesome</mat-icon>
-          Analisar com IA
-        </button>
+      } @else if (!mostrarEncerramento()) {
+        @if (recordingService.gravacaoConcluida()) {
+          <div class="btn-analise-grupo">
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              (click)="analisar()"
+            >
+              <mat-icon>cloud_upload</mat-icon>
+              Enviar para Análise
+            </button>
+            <p class="btn-hint">O resultado estará disponível em breve na fila.</p>
+          </div>
+        } @else {
+          <button
+            mat-raised-button
+            color="accent"
+            type="button"
+            [disabled]="!form.controls.relatoTexto.value.trim()"
+            (click)="analisar()"
+          >
+            <mat-icon>auto_awesome</mat-icon>
+            Analisar e Finalizar
+          </button>
+        }
       }
     </div>
 
@@ -76,8 +95,13 @@
         [resultado]="res"
         [idConsulta]="consultaAtiva()!.idConsulta"
         [textoClinicoCtrl]="form.controls.textoClinico"
-        (confirmado)="confirmado.emit()"
+        (confirmado)="onResultadoConfirmado()"
       />
     }
   </form>
+
+  <!-- Cenário B: encerramento inline após confirmar resultado sem áudio -->
+  @if (mostrarEncerramento()) {
+    <app-step-encerramento [pronto]="true" />
+  }
 </div>

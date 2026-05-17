@@ -18,6 +18,7 @@ class TipoConsultaEnum(str, enum.Enum):
 class StatusConsultaEnum(str, enum.Enum):
     ABERTA = "ABERTA"
     EM_ATENDIMENTO = "EM_ATENDIMENTO"
+    AGUARDANDO_ANALISE = "AGUARDANDO_ANALISE"
     ENCERRADA = "ENCERRADA"
 
 
