@@ -15,6 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from 'app/core/services/notification.service';
 import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
+import { ConsultaResultadoComponent } from '../consulta-resultado/consulta-resultado.component';
 
 import {
   ResultadoIAOut,
@@ -46,6 +47,7 @@ interface OpcaoEncaminhamento {
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    ConsultaResultadoComponent,
   ],
   templateUrl: './step-encerramento.component.html',
   styleUrl: './step-encerramento.component.scss',
@@ -61,7 +63,7 @@ export class StepEncerramentoComponent {
   private readonly dialog = inject(MatDialog);
   private readonly notification = inject(NotificationService);
   private readonly router = inject(Router);
-  private readonly idConsulta = computed(() => this.consultaService.consultaAtiva()?.idConsulta);
+  protected readonly idConsulta = computed(() => this.consultaService.consultaAtiva()?.idConsulta);
 
   private inicializado = false;
   readonly carregando = signal(false);

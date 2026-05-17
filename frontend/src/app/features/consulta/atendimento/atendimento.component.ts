@@ -1,12 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  OnDestroy,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -30,6 +22,7 @@ import { ConsultaRecordingService } from '../services/consulta-recording.service
 import { HistoricoService, HistoricoPesoItem } from '../services/historico.service';
 import { ConsultaTriagemComponent } from './componentes/consulta-triagem/consulta-triagem.component';
 import { StepEncerramentoComponent } from './componentes/step-encerramento/step-encerramento.component';
+import { ConsultaResultadoComponent } from './componentes/consulta-resultado/consulta-resultado.component';
 
 @Component({
   selector: 'app-atendimento',
@@ -137,7 +130,10 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
         }),
       error: (err: HttpErrorResponse) => {
         if (err.status !== 404) {
-          this.notification.erro(extrairMensagemErro(err, 'Não foi possível carregar o relato anterior.'), 4000);
+          this.notification.erro(
+            extrairMensagemErro(err, 'Não foi possível carregar o relato anterior.'),
+            4000,
+          );
         }
       },
     });
@@ -153,10 +149,15 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
         if (textoClinico && !this.form.controls.textoClinico.value) {
           this.form.controls.textoClinico.setValue(textoClinico);
         }
+        this.bloquearEdicao();
         this.mostrarEncerramento.set(true);
       },
       error: () => {}, // 404 = sem resultado ainda, ignorar
     });
+  }
+
+  private bloquearEdicao(): void {
+    this.form.controls.relatoTexto.disable();
   }
 
   salvarRelato(): void {
@@ -171,7 +172,8 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => this.indicarRelatoSalvo(),
-        error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao salvar relato')),
+        error: (err: HttpErrorResponse) =>
+          this.notification.erro(extrairMensagemErro(err, 'Erro ao salvar relato')),
       });
   }
 
@@ -235,6 +237,7 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
         const textoClinico = res.textoClinico ?? res.resumoIa;
         this.form.controls.textoClinico.setValue(textoClinico);
         this.resultadoService.confirmar(id).subscribe();
+        this.bloquearEdicao();
         this.mostrarEncerramento.set(true);
       },
       error: (err: HttpErrorResponse) => {

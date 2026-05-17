@@ -1,9 +1,9 @@
 .container {
-  padding: 24px 0;
-  max-width: 800px;
+  width: 100%;
 }
 .section {
   margin-bottom: 20px;
+  width: 100%;
 }
 .resultado-card {
   margin-bottom: 24px;
@@ -65,7 +65,6 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 8px;
 }
 .conclusao {
   display: flex;

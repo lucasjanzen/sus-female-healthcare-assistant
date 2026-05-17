@@ -41,35 +41,12 @@
 
   <!-- Formulário de encerramento -->
   @else {
-    <!-- BLOCO 0 — Resultado da IA (somente leitura) -->
+    <!-- BLOCO 0 — Resultado da IA -->
     @if (resultado(); as r) {
-      <mat-card class="resultado-card section" [style.border-left]="'4px solid ' + corFaixa(r.faixaRisco)">
-        <mat-card-header>
-          <mat-card-title>Resultado da Análise IA</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="score-display">
-            <span class="score-num" [style.color]="corFaixa(r.faixaRisco)">{{ r.scoreGeral }}/100</span>
-            <span class="faixa-badge" [style.background-color]="corFaixa(r.faixaRisco)">
-              {{ textoFaixa(r.faixaRisco) }}
-            </span>
-          </div>
-          <div class="indicadores">
-            @for (ind of r.indicadores; track ind.tipo) {
-              <span
-                class="indicador-chip"
-                [style.color]="corNivel(ind.nivel)"
-                [style.border]="'1px solid ' + corNivel(ind.nivel)"
-              >
-                {{ ind.descricao }}
-              </span>
-            }
-            @if (r.indicadores.length === 0) {
-              <span>Nenhum indicador de risco detectado.</span>
-            }
-          </div>
-        </mat-card-content>
-      </mat-card>
+      <app-consulta-resultado
+        [resultado]="r"
+        [idConsulta]="idConsulta()!"
+      />
     }
 
     <form [formGroup]="form" (ngSubmit)="confirmarEncerramento()">
@@ -151,10 +128,7 @@
           @if (salvando()) {
             <mat-spinner diameter="20" />
           } @else {
-            <ng-container>
-              <mat-icon>lock</mat-icon>
-              Encerrar Consulta
-            </ng-container>
+            <ng-container>Encerrar Consulta</ng-container>
           }
         </button>
       </div>

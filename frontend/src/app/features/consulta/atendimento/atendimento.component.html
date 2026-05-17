@@ -5,10 +5,7 @@
 
   @if (consultaAtiva()) {
     <div class="stack">
-      <app-consulta-triagem
-        [dadosConsulta]="dadosConsulta()"
-        [historicoPeso]="historicoPeso()"
-      />
+      <app-consulta-triagem [dadosConsulta]="dadosConsulta()" [historicoPeso]="historicoPeso()" />
 
       <form class="stack" [formGroup]="form">
         <mat-form-field appearance="outline">
@@ -27,75 +24,79 @@
           }
         </mat-form-field>
 
-        <div class="acoes-analise">
-          <div class="gravacao-controles">
-            @if (!recordingService.gravando()) {
-              <button mat-stroked-button type="button" (click)="iniciarGravacao()">
-                <mat-icon>mic</mat-icon>
-                Iniciar Gravação
-              </button>
-              <input type="file" accept="audio/*" #audioUploadInput style="display:none" (change)="onAudioUpload($event)">
-              <button mat-stroked-button type="button" (click)="audioUploadInput.click()">
-                <mat-icon>upload_file</mat-icon>
-                Enviar Áudio
-              </button>
-            } @else {
-              <span class="gravando-status">
-                <mat-icon class="recording">mic</mat-icon>
-                {{ tempoGravacao() }}
-              </span>
-              <button mat-raised-button color="warn" type="button" (click)="encerrarGravacao()">
-                <mat-icon>stop</mat-icon>
-                Encerrar Gravação
-              </button>
+        @if (analisando() || !mostrarEncerramento()) {
+          <div class="acoes-analise">
+            @if (!mostrarEncerramento() && !analisando()) {
+              <div class="gravacao-controles">
+                @if (!recordingService.gravando()) {
+                  <button mat-stroked-button type="button" (click)="iniciarGravacao()">
+                    <mat-icon>mic</mat-icon>
+                    Iniciar Gravação
+                  </button>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    #audioUploadInput
+                    style="display: none"
+                    (change)="onAudioUpload($event)"
+                  />
+                  <button mat-stroked-button type="button" (click)="audioUploadInput.click()">
+                    <mat-icon>upload_file</mat-icon>
+                    Enviar Áudio
+                  </button>
+                } @else {
+                  <span class="gravando-status">
+                    <mat-icon class="recording">mic</mat-icon>
+                    {{ tempoGravacao() }}
+                  </span>
+                  <button mat-raised-button color="warn" type="button" (click)="encerrarGravacao()">
+                    <mat-icon>stop</mat-icon>
+                    Encerrar Gravação
+                  </button>
+                }
+
+                @if (recordingService.gravacaoConcluida()) {
+                  <span class="audio-pronta">
+                    <mat-icon>check_circle</mat-icon>
+                    Gravação pronta
+                  </span>
+                }
+              </div>
             }
 
-            @if (recordingService.gravacaoConcluida()) {
-              <span class="audio-pronta">
-                <mat-icon>check_circle</mat-icon>
-                Gravação pronta
-              </span>
-            }
-          </div>
-
-          @if (analisando()) {
-            <div class="analisando-status">
-              <mat-spinner diameter="24" />
+            @if (analisando()) {
+              <div class="analisando-status">
+                <mat-spinner diameter="24" />
+                @if (recordingService.gravacaoConcluida()) {
+                  <span>Enviando para análise… aguarde.</span>
+                } @else {
+                  <span>Analisando parecer…</span>
+                }
+              </div>
+            } @else if (!mostrarEncerramento()) {
               @if (recordingService.gravacaoConcluida()) {
-                <span>Enviando para análise… aguarde.</span>
+                <div class="btn-analise-grupo">
+                  <button mat-raised-button color="primary" type="button" (click)="analisar()">
+                    <mat-icon>cloud_upload</mat-icon>
+                    Enviar para Análise
+                  </button>
+                  <p class="btn-hint">O resultado estará disponível em breve na fila.</p>
+                </div>
               } @else {
-                <span>Analisando parecer…</span>
-              }
-            </div>
-          } @else if (!mostrarEncerramento()) {
-            @if (recordingService.gravacaoConcluida()) {
-              <div class="btn-analise-grupo">
                 <button
                   mat-raised-button
-                  color="primary"
+                  color="accent"
                   type="button"
+                  [disabled]="!form.controls.relatoTexto.value.trim()"
                   (click)="analisar()"
                 >
-                  <mat-icon>cloud_upload</mat-icon>
-                  Enviar para Análise
+                  <mat-icon>auto_awesome</mat-icon>
+                  Analisar e Finalizar
                 </button>
-                <p class="btn-hint">O resultado estará disponível em breve na fila.</p>
-              </div>
-            } @else {
-              <button
-                mat-raised-button
-                color="accent"
-                type="button"
-                [disabled]="!form.controls.relatoTexto.value.trim()"
-                (click)="analisar()"
-              >
-                <mat-icon>auto_awesome</mat-icon>
-                Analisar e Finalizar
-              </button>
+              }
             }
-          }
-        </div>
-
+          </div>
+        }
       </form>
 
       @if (mostrarEncerramento()) {

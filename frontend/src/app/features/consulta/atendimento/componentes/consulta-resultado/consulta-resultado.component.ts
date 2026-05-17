@@ -1,8 +1,6 @@
 import {
   Component,
-  EventEmitter,
   Input,
-  Output,
   computed,
   input,
   inject,
@@ -46,8 +44,7 @@ import { ResultadoService } from 'app/features/consulta/services/resultado.servi
 export class ConsultaResultadoComponent {
   readonly resultado = input.required<ResultadoIAOut>();
   readonly idConsulta = input.required<string>();
-  @Input() textoClinicoCtrl!: FormControl<string>;
-  @Output() readonly confirmado = new EventEmitter<void>();
+  @Input() textoClinicoCtrl?: FormControl<string>;
 
   private readonly relatoService = inject(RelatoService);
   private readonly resultadoService = inject(ResultadoService);
@@ -79,6 +76,7 @@ export class ConsultaResultadoComponent {
   });
 
   salvarTextoClinico(): void {
+    if (!this.textoClinicoCtrl) return;
     this.relatoService
       .atualizar(this.idConsulta(), { parecerMedico: this.textoClinicoCtrl.value })
       .subscribe({
@@ -89,7 +87,7 @@ export class ConsultaResultadoComponent {
   }
 
   copiarTextoClinico(): void {
-    const texto = this.textoClinicoCtrl.value;
+    const texto = this.textoClinicoCtrl?.value;
     if (!texto) return;
     navigator.clipboard.writeText(texto).then(
       () => this.snackBar.open('Texto copiado!', '', { duration: 2000 }),
@@ -103,15 +101,6 @@ export class ConsultaResultadoComponent {
       () => this.snackBar.open('Copiado!', '', { duration: 1500 }),
       () => this.notification.erro('Não foi possível copiar'),
     );
-  }
-
-  confirmarAnalise(): void {
-    this.salvarTextoClinico();
-    this.resultadoService.confirmar(this.idConsulta()).subscribe({
-      next: () => this.confirmado.emit(),
-      error: (err: HttpErrorResponse) =>
-        this.notification.erro(extrairMensagemErro(err, 'Erro ao confirmar análise')),
-    });
   }
 
   textoFaixa(resultado: ResultadoIAOut): string {
