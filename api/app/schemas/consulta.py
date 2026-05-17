@@ -238,20 +238,3 @@ class SugestaoEncerramentoOut(BaseModel):
     conduta_sugerida: str
 
 
-class ResumoPecOut(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    id_consulta: UUID
-    tipo_consulta: str
-    data_consulta: date
-    ig_semanas: Optional[int] = None
-    ig_dias: Optional[int] = None
-    peso_kg: Optional[float] = None
-    pa: Optional[str] = None
-    score_risco: int
-    faixa_risco: str
-    indicadores: list[str]
-    conduta: str
-    encaminhamentos: list[str]
-    data_proximo_retorno: date
-    gerado_em: datetime

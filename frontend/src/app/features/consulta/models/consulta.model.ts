@@ -110,20 +110,3 @@ export interface EncerramentoOut {
   observacoes?: string;
   encerradoEm: string;
 }
-
-export interface ResumoPecOut {
-  idConsulta: string;
-  tipoConsulta: string;
-  dataConsulta: string;
-  igSemanas?: number;
-  igDias?: number;
-  pesoKg?: number;
-  pa?: string;
-  scoreRisco: number;
-  faixaRisco: FaixaRisco;
-  indicadores: string[];
-  conduta: string;
-  encaminhamentos: string[];
-  dataProximoRetorno: string;
-  geradoEm: string;
-}

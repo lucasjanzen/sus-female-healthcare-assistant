@@ -5,7 +5,6 @@ import { ApiService } from '../../../core/services/api.service';
 import {
   EncerramentoCreate,
   EncerramentoOut,
-  ResumoPecOut,
   SugestaoEncerramentoOut,
 } from '../models/consulta.model';
 
@@ -21,11 +20,4 @@ export class EncerramentoService {
     return this.api.post<EncerramentoOut>(`/consulta/${idConsulta}/encerrar`, dados);
   }
 
-  obterResumoPec(idConsulta: string): Observable<ResumoPecOut> {
-    return this.api.get<ResumoPecOut>(`/consulta/${idConsulta}/resumo-pec`);
-  }
-
-  baixarResumoPdf(idConsulta: string): Observable<Blob> {
-    return this.api.getBlob(`/consulta/${idConsulta}/resumo-pec/pdf`);
-  }
 }

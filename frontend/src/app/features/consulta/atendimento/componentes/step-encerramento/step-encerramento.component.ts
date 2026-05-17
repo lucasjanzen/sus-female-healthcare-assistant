@@ -188,22 +188,6 @@ export class StepEncerramentoComponent {
     });
   }
 
-  baixarPdf(): void {
-    const id = this.idConsulta();
-    if (!id) return;
-    this.encerramentoService.baixarResumoPdf(id).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `resumo-pec-${id}.pdf`;
-        link.click();
-        URL.revokeObjectURL(url);
-      },
-      error: (err: HttpErrorResponse) => this.notification.erro(extrairMensagemErro(err, 'Erro ao gerar PDF.')),
-    });
-  }
-
   novaConsulta(): void {
     this.router.navigate(['/consulta/nova']);
   }
