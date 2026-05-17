@@ -90,7 +90,6 @@ class RelatoUpdate(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     relato_texto: Optional[str] = None
-    parecer_medico: Optional[str] = None
 
     @field_validator("relato_texto")
     @classmethod
@@ -99,19 +98,12 @@ class RelatoUpdate(BaseModel):
             raise ValueError("Relato deve ter pelo menos 20 caracteres")
         return value
 
-    @model_validator(mode="after")
-    def validar_algum_campo(self):
-        if self.relato_texto is None and self.parecer_medico is None:
-            raise ValueError("Informe o relato ou o parecer médico")
-        return self
-
 
 class RelatoOut(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     id_consulta: UUID
     relato_texto: Optional[str] = None
-    parecer_medico: Optional[str] = None
     registrado_em: datetime
     atualizado_em: datetime
 
@@ -169,7 +161,6 @@ class ResultadoIAOut(BaseModel):
     faixa_risco: str
     indicadores: list[IndicadorIA]
     resumo_ia: str
-    confirmado: bool
     calculado_em: datetime
     sentimento_voz: Optional[SentimentoVozOut] = None
     sumario_estruturado: Optional[SumarioEstruturado] = None
@@ -180,61 +171,5 @@ class ResultadoIAOut(BaseModel):
     resposta_bruta_llm: Optional[str] = None
 
 
-_ENCAMINHAMENTOS_VALIDOS = frozenset(
-    {
-        "CAPS",
-        "CVR",
-        "ASSISTENCIA_SOCIAL",
-        "PSICOLOGIA",
-        "SERVICO_SOCIAL",
-        "DELEGACIA_MULHER",
-        "PRE_NATAL_ALTO_RISCO",
-        "OUTRO",
-    }
-)
-
-
-class EncerramentoCreate(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    conduta: str = Field(..., min_length=10)
-    encaminhamentos: Optional[list[str]] = None
-    data_proximo_retorno: date
-    observacoes: Optional[str] = None
-
-    @field_validator("data_proximo_retorno")
-    @classmethod
-    def validar_data_retorno(cls, v: date) -> date:
-        if v < date.today():
-            raise ValueError("Data de retorno não pode ser no passado")
-        return v
-
-    @field_validator("encaminhamentos")
-    @classmethod
-    def validar_encaminhamentos(cls, v: Optional[list[str]]) -> Optional[list[str]]:
-        if v:
-            invalidos = [e for e in v if e not in _ENCAMINHAMENTOS_VALIDOS]
-            if invalidos:
-                raise ValueError(f"Encaminhamentos inválidos: {invalidos}")
-        return v
-
-
-class EncerramentoOut(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    id_consulta: UUID
-    conduta: str
-    encaminhamentos: Optional[list[str]] = None
-    data_proximo_retorno: date
-    observacoes: Optional[str] = None
-    encerrado_em: datetime
-
-
-class SugestaoEncerramentoOut(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-    data_sugerida: date
-    encaminhamentos_sugeridos: list[str]
-    conduta_sugerida: str
 
 

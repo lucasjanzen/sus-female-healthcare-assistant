@@ -1,0 +1,68 @@
+<div class="page">
+  @if (carregando()) {
+    <div class="loading-center">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (resultado(); as res) {
+
+    @if (res.analiseRevisada) {
+      <div class="banner-revisada">
+        <mat-icon>info</mat-icon>
+        Esta análise já foi revisada em {{ formatarData(res.analiseRevisadaEm) }}.
+        @if (res.encaminhado) {
+          Encaminhamento registrado em {{ formatarData(res.encaminhadoEm) }}.
+        }
+      </div>
+    }
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Resultado da Análise</h1>
+        <div class="subtitulo">{{ res.faixaRisco }} · Score {{ res.scoreGeral }}/100</div>
+      </div>
+      <span
+        class="chip-faixa"
+        [style.background]="corFundoFaixa(res.faixaRisco)"
+        [style.color]="corFaixa(res.faixaRisco)"
+      >
+        {{ labelFaixa(res.faixaRisco) }}
+      </span>
+    </div>
+
+    <!-- Bloco 1: Resultado da IA -->
+    <section class="bloco">
+      <app-consulta-resultado [resultado]="res" [idConsulta]="idConsulta()" />
+    </section>
+
+    <!-- Rodapé de ações -->
+    <div class="acoes-rodape" [class.desabilitado]="res.analiseRevisada">
+      <button
+        mat-raised-button
+        style="background:#16a34a; color:#fff"
+        [disabled]="salvando() || res.analiseRevisada"
+        (click)="abrirEncaminhar()"
+      >
+        <mat-icon>send</mat-icon>
+        Paciente Encaminhada
+      </button>
+
+      <button
+        mat-stroked-button
+        [disabled]="salvando() || res.analiseRevisada"
+        (click)="abrirRevisao()"
+      >
+        <mat-icon>check</mat-icon>
+        Revisar sem encaminhar
+      </button>
+
+      <button mat-button (click)="voltar()">
+        <mat-icon>arrow_back</mat-icon>
+        Voltar
+      </button>
+    </div>
+
+  } @else if (!carregando()) {
+    <p class="muted">Resultado não encontrado.</p>
+    <button mat-button (click)="voltar()">Voltar</button>
+  }
+</div>

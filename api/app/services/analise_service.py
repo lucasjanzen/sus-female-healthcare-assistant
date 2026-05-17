@@ -256,7 +256,6 @@ async def analisar(
         faixa_risco=faixa,
         indicadores=indicadores,
         resumo_ia=resumo,
-        confirmado=False,
         calculado_em=datetime.now(timezone.utc),
         sentimento_voz=sentimento_voz_out,
     ), transcricao_audio

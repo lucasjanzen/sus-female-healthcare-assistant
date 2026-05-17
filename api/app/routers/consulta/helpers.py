@@ -81,7 +81,6 @@ def _build_relato_out(relato: ConsultaRelato) -> RelatoOut:
     return RelatoOut(
         id_consulta=relato.id_consulta,
         relato_texto=relato.relato_texto,
-        parecer_medico=relato.parecer_medico,
         registrado_em=relato.registrado_em,
         atualizado_em=relato.atualizado_em,
     )
@@ -123,7 +122,6 @@ def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
         faixa_risco=resultado.faixa_risco,
         indicadores=resultado.indicadores,
         resumo_ia=resultado.resumo_ia or "",
-        confirmado=resultado.confirmado,
         calculado_em=resultado.calculado_em,
         sentimento_voz=sentimento_voz_out,
         sumario_estruturado=sumario_out,

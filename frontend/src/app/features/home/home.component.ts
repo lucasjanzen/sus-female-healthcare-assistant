@@ -1,27 +1,36 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatBadgeModule } from '@angular/material/badge';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { AnalisesService } from '../analises/services/analises.service';
 
 interface FeatureCard {
   icon: string;
   title: string;
   description: string;
   route: string;
+  badge?: number;
+  badgeCritico?: number;
 }
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, MatIconModule],
+  imports: [MatButtonModule, MatCardModule, MatIconModule, MatBadgeModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly analisesService = inject(AnalisesService);
+
   readonly currentUser = computed(() => this.authService.getUser());
+  readonly totaisAnalises = signal({ total: 0, criticos: 0 });
 
   readonly roleLabel = computed((): string => {
     const role = this.authService.getRole();
@@ -32,6 +41,7 @@ export class HomeComponent {
 
   readonly featureCards = computed((): FeatureCard[] => {
     const role = this.authService.getRole();
+    const totais = this.totaisAnalises();
 
     if (role === 'MEDICO') {
       return [
@@ -46,6 +56,14 @@ export class HomeComponent {
           title: 'Iniciar Nova Consulta',
           description: 'Inicie uma nova consulta para uma paciente',
           route: '/consulta/nova',
+        },
+        {
+          icon: 'analytics',
+          title: 'Fila de Análises',
+          description: 'Revise análises de IA de consultas encerradas',
+          route: '/analises',
+          badge: totais.total || undefined,
+          badgeCritico: totais.criticos || undefined,
         },
       ];
     }
@@ -64,8 +82,17 @@ export class HomeComponent {
           description: 'Inicie uma nova consulta para uma paciente',
           route: '/consulta/nova',
         },
+        {
+          icon: 'analytics',
+          title: 'Fila de Análises',
+          description: 'Revise análises de IA de consultas encerradas',
+          route: '/analises',
+          badge: totais.total || undefined,
+          badgeCritico: totais.criticos || undefined,
+        },
       ];
     }
+
     return [
       {
         icon: 'manage_accounts',
@@ -76,10 +103,15 @@ export class HomeComponent {
     ];
   });
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {}
+  ngOnInit(): void {
+    const role = this.authService.getRole();
+    if (role === 'MEDICO' || role === 'ENFERMEIRO') {
+      this.analisesService.obterTotais().subscribe({
+        next: (t) => this.totaisAnalises.set(t),
+        error: () => {},
+      });
+    }
+  }
 
   navegar(path: string): void {
     this.router.navigate([path]);

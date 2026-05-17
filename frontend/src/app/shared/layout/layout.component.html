@@ -8,11 +8,22 @@
   <span class="app-name">Centro de Assistência à Saúde Feminina</span>
   <span class="spacer"></span>
 
+  @if (isMedicoOuEnfermeiro()) {
+    <button mat-button (click)="router.navigate(['/analises'])" class="nav-analises">
+      <mat-icon
+        [matBadge]="badgeCriticos() > 0 ? badgeCriticos() : null"
+        matBadgeColor="warn"
+        matBadgeSize="small"
+      >analytics</mat-icon>
+      Análises
+    </button>
+  }
+
   @if (currentUser(); as user) {
     <span class="user-name">{{ user.nome }}</span>
   }
 
-  <span (click)="logout()" title="Sair da conta" aria-label="Sair">
+  <span (click)="logout()" title="Sair da conta" aria-label="Sair" style="cursor:pointer">
     <mat-icon>logout</mat-icon>
     Sair
   </span>

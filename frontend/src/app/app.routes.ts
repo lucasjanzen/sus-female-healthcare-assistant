@@ -36,6 +36,11 @@ export const routes: Routes = [
         path: 'fila',
         loadChildren: () => import('./features/fila/fila.routes').then((m) => m.filaRoutes),
       },
+      {
+        path: 'analises',
+        loadChildren: () =>
+          import('./features/analises/analises.routes').then((m) => m.analisesRoutes),
+      },
     ],
   },
   {

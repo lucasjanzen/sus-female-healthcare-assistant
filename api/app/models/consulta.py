@@ -18,7 +18,6 @@ class TipoConsultaEnum(str, enum.Enum):
 class StatusConsultaEnum(str, enum.Enum):
     ABERTA = "ABERTA"
     EM_ATENDIMENTO = "EM_ATENDIMENTO"
-    AGUARDANDO_ANALISE = "AGUARDANDO_ANALISE"
     ENCERRADA = "ENCERRADA"
 
 
@@ -45,6 +44,14 @@ class ConsultaIdentidade(Base):
         default=lambda: datetime.now(timezone.utc),
     )
     encerrada_em = Column(DateTime(timezone=True), nullable=True)
+    analise_concluida_em = Column(DateTime(timezone=True), nullable=True)
+    analise_erro = Column(Text, nullable=True)
+    analise_revisada = Column(Boolean, nullable=False, default=False)
+    analise_revisada_em = Column(DateTime(timezone=True), nullable=True)
+    analise_revisada_por = Column(UUID(as_uuid=True), nullable=True)
+    encaminhado = Column(Boolean, nullable=False, default=False)
+    encaminhado_em = Column(DateTime(timezone=True), nullable=True)
+    encaminhado_por = Column(UUID(as_uuid=True), nullable=True)
 
 
 class ConsultaTriagem(Base):
@@ -69,7 +76,6 @@ class ConsultaRelato(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     id_consulta = Column(UUID(as_uuid=True), nullable=False, unique=True)
     relato_texto = Column(Text, nullable=True)
-    parecer_medico = Column(Text, nullable=True)
     registrado_por = Column(UUID(as_uuid=True), nullable=False)
     registrado_em = Column(
         DateTime(timezone=True),
@@ -104,8 +110,6 @@ class ConsultaResultado(Base):
     tokens_utilizados = Column(Integer, nullable=True)
     prompt_enviado = Column(Text, nullable=True)
     resposta_bruta_llm = Column(Text, nullable=True)
-    confirmado = Column(Boolean, nullable=False, default=False)
-    confirmado_em = Column(DateTime(timezone=True), nullable=True)
 
 
 class HistoricoPeso(Base):
@@ -122,18 +126,3 @@ class HistoricoPeso(Base):
     )
 
 
-class ConsultaEncerramento(Base):
-    __tablename__ = "consulta_encerramento"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_consulta = Column(UUID(as_uuid=True), nullable=False, unique=True)
-    conduta = Column(Text, nullable=False)
-    encaminhamentos = Column(JSON, nullable=True)
-    data_proximo_retorno = Column(Date, nullable=False)
-    observacoes = Column(Text, nullable=True)
-    encerrado_por = Column(UUID(as_uuid=True), nullable=False)
-    encerrado_em = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-    )

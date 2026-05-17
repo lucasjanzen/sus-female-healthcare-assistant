@@ -1,0 +1,135 @@
+<div class="page">
+  <div class="page-header">
+    <div class="title-row">
+      <h1 class="page-title">Fila de Análises</h1>
+      @if (total() > 0) {
+        <span class="badge-total">{{ total() }}</span>
+      }
+      @if (criticos() > 0) {
+        <span class="badge-criticos">{{ criticos() }} crítico{{ criticos() > 1 ? 's' : '' }}</span>
+      }
+    </div>
+    <button mat-stroked-button (click)="carregar()">
+      <mat-icon>refresh</mat-icon>
+      Atualizado às {{ horaAtualizacao() }}
+    </button>
+  </div>
+
+  @if (carregando()) {
+    <div class="loading-center">
+      <mat-spinner diameter="36" />
+    </div>
+  } @else if (total() === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">check_circle</mat-icon>
+      <p>Nenhuma análise pendente de revisão.</p>
+    </div>
+  } @else {
+    <div class="fila-lista">
+
+      @if (vermelho().length > 0) {
+        <div class="grupo-header grupo-header--vermelho">
+          <mat-icon>warning</mat-icon>
+          Risco Crítico ({{ vermelho().length }})
+        </div>
+        @for (item of vermelho(); track item.idConsulta) {
+          <ng-container *ngTemplateOutlet="cardAnalise; context: { $implicit: item }" />
+        }
+      }
+
+      @if (laranja().length > 0) {
+        <div class="grupo-header grupo-header--laranja">
+          <mat-icon>priority_high</mat-icon>
+          Risco Elevado ({{ laranja().length }})
+        </div>
+        @for (item of laranja(); track item.idConsulta) {
+          <ng-container *ngTemplateOutlet="cardAnalise; context: { $implicit: item }" />
+        }
+      }
+
+      @if (amarelo().length > 0) {
+        <div class="grupo-header grupo-header--amarelo">
+          <mat-icon>info</mat-icon>
+          Risco Moderado ({{ amarelo().length }})
+        </div>
+        @for (item of amarelo(); track item.idConsulta) {
+          <ng-container *ngTemplateOutlet="cardAnalise; context: { $implicit: item }" />
+        }
+      }
+
+      @if (verde().length > 0) {
+        <div class="grupo-header grupo-header--verde">
+          <mat-icon>check_circle_outline</mat-icon>
+          Baixo Risco ({{ verde().length }})
+        </div>
+        @for (item of verde(); track item.idConsulta) {
+          <ng-container *ngTemplateOutlet="cardAnalise; context: { $implicit: item }" />
+        }
+      }
+
+    </div>
+  }
+</div>
+
+<ng-template #cardAnalise let-item>
+  <mat-card
+    class="analise-card"
+    [style.border-left-color]="corBorda(item.faixaRisco)"
+    [class.card-destaque]="item.faixaRisco === 'LARANJA' || item.faixaRisco === 'VERMELHO'"
+  >
+    <mat-card-content class="card-content">
+
+      <div class="col-risco">
+        <span
+          class="chip-faixa"
+          [style.background]="corFundo(item.faixaRisco)"
+          [style.color]="corTexto(item.faixaRisco)"
+        >
+          {{ labelFaixa(item.faixaRisco) }}
+        </span>
+        @if (!item.temErro) {
+          <span class="score">{{ item.scoreGeral }}/100</span>
+        } @else {
+          <span class="score score--erro">Erro</span>
+        }
+      </div>
+
+      <div class="col-info">
+        <div class="paciente-nome">{{ item.pacienteNome }}</div>
+        <div class="muted">
+          {{ item.tipoConsulta }}
+          @if (item.igSemanas !== undefined) {
+            · {{ item.igSemanas }}s IG
+          }
+          · {{ formatarData(item.analiseConcluidaEm) }}
+        </div>
+        @if (item.indicadoresCriticos.length > 0) {
+          <div class="indicadores">
+            @for (ind of item.indicadoresCriticos; track ind) {
+              <span class="chip-indicador">{{ formatarIndicador(ind) }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="col-acoes">
+        <button mat-raised-button color="primary" (click)="verAnalise(item.idConsulta)">
+          Ver Análise
+        </button>
+        <button
+          mat-icon-button
+          title="Revisar sem encaminhar"
+          [disabled]="revisandoId() === item.idConsulta"
+          (click)="revisarSemEncaminhar(item)"
+        >
+          @if (revisandoId() === item.idConsulta) {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>check</mat-icon>
+          }
+        </button>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+</ng-template>

@@ -7,6 +7,7 @@ from app.core.exception_handlers import validation_exception_handler
 from app.db.session import Base, engine
 from app.models import audit_acessos, consulta, paciente, user  # noqa: F401
 from app.routers import admin_paciente as admin_paciente_router
+from app.routers import analise as analise_router
 from app.routers import auth
 from app.routers import consulta as consulta_router
 from app.routers import fila as fila_router
@@ -38,6 +39,7 @@ app.include_router(
 )
 app.include_router(consulta_router.router, prefix="/consulta", tags=["Consulta"])
 app.include_router(fila_router.router, prefix="/fila", tags=["Fila"])
+app.include_router(analise_router.router, prefix="/analises", tags=["Analises"])
 app.include_router(speech_router.router, prefix="/speech", tags=["Speech"])
 
 

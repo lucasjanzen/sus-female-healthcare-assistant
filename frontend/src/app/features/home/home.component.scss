@@ -67,11 +67,33 @@
   }
 }
 
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .card-title {
   font-size: 1.1rem;
   font-weight: 500;
   margin: 0;
   color: #333;
+}
+
+.badge-card {
+  background: #e0e0e0;
+  color: #333;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &--critico {
+    background: #fee2e2;
+    color: #991b1b;
+  }
 }
 
 .card-description {
