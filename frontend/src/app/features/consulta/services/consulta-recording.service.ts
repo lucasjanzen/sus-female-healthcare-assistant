@@ -43,6 +43,13 @@ export class ConsultaRecordingService {
     this.gravando.set(false);
   }
 
+  limpar(): void {
+    this.parar();
+    this.audioBlob = null;
+    this.audioChunks = [];
+    this.gravacaoConcluida.set(false);
+  }
+
   getAudioBlob(): Blob | null {
     return this.audioBlob;
   }

@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -44,7 +44,6 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly consultaService = inject(ConsultaService);
   private readonly relatoService = inject(RelatoService);
   protected readonly recordingService = inject(ConsultaRecordingService);
@@ -59,10 +58,15 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   readonly dadosConsulta = signal<ConsultaAssumidaOut | null>(null);
   readonly resultado = signal<ResultadoIAOut | null>(null);
   readonly analisando = signal(false);
+  readonly analiseEnviada = signal(false);
   readonly segundosGravacao = signal(0);
   readonly relatoSalvo = signal(false);
   readonly historicoPeso = signal<HistoricoPesoItem[]>([]);
   readonly mostrarEncerramento = signal(false);
+
+  private pollingTimer?: number;
+  private pollingTentativas = 0;
+  private readonly MAX_POLLING_TENTATIVAS = 60; // 5 min a 5s cada
 
   private readonly idConsulta = computed(() => this.consultaAtiva()?.idConsulta);
 
@@ -84,9 +88,8 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.cancelarTimerGravacao();
     this.cancelarSaveTimer();
-    if (this.recordingService.gravando()) {
-      this.recordingService.parar();
-    }
+    this.pararPolling();
+    this.recordingService.limpar();
   }
 
   private cancelarTimerGravacao(): void {
@@ -214,15 +217,50 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
     const audioBlob = this.recordingService.getAudioBlob()!;
     this.resultadoService.enviarComAudio(id, audioBlob).subscribe({
       next: () => {
-        this.analisando.set(false);
-        this.notification.sucesso('Análise enviada! O resultado estará disponível na fila.', 5000);
-        this.router.navigate(['/fila']);
+        this.analiseEnviada.set(true);
+        this.iniciarPollingResultado(id);
       },
       error: (err: HttpErrorResponse) => {
         this.notification.erro(extrairMensagemErro(err, 'Erro ao enviar análise com áudio'));
         this.analisando.set(false);
       },
     });
+  }
+
+  private iniciarPollingResultado(id: string): void {
+    this.pollingTentativas = 0;
+    this.pollingTimer = window.setInterval(() => {
+      this.pollingTentativas++;
+      if (this.pollingTentativas > this.MAX_POLLING_TENTATIVAS) {
+        this.pararPolling();
+        this.analisando.set(false);
+        this.analiseEnviada.set(false);
+        this.notification.sucesso('Processamento demorou mais que o esperado. O resultado estará disponível na fila quando pronto.', 6000);
+        return;
+      }
+      this.resultadoService.obterFresh(id).subscribe({
+        next: (res) => {
+          this.pararPolling();
+          this.resultado.set(res);
+          this.analisando.set(false);
+          this.analiseEnviada.set(false);
+          const textoClinico = res.textoClinico ?? res.resumoIa;
+          if (textoClinico) this.form.controls.textoClinico.setValue(textoClinico);
+          this.resultadoService.confirmar(id).subscribe();
+          this.bloquearEdicao();
+          this.mostrarEncerramento.set(true);
+          this.notification.sucesso('Análise concluída!', 4000);
+        },
+        error: () => {}, // 404 = ainda processando, aguardar próximo tick
+      });
+    }, 5000);
+  }
+
+  private pararPolling(): void {
+    if (this.pollingTimer) {
+      window.clearInterval(this.pollingTimer);
+      this.pollingTimer = undefined;
+    }
   }
 
   private analisarSemAudio(): void {

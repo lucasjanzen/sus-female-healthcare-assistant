@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from 'environments/environment';
-import { ConsultaAssumidaOut, ConsultaFilaItem, ConsultaParaFinalizarItem } from '../models/fila.model';
+import { ConsultaAssumidaOut, ConsultaEmProcessamentoItem, ConsultaFilaItem, ConsultaParaFinalizarItem } from '../models/fila.model';
 
 @Injectable({ providedIn: 'root' })
 export class FilaService {
@@ -20,6 +20,10 @@ export class FilaService {
 
   listarParaFinalizar(): Observable<ConsultaParaFinalizarItem[]> {
     return this.http.get<ConsultaParaFinalizarItem[]>(`${this.base}/consultas/para-finalizar`);
+  }
+
+  listarEmProcessamento(): Observable<ConsultaEmProcessamentoItem[]> {
+    return this.http.get<ConsultaEmProcessamentoItem[]>(`${this.base}/consultas/em-processamento`);
   }
 
   assumir(idConsulta: string): Observable<ConsultaAssumidaOut> {

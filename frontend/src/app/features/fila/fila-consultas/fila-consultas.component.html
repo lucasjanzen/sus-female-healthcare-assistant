@@ -6,6 +6,38 @@
     </div>
   }
 
+  <!-- Seção: Em Processamento -->
+  @if (isMedico() && emProcessamento().length > 0) {
+    <div class="section-processamento">
+      <h2 class="section-title">
+        <mat-icon>hourglass_top</mat-icon>
+        Em Processamento
+      </h2>
+      @for (consulta of emProcessamento(); track consulta.idConsulta) {
+        <mat-card class="item item--processamento">
+          <mat-card-content>
+            <div class="row">
+              <div>
+                <div class="patient">
+                  {{ consulta.pacienteNome }}
+                  <span class="badge badge--processando">Análise em andamento</span>
+                </div>
+                <div class="muted">Nascimento: {{ consulta.pacienteDataNascimento | formatarData }}</div>
+              </div>
+              <div class="row">
+                <mat-spinner diameter="18" />
+                <mat-chip>{{ consulta.tipoConsulta }}</mat-chip>
+                @if (consulta.igSemanas !== undefined) {
+                  <mat-chip>{{ consulta.igSemanas }}s {{ consulta.igDias }}d</mat-chip>
+                }
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+
   <!-- Seção: Para Finalizar -->
   @if (isMedico() && paraFinalizar().length > 0) {
     <div class="section-finalizar">

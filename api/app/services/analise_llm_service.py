@@ -195,7 +195,7 @@ def montar_prompt(ctx: dict) -> str:
         partes.append(ctx["relato_texto"])
 
     if ctx["transcricao"]:
-        partes.append("\n## TRANSCRIÇÃO DO ÁUDIO DA CONSULTA")
+        partes.append("\n## TRANSCRIÇÃO DO ÁUDIO DA CONSULTA (diarizado por falante)")
         partes.append(ctx["transcricao"])
 
     sv = ctx.get("sentimento_voz")
@@ -210,7 +210,7 @@ def montar_prompt(ctx: dict) -> str:
                 f"neutro={scores.get('neutro', 0):.0%}"
             )
         partes.append(
-            "Nota: análise baseada exclusivamente nos trechos da paciente (diarização ativa)."
+            "Nota: sentimento calculado exclusivamente nas falas da paciente (linhas 'Paciente:' na transcrição)."
         )
 
     if ctx["historico_consultas"]:

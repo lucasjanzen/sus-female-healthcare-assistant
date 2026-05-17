@@ -23,6 +23,16 @@ export interface ConsultaParaFinalizarItem {
   concluidaEm: string;
 }
 
+export interface ConsultaEmProcessamentoItem {
+  idConsulta: string;
+  pacienteNome: string;
+  pacienteDataNascimento: string;
+  tipoConsulta: TipoConsulta;
+  igSemanas?: number;
+  igDias?: number;
+  enviadaEm: string;
+}
+
 export interface ConsultaAssumidaOut {
   idConsulta: string;
   pacienteId: string;

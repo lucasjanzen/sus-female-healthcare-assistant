@@ -9,7 +9,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { extrairMensagemErro } from '../../../core/utils/http-error.utils';
-import { ConsultaAssumidaOut, ConsultaFilaItem, ConsultaParaFinalizarItem } from '../models/fila.model';
+import { ConsultaAssumidaOut, ConsultaEmProcessamentoItem, ConsultaFilaItem, ConsultaParaFinalizarItem } from '../models/fila.model';
 import { FilaService } from '../services/fila.service';
 import { FormatDataPipe } from '../../../shared/pipes/format-data.pipe';
 
@@ -35,6 +35,7 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
 
   readonly consultas = signal<ConsultaFilaItem[]>([]);
   readonly paraFinalizar = signal<ConsultaParaFinalizarItem[]>([]);
+  readonly emProcessamento = signal<ConsultaEmProcessamentoItem[]>([]);
   readonly emAndamento = signal<ConsultaAssumidaOut | null>(null);
   readonly carregando = signal(false);
   readonly assumindo = signal(false);
@@ -78,6 +79,10 @@ export class FilaConsultasComponent implements OnInit, OnDestroy {
       });
       this.filaService.listarParaFinalizar().subscribe({
         next: (items) => this.paraFinalizar.set(items),
+        error: () => {},
+      });
+      this.filaService.listarEmProcessamento().subscribe({
+        next: (items) => this.emProcessamento.set(items),
         error: () => {},
       });
     }

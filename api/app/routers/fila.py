@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.models.consulta import ConsultaIdentidade, ConsultaResultado, ConsultaTriagem
 from app.models.paciente import Paciente
 from app.models.user import User
-from app.schemas.fila import ConsultaAssumidaOut, ConsultaFilaItem, ConsultaParaFinalizarItem
+from app.schemas.fila import ConsultaAssumidaOut, ConsultaEmProcessamentoItem, ConsultaFilaItem, ConsultaParaFinalizarItem
 from app.schemas.consulta import TriagemResumo
 
 router = APIRouter()
@@ -138,6 +138,40 @@ def listar_para_finalizar(
             concluida_em=resultado.calculado_em,
         )
         for consulta, paciente, resultado in linhas
+    ]
+
+
+@router.get(
+    "/consultas/em-processamento",
+    response_model=list[ConsultaEmProcessamentoItem],
+    response_model_by_alias=True,
+)
+def listar_em_processamento(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("MEDICO")),
+):
+    """Consultas do médico com áudio enviado e análise em andamento (AGUARDANDO_ANALISE)."""
+    linhas = (
+        db.query(ConsultaIdentidade, Paciente)
+        .join(Paciente, Paciente.id == ConsultaIdentidade.paciente_id)
+        .filter(
+            ConsultaIdentidade.medico_id == current_user.id,
+            ConsultaIdentidade.status == "AGUARDANDO_ANALISE",
+        )
+        .order_by(ConsultaIdentidade.assumida_em.desc())
+        .all()
+    )
+    return [
+        ConsultaEmProcessamentoItem(
+            id_consulta=consulta.id_consulta,
+            paciente_nome=paciente.nome,
+            paciente_data_nascimento=paciente.data_nascimento,
+            tipo_consulta=consulta.tipo_consulta,
+            ig_semanas=consulta.ig_semanas,
+            ig_dias=consulta.ig_dias,
+            enviada_em=consulta.assumida_em,
+        )
+        for consulta, paciente in linhas
     ]
 
 

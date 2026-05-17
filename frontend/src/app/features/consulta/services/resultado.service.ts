@@ -26,6 +26,10 @@ export class ResultadoService {
   obter(idConsulta: string): Observable<ResultadoIAOut> {
     const cached = this.cache.get(idConsulta);
     if (cached) return of(cached);
+    return this.obterFresh(idConsulta);
+  }
+
+  obterFresh(idConsulta: string): Observable<ResultadoIAOut> {
     return this.http
       .get<ResultadoIAOut>(`${this.base}/${idConsulta}/resultado`)
       .pipe(tap((r) => { this.cache.set(idConsulta, r); this.evictIfNeeded(); }));

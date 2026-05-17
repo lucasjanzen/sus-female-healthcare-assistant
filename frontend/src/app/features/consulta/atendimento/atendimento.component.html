@@ -67,8 +67,11 @@
             @if (analisando()) {
               <div class="analisando-status">
                 <mat-spinner diameter="24" />
-                @if (recordingService.gravacaoConcluida()) {
-                  <span>Enviando para análise… aguarde.</span>
+                @if (analiseEnviada()) {
+                  <span>Aguardando análise da IA…</span>
+                  <p class="btn-hint">O resultado será exibido aqui quando estiver pronto.</p>
+                } @else if (recordingService.gravacaoConcluida()) {
+                  <span>Enviando áudio para análise…</span>
                 } @else {
                   <span>Analisando parecer…</span>
                 }
@@ -80,7 +83,6 @@
                     <mat-icon>cloud_upload</mat-icon>
                     Enviar para Análise
                   </button>
-                  <p class="btn-hint">O resultado estará disponível em breve na fila.</p>
                 </div>
               } @else {
                 <button

@@ -108,9 +108,11 @@ def transcrever_e_analisar_voz(
     audio_bytes: bytes,
     content_type: str = "audio/webm",
 ) -> dict:
-    """Transcrição via Azure SpeechRecognizer contínuo + sentimento via Language Analytics.
+    """Transcrição com diarização via Azure ConversationTranscriber.
 
-    Retorna dict com 'transcricao' (str) e 'sentimento_voz' (dict | None).
+    Retorna dict com:
+    - 'transcricao': str com falas rotuladas (Médico: / Paciente:)
+    - 'sentimento_voz': dict | None — calculado exclusivamente nas falas da paciente
     """
     if not settings.azure_speech_key or not settings.azure_speech_region:
         logger.warning("Azure Speech nao configurado; transcricao indisponivel.")
@@ -133,18 +135,18 @@ def transcrever_e_analisar_voz(
         speech_config.speech_recognition_language = "pt-BR"
 
         audio_config = speechsdk.audio.AudioConfig(filename=tmp_path)
-        recognizer = speechsdk.SpeechRecognizer(
+        transcriber = speechsdk.transcription.ConversationTranscriber(
             speech_config=speech_config,
             audio_config=audio_config,
         )
 
-        segmentos: list[str] = []
+        segmentos: list[dict] = []
         done = threading.Event()
 
-        def on_recognized(evt):
+        def on_transcribed(evt):
             if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech and evt.result.text:
-                segmentos.append(evt.result.text)
-                logger.warning("Segmento reconhecido: %r", evt.result.text[:80])
+                segmentos.append({"speaker_id": evt.result.speaker_id, "text": evt.result.text})
+                logger.warning("Segmento diarizado — speaker=%r texto=%r", evt.result.speaker_id, evt.result.text[:80])
 
         def on_session_stopped(evt):
             done.set()
@@ -152,31 +154,62 @@ def transcrever_e_analisar_voz(
         def on_canceled(evt):
             details = evt.result.cancellation_details
             if details.reason != speechsdk.CancellationReason.EndOfStream:
-                logger.warning("SpeechRecognizer cancelado — %s: %s", details.reason, details.error_details)
+                logger.warning("ConversationTranscriber cancelado — %s: %s", details.reason, details.error_details)
             done.set()
 
-        recognizer.recognized.connect(on_recognized)
-        recognizer.session_stopped.connect(on_session_stopped)
-        recognizer.canceled.connect(on_canceled)
+        transcriber.transcribed.connect(on_transcribed)
+        transcriber.session_stopped.connect(on_session_stopped)
+        transcriber.canceled.connect(on_canceled)
 
-        recognizer.start_continuous_recognition_async().get()
+        transcriber.start_transcribing_async().get()
         done.wait(timeout=120)
-        recognizer.stop_continuous_recognition_async().get()
+        transcriber.stop_transcribing_async().get()
 
-        texto_completo = " ".join(segmentos)
-        logger.warning("Transcricao concluida — %d segmentos, texto=%r", len(segmentos), texto_completo[:120])
-
-        if not texto_completo:
+        if not segmentos:
             return {"transcricao": "", "sentimento_voz": None}
 
-        sentimento = analisar_sentimento_azure(texto_completo)
+        # First unique speaker = Médico, second = Paciente, others = Participante
+        speaker_map: dict[str, str] = {}
+        for seg in segmentos:
+            sid = seg["speaker_id"]
+            if sid not in speaker_map:
+                if not speaker_map:
+                    speaker_map[sid] = "MEDICO"
+                elif len(speaker_map) == 1:
+                    speaker_map[sid] = "PACIENTE"
+                else:
+                    speaker_map[sid] = "PARTICIPANTE"
+
+        linhas_diarizadas: list[str] = []
+        textos_paciente: list[str] = []
+        for seg in segmentos:
+            role = speaker_map.get(seg["speaker_id"], "PARTICIPANTE")
+            label = {"MEDICO": "Médico", "PACIENTE": "Paciente"}.get(role, "Participante")
+            linhas_diarizadas.append(f"{label}: {seg['text']}")
+            if role == "PACIENTE":
+                textos_paciente.append(seg["text"])
+
+        transcricao_diarizada = "\n".join(linhas_diarizadas)
+        texto_paciente = " ".join(textos_paciente)
+
+        logger.warning(
+            "Transcricao diarizada — %d segmentos, %d falante(s)",
+            len(segmentos),
+            len(speaker_map),
+        )
+
+        if not texto_paciente:
+            return {"transcricao": transcricao_diarizada, "sentimento_voz": None}
+
+        # Sentimento calculado APENAS nas falas da paciente
+        sentimento = analisar_sentimento_azure(texto_paciente)
         if not sentimento:
-            return {"transcricao": texto_completo, "sentimento_voz": None}
+            return {"transcricao": transcricao_diarizada, "sentimento_voz": None}
 
         scores = sentimento["scores"]
         dominante = max(scores, key=scores.get).upper()
         return {
-            "transcricao": texto_completo,
+            "transcricao": transcricao_diarizada,
             "sentimento_voz": {
                 "dominante": dominante,
                 "scores": scores,
