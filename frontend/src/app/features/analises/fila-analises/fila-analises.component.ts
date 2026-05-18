@@ -17,6 +17,7 @@ import { AnaliseFilaItem, FaixaRisco } from '../models/analise.model';
   selector: 'app-fila-analises',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     MatButtonModule,
     MatCardModule,
     MatChipsModule,
