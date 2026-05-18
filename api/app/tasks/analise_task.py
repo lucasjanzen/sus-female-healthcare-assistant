@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime, timezone
 
-from app.db.session import SessionLocal
-from app.models.consulta import ConsultaIdentidade, ConsultaRelato, ConsultaResultado
 import app.services.analise_llm_service as analise_llm_service
+from app.db.session import SessionLocal
+from app.models.consulta import ConsultaIdentidade, ConsultaResultado
+from app.services.azure_service import transcrever_e_analisar_voz
 
 logger = logging.getLogger(__name__)
 
@@ -14,42 +15,52 @@ def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
     result = []
     for ind in indicadores_llm:
         evidencias = ind.get("evidencias", [])
-        result.append({
-            "tipo": ind.get("tipo", ""),
-            "nivel": ind.get("nivel", "BAIXO"),
-            "descricao": "; ".join(evidencias) if evidencias else ind.get("recomendacao", ""),
-            "origem": "LLM",
-        })
+        result.append(
+            {
+                "tipo": ind.get("tipo", ""),
+                "nivel": ind.get("nivel", "BAIXO"),
+                "descricao": "; ".join(evidencias) if evidencias else ind.get("recomendacao", ""),
+                "origem": "LLM",
+            }
+        )
     return result
 
 
-def processar_analise(id_consulta_str: str, tentativa: int = 0) -> None:
+def processar_analise(
+    id_consulta_str: str,
+    audio_bytes: bytes | None = None,
+    audio_content_type: str = "audio/webm",
+    tentativa: int = 0,
+) -> None:
     """Processa a análise de IA para uma consulta encerrada."""
     from uuid import UUID
+
     id_consulta = UUID(id_consulta_str)
     db = SessionLocal()
     try:
-        relato = (
-            db.query(ConsultaRelato)
-            .filter(ConsultaRelato.id_consulta == id_consulta)
-            .first()
-        )
-        relato_texto = relato.relato_texto if relato else ""
+        transcricao_audio = ""
+        sentimento_voz = None
+        if audio_bytes:
+            resultado_audio = transcrever_e_analisar_voz(
+                audio_bytes,
+                audio_content_type,
+            )
+            transcricao_audio = resultado_audio.get("transcricao") or ""
+            sentimento_voz = resultado_audio.get("sentimento_voz")
 
         resultado_llm = analise_llm_service.analisar_com_llm(
-            id_consulta, db, "", None
+            id_consulta, db, transcricao_audio, sentimento_voz
         )
 
         resultado = (
-            db.query(ConsultaResultado)
-            .filter(ConsultaResultado.id_consulta == id_consulta)
-            .first()
+            db.query(ConsultaResultado).filter(ConsultaResultado.id_consulta == id_consulta).first()
         )
         if not resultado:
             resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
             db.add(resultado)
 
-        resultado.sentimento_voz = None
+        resultado.transcricao_audio = transcricao_audio or None
+        resultado.sentimento_voz = sentimento_voz
         resultado.score_geral = int(resultado_llm["score_geral"])
         resultado.faixa_risco = resultado_llm["faixa_risco"]
         resultado.resumo_ia = resultado_llm["resumo_ia"]
@@ -75,7 +86,9 @@ def processar_analise(id_consulta_str: str, tentativa: int = 0) -> None:
         logger.info("Análise concluída para consulta %s", id_consulta)
 
     except Exception as exc:
-        logger.error("Falha na análise para consulta %s (tentativa %d): %s", id_consulta, tentativa, exc)
+        logger.error(
+            "Falha na análise para consulta %s (tentativa %d): %s", id_consulta, tentativa, exc
+        )
         try:
             consulta = (
                 db.query(ConsultaIdentidade)

@@ -37,9 +37,7 @@ def _calcular_ig(dum: date | None) -> tuple[int | None, int | None]:
 
 def _consulta_ou_404(id_consulta: UUID, db: Session) -> ConsultaIdentidade:
     consulta = (
-        db.query(ConsultaIdentidade)
-        .filter(ConsultaIdentidade.id_consulta == id_consulta)
-        .first()
+        db.query(ConsultaIdentidade).filter(ConsultaIdentidade.id_consulta == id_consulta).first()
     )
     if not consulta:
         raise HTTPException(status_code=404, detail="Consulta não encontrada")
@@ -123,12 +121,14 @@ def _build_resultado_out(resultado: ConsultaResultado) -> ResultadoIAOut:
         indicadores=resultado.indicadores,
         resumo_ia=resultado.resumo_ia or "",
         calculado_em=resultado.calculado_em,
+        transcricao_audio=resultado.transcricao_audio,
         sentimento_voz=sentimento_voz_out,
         sumario_estruturado=sumario_out,
         texto_clinico=resultado.texto_clinico,
         fontes_utilizadas=(
             FontesUtilizadasOut(**resultado.fontes_utilizadas)
-            if resultado.fontes_utilizadas else None
+            if resultado.fontes_utilizadas
+            else None
         ),
         tokens_utilizados=resultado.tokens_utilizados,
         prompt_enviado=resultado.prompt_enviado,

@@ -112,6 +112,7 @@ CREATE TABLE consulta_resultado (
         -- VERDE, AMARELO, LARANJA, VERMELHO
     indicadores         JSONB       NOT NULL,
     resumo_ia           TEXT,
+    transcricao_audio   TEXT,
     sentimento_voz      JSONB,
     calculado_em        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     sumario_estruturado JSONB,

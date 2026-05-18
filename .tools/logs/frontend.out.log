@@ -1,0 +1,134 @@
+
+> sus-female-healthcare-assistant@0.0.1 start
+> ng serve --host 127.0.0.1 --port 4200
+
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m                   [2m | [22m[36m111.53 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                     [2m | [22m  [36m6.28 kB[39m[2m | [22m
+[32mchunk-HMSIBS32.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m2.93 kB[39m[2m | [22m
+[32mchunk-ZGBWINWN.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.45 kB[39m[2m | [22m
+[32mchunk-RKG7IKWK.js[39m  [2m | [22m[2m-[22m                        [2m | [22m[36m631 bytes[39m[2m | [22m
+[32mchunk-YKMVGWNG.js[39m  [2m | [22m[2m-[22m                        [2m | [22m[36m183 bytes[39m[2m | [22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m                [2m | [22m [36m95 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m            [2m | [22m[1m123.10 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m
+[32mchunk-QT5ERUA7.js[39m  [2m | [22m[2mdetalhe-analise-component[22m[2m | [22m [36m86.33 kB[39m[2m | [22m
+[32mchunk-7QKT57YF.js[39m  [2m | [22m[2matendimento-component[22m    [2m | [22m [36m58.11 kB[39m[2m | [22m
+[32mchunk-GYQ3W5UZ.js[39m  [2m | [22m[2mpaciente-form-component[22m  [2m | [22m [36m38.63 kB[39m[2m | [22m
+[32mchunk-XA767LYT.js[39m  [2m | [22m[2mfila-analises-component[22m  [2m | [22m [36m35.94 kB[39m[2m | [22m
+[32mchunk-M6LNL3ZK.js[39m  [2m | [22m[2mtriagem-component[22m        [2m | [22m [36m35.88 kB[39m[2m | [22m
+[32mchunk-3BLUEH3A.js[39m  [2m | [22m[2mpacientes-lista-component[22m[2m | [22m [36m24.11 kB[39m[2m | [22m
+[32mchunk-OSOHOWDY.js[39m  [2m | [22m[2mfila-consultas-component[22m [2m | [22m [36m20.86 kB[39m[2m | [22m
+[32mchunk-AIXNCLXL.js[39m  [2m | [22m[2mlogin-component[22m          [2m | [22m [36m16.11 kB[39m[2m | [22m
+[32mchunk-EJQFF33H.js[39m  [2m | [22m[2mhome-component[22m           [2m | [22m [36m14.63 kB[39m[2m | [22m
+[32mchunk-BJGI6X2W.js[39m  [2m | [22m[2mlayout-component[22m         [2m | [22m [36m10.20 kB[39m[2m | [22m
+[32mchunk-TYS4CD2B.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.91 kB[39m[2m | [22m
+[32mchunk-JL6A3KSW.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.83 kB[39m[2m | [22m
+[32mchunk-JY3KXP72.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.51 kB[39m[2m | [22m
+[32mchunk-IWJPYJJY.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.42 kB[39m[2m | [22m
+[32mchunk-UXQQGNZY.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.37 kB[39m[2m | [22m
+[2m...and 8 more lazy chunks files. Use "--verbose" to show all the files.[22m
+
+Application bundle generation complete. [6.709 seconds] - 2026-05-17T20:50:09.178Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+[2m17:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m                   [2m | [22m[36m111.53 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                     [2m | [22m  [36m6.28 kB[39m[2m | [22m
+[32mchunk-HMSIBS32.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m2.93 kB[39m[2m | [22m
+[32mchunk-ZGBWINWN.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.45 kB[39m[2m | [22m
+[32mchunk-RKG7IKWK.js[39m  [2m | [22m[2m-[22m                        [2m | [22m[36m631 bytes[39m[2m | [22m
+[32mchunk-YKMVGWNG.js[39m  [2m | [22m[2m-[22m                        [2m | [22m[36m183 bytes[39m[2m | [22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m                [2m | [22m [36m95 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m            [2m | [22m[1m123.10 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m
+[32mchunk-QT5ERUA7.js[39m  [2m | [22m[2mdetalhe-analise-component[22m[2m | [22m [36m86.33 kB[39m[2m | [22m
+[32mchunk-7QKT57YF.js[39m  [2m | [22m[2matendimento-component[22m    [2m | [22m [36m58.11 kB[39m[2m | [22m
+[32mchunk-GYQ3W5UZ.js[39m  [2m | [22m[2mpaciente-form-component[22m  [2m | [22m [36m38.63 kB[39m[2m | [22m
+[32mchunk-XA767LYT.js[39m  [2m | [22m[2mfila-analises-component[22m  [2m | [22m [36m35.94 kB[39m[2m | [22m
+[32mchunk-M6LNL3ZK.js[39m  [2m | [22m[2mtriagem-component[22m        [2m | [22m [36m35.88 kB[39m[2m | [22m
+[32mchunk-3BLUEH3A.js[39m  [2m | [22m[2mpacientes-lista-component[22m[2m | [22m [36m24.11 kB[39m[2m | [22m
+[32mchunk-OSOHOWDY.js[39m  [2m | [22m[2mfila-consultas-component[22m [2m | [22m [36m20.86 kB[39m[2m | [22m
+[32mchunk-AIXNCLXL.js[39m  [2m | [22m[2mlogin-component[22m          [2m | [22m [36m16.11 kB[39m[2m | [22m
+[32mchunk-EJQFF33H.js[39m  [2m | [22m[2mhome-component[22m           [2m | [22m [36m14.63 kB[39m[2m | [22m
+[32mchunk-BJGI6X2W.js[39m  [2m | [22m[2mlayout-component[22m         [2m | [22m [36m10.20 kB[39m[2m | [22m
+[32mchunk-TYS4CD2B.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.91 kB[39m[2m | [22m
+[32mchunk-JL6A3KSW.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.83 kB[39m[2m | [22m
+[32mchunk-JY3KXP72.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.51 kB[39m[2m | [22m
+[32mchunk-IWJPYJJY.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.42 kB[39m[2m | [22m
+[32mchunk-UXQQGNZY.js[39m  [2m | [22m[2m-[22m                        [2m | [22m  [36m1.37 kB[39m[2m | [22m
+[2m...and 8 more lazy chunks files. Use "--verbose" to show all the files.[22m
+
+Application bundle generation complete. [0.571 seconds] - 2026-05-18T01:17:35.945Z
+
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m6.28 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-SLBXGSLU.js[39m  [2m | [22m[2matendimento-component[22m[2m | [22m [36m58.41 kB[39m[2m | [22m
+[32mchunk-IMBMRPEM.js[39m  [2m | [22m[2mconsulta-routes[22m      [2m | [22m[36m628 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.456 seconds] - 2026-05-18T01:19:23.178Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m6.28 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-GLF6REST.js[39m  [2m | [22m[2matendimento-component[22m[2m | [22m [36m58.66 kB[39m[2m | [22m
+[32mchunk-WAIBV7FT.js[39m  [2m | [22m[2mconsulta-routes[22m      [2m | [22m[36m628 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.728 seconds] - 2026-05-18T01:19:42.119Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m6.28 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-7VIYMJYG.js[39m  [2m | [22m[2matendimento-component[22m[2m | [22m [36m58.72 kB[39m[2m | [22m
+[32mchunk-URPYX2U3.js[39m  [2m | [22m[2mconsulta-routes[22m      [2m | [22m[36m628 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.634 seconds] - 2026-05-18T01:20:03.440Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m6.28 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-XURCO7MY.js[39m  [2m | [22m[2matendimento-component[22m[2m | [22m [36m58.52 kB[39m[2m | [22m
+[32mchunk-5KHMR3HL.js[39m  [2m | [22m[2mconsulta-routes[22m      [2m | [22m[36m628 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.642 seconds] - 2026-05-18T01:22:34.432Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m6.28 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-WAQU7D3F.js[39m  [2m | [22m[2matendimento-component[22m[2m | [22m [36m58.62 kB[39m[2m | [22m
+[32mchunk-CJU3MZBE.js[39m  [2m | [22m[2mconsulta-routes[22m      [2m | [22m[36m628 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.400 seconds] - 2026-05-18T01:23:57.274Z
+
+Page reload sent to client(s).

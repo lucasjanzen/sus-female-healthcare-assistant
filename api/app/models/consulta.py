@@ -2,7 +2,18 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, Date, DateTime, Integer, JSON, Numeric, SmallInteger, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Integer,
+    Numeric,
+    SmallInteger,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.session import Base
@@ -98,6 +109,7 @@ class ConsultaResultado(Base):
     faixa_risco = Column(String(20), nullable=False)
     indicadores = Column(JSON, nullable=False)
     resumo_ia = Column(Text, nullable=True)
+    transcricao_audio = Column(Text, nullable=True)
     sentimento_voz = Column(JSON, nullable=True)
     calculado_em = Column(
         DateTime(timezone=True),
@@ -124,5 +136,3 @@ class HistoricoPeso(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
-
-

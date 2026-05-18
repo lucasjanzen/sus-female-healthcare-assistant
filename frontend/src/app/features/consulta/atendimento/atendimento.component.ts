@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError } from 'rxjs';
+import { Observable, catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -19,6 +19,7 @@ import { ConsultaService } from '../services/consulta.service';
 import { RelatoService } from '../services/relato.service';
 import { EncerramentoService } from '../services/encerramento.service';
 import { ConsultaRecordingService } from '../services/consulta-recording.service';
+import { RelatoOut } from '../models/consulta.model';
 import { HistoricoService, HistoricoPesoItem } from '../services/historico.service';
 import { ConsultaTriagemComponent } from './componentes/consulta-triagem/consulta-triagem.component';
 import { ConfirmarEncerramentoAtendimentoDialogComponent } from './componentes/confirmar-encerramento-atendimento-dialog.component';
@@ -131,20 +132,23 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   }
 
   salvarRelato(): void {
-    const id = this.idConsulta();
-    const relatoTexto = this.form.controls.relatoTexto.value.trim();
-    if (!id || relatoTexto.length < 20) return;
-    this.relatoService
-      .atualizar(id, { relatoTexto })
-      .pipe(
-        catchError(() => this.relatoService.criar(id, relatoTexto)),
-        takeUntilDestroyed(this.destroyRef),
-      )
+    this.salvarRelatoAtual()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.indicarRelatoSalvo(),
         error: (err: HttpErrorResponse) =>
           this.notification.erro(extrairMensagemErro(err, 'Erro ao salvar relato')),
       });
+  }
+
+  private salvarRelatoAtual(): Observable<void> {
+    const id = this.idConsulta();
+    const relatoTexto = this.form.controls.relatoTexto.value.trim();
+    if (!id || relatoTexto.length < 20) return of(undefined);
+    return this.relatoService.atualizar(id, { relatoTexto }).pipe(
+      catchError(() => this.relatoService.criar(id, relatoTexto)),
+      tap(() => this.indicarRelatoSalvo()),
+      map((_relato: RelatoOut) => undefined),
+    );
   }
 
   private indicarRelatoSalvo(): void {
@@ -180,7 +184,9 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   }
 
   confirmarEncerramento(): void {
-    const ref = this.dialog.open(ConfirmarEncerramentoAtendimentoDialogComponent, { width: '420px' });
+    const ref = this.dialog.open(ConfirmarEncerramentoAtendimentoDialogComponent, {
+      width: '420px',
+    });
     ref.afterClosed().subscribe((confirmado: boolean) => {
       if (confirmado) this.encerrar();
     });
@@ -189,18 +195,22 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
   private encerrar(): void {
     const id = this.idConsulta();
     if (!id) return;
-    this.salvarRelato();
+    const audioBlob = this.recordingService.getAudioBlob() ?? undefined;
     this.encerrando.set(true);
-    this.encerramentoService.encerrar(id).subscribe({
-      next: () => {
-        this.encerrando.set(false);
-        this.encerrado.set(true);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.encerrando.set(false);
-        this.notification.erro(extrairMensagemErro(err, 'Erro ao encerrar a consulta'));
-      },
-    });
+    this.salvarRelatoAtual()
+      .pipe(
+        switchMap(() => this.encerramentoService.encerrar(id, audioBlob)),
+        finalize(() => this.encerrando.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.encerrado.set(true);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.notification.erro(extrairMensagemErro(err, 'Erro ao encerrar a consulta'));
+        },
+      });
   }
 
   irParaInicio(): void {

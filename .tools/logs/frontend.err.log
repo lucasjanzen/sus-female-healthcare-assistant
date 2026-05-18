@@ -1,0 +1,364 @@
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:36:25:
+[37m      36 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:46:25:
+[37m      46 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:56:25:
+[37m      56 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8116: NG8116: A structural directive `ngTemplateOutlet` was used in the template without a corresponding import in the component. Make sure that the directive is included in the `@Component.imports` array of this component. Find more at https://v21.angular.dev/extended-diagnostics/NG8116[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/analises/fila-analises/fila-analises.component.html:66:25:
+[37m      66 │           <ng-container *[32mngTemplateOutlet[37m="cardAnalise; context: {...
+         ╵                          [32m~~~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component FilaAnalisesComponent.
+
+    src/app/features/analises/fila-analises/fila-analises.component.ts:26:15:
+[37m      26 │   templateUrl: [32m'./fila-analises.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

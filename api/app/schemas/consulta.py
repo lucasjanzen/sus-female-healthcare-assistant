@@ -162,6 +162,7 @@ class ResultadoIAOut(BaseModel):
     indicadores: list[IndicadorIA]
     resumo_ia: str
     calculado_em: datetime
+    transcricao_audio: Optional[str] = None
     sentimento_voz: Optional[SentimentoVozOut] = None
     sumario_estruturado: Optional[SumarioEstruturado] = None
     texto_clinico: Optional[str] = None
@@ -169,7 +170,3 @@ class ResultadoIAOut(BaseModel):
     tokens_utilizados: Optional[int] = None
     prompt_enviado: Optional[str] = None
     resposta_bruta_llm: Optional[str] = None
-
-
-
-

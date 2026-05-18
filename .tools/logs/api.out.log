@@ -1,0 +1,4 @@
+INFO:     127.0.0.1:64204 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64205 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64209 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64210 - "POST /consulta/8eaa59cf-56d5-4ca3-86e5-d4c47bb4ace7/encerrar-com-audio HTTP/1.1" 415 Unsupported Media Type

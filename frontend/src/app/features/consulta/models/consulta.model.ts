@@ -1,4 +1,10 @@
-import { FaixaRisco, NivelIndicador, StatusConsulta, TipoConsulta, TipoIndicador } from './consulta.types';
+import {
+  FaixaRisco,
+  NivelIndicador,
+  StatusConsulta,
+  TipoConsulta,
+  TipoIndicador,
+} from './consulta.types';
 
 export interface PacienteConsultaOut {
   id: string;
@@ -72,6 +78,7 @@ export interface ResultadoIAOut {
   resumoIa: string;
   confirmado: boolean;
   calculadoEm: string;
+  transcricaoAudio?: string;
   sentimentoVoz?: SentimentoVozOut;
   sumarioEstruturado?: SumarioEstruturado;
   textoClinico?: string;

@@ -1,0 +1,44 @@
+2026-05-17 17:50:46.816 -03 [10684] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+2026-05-17 17:50:46.818 -03 [10684] LOG:  listening on IPv6 address "::1", port 5432
+2026-05-17 17:50:46.819 -03 [10684] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-05-17 17:50:46.860 -03 [6444] LOG:  database system was shut down at 2026-05-17 17:50:41 -03
+2026-05-17 17:50:46.864 -03 [10684] LOG:  database system is ready to accept connections
+2026-05-17 17:51:42.757 -03 [19156] ERROR:  null value in column "analise_revisada" of relation "consultas_identidade" violates not-null constraint
+2026-05-17 17:51:42.757 -03 [19156] DETAIL:  Failing row contains (58242088-061e-4e84-aef5-4ef69e85fded, e3693535-c84d-4909-bc33-a6ac8a0dfa82, f8a01acb-25bc-4e28-b86d-f5abbad7080d, 00000000-0000-0000-0000-000000000001, SC, PRENATAL, ENCERRADA, 2025-12-28, 2, 6, t, 2026-01-17 09:51:42.753925-03, 9a568ec6-7229-44c6-99ea-55614cd4fdd3, 2026-01-17 09:51:42.753925-03, 2026-01-17 09:51:42.753925-03, 2026-01-17 09:51:42.753925-03, null, null, null, null, null, null, null, null).
+2026-05-17 17:51:42.757 -03 [19156] STATEMENT:  
+	        INSERT INTO consultas_identidade (
+	            id_consulta, paciente_id, profissional_id, medico_id, ubs_id,
+	            estado_id, tipo_consulta, status,
+	            dum, ig_semanas, ig_dias,
+	            triagem_concluida, triagem_concluida_em,
+	            assumida_em, aberta_em, encerrada_em
+	        ) VALUES (
+	            '58242088-061e-4e84-aef5-4ef69e85fded', 'e3693535-c84d-4909-bc33-a6ac8a0dfa82', 'f8a01acb-25bc-4e28-b86d-f5abbad7080d', '9a568ec6-7229-44c6-99ea-55614cd4fdd3', '00000000-0000-0000-0000-000000000001',
+	            'SC', 'PRENATAL', 'ENCERRADA',
+	            '2025-12-28'::date, 2, 6,
+	            true, '2026-01-17T09:51:42.753925'::timestamp,
+	            '2026-01-17T09:51:42.753925'::timestamp, '2026-01-17T09:51:42.753925'::timestamp, '2026-01-17T09:51:42.753925'::timestamp
+	        )
+	    
+2026-05-17 17:55:46.853 -03 [12412] LOG:  checkpoint starting: time
+2026-05-17 17:57:43.420 -03 [12412] LOG:  checkpoint complete: wrote 1060 buffers (6.5%), wrote 3 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=116.423 s, sync=0.085 s, total=116.567 s; sync files=349, longest=0.002 s, average=0.001 s; distance=5225 kB, estimate=5225 kB; lsn=0/1D0B818, redo lsn=0/1D0B788
+2026-05-17 18:49:30.561 -03 [22328] ERROR:  column "perfil" does not exist at character 15
+2026-05-17 18:49:30.561 -03 [22328] HINT:  Perhaps you meant to reference the column "usuarios.email".
+2026-05-17 18:49:30.561 -03 [22328] STATEMENT:  select email, perfil, ativo, length(senha_hash) as hash_len, left(senha_hash, 7) as hash_prefix from usuarios order by email;
+2026-05-17 18:50:46.515 -03 [12412] LOG:  checkpoint starting: time
+2026-05-17 18:50:47.397 -03 [12412] LOG:  checkpoint complete: wrote 8 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.871 s, sync=0.003 s, total=0.883 s; sync files=4, longest=0.001 s, average=0.001 s; distance=49 kB, estimate=4707 kB; lsn=0/1D17CC0, redo lsn=0/1D17C68
+2026-05-17 19:50:46.488 -03 [12412] LOG:  checkpoint starting: time
+2026-05-17 19:50:48.220 -03 [12412] LOG:  checkpoint complete: wrote 16 buffers (0.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.708 s, sync=0.006 s, total=1.733 s; sync files=10, longest=0.002 s, average=0.001 s; distance=26 kB, estimate=4239 kB; lsn=0/1D1E598, redo lsn=0/1D1E540
+2026-05-17 19:59:17.647 -03 [14136] LOG:  could not receive data from client: unrecognized winsock error 10054
+2026-05-17 19:59:17.647 -03 [17256] LOG:  could not receive data from client: unrecognized winsock error 10054
+2026-05-17 19:59:17.652 -03 [10144] LOG:  could not receive data from client: unrecognized winsock error 10054
+2026-05-17 20:00:46.226 -03 [12412] LOG:  checkpoint starting: time
+2026-05-17 20:00:46.448 -03 [12412] LOG:  checkpoint complete: wrote 2 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.211 s, sync=0.002 s, total=0.223 s; sync files=2, longest=0.001 s, average=0.001 s; distance=10 kB, estimate=3816 kB; lsn=0/1D20DC0, redo lsn=0/1D20D68
+2026-05-17 20:12:41.333 -03 [17764] LOG:  could not receive data from client: unrecognized winsock error 10054
+2026-05-17 22:17:04.211 -03 [8196] ERROR:  relation "alembic_version" does not exist at character 15
+2026-05-17 22:17:04.211 -03 [8196] STATEMENT:  select * from alembic_version;
+2026-05-17 22:20:46.672 -03 [12412] LOG:  checkpoint starting: time
+2026-05-17 22:20:47.351 -03 [12412] LOG:  checkpoint complete: wrote 6 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.663 s, sync=0.004 s, total=0.679 s; sync files=5, longest=0.001 s, average=0.001 s; distance=42 kB, estimate=3439 kB; lsn=0/1D2B678, redo lsn=0/1D2B5E8
+2026-05-17 22:23:03.948 -03 [11372] LOG:  could not receive data from client: unrecognized winsock error 10054
+2026-05-17 22:25:46.354 -03 [12412] LOG:  checkpoint starting: time
+2026-05-17 22:25:46.584 -03 [12412] LOG:  checkpoint complete: wrote 2 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.210 s, sync=0.004 s, total=0.231 s; sync files=2, longest=0.002 s, average=0.002 s; distance=11 kB, estimate=3096 kB; lsn=0/1D2E2E8, redo lsn=0/1D2E290

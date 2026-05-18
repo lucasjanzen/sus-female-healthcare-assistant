@@ -5,9 +5,7 @@
         <mat-icon>check_circle</mat-icon>
       </div>
       <h2>Consulta encerrada</h2>
-      <p class="conclusao-texto">
-        A análise será processada em breve e estará disponível na Fila de Análises.
-      </p>
+      <p class="conclusao-texto">A análise será processada em breve e estará disponível na Fila de Análises.</p>
       <div class="conclusao-acoes">
         <button mat-raised-button color="primary" (click)="irParaAnalises()">
           <mat-icon>analytics</mat-icon>
@@ -85,7 +83,7 @@
             mat-raised-button
             color="primary"
             type="button"
-            [disabled]="encerrando()"
+            [disabled]="encerrando() || recordingService.gravando()"
             (click)="confirmarEncerramento()"
           >
             @if (encerrando()) {

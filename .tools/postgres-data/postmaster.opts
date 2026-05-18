@@ -1,0 +1,1 @@
+C:/Users/rodri/scoop/apps/postgresql/current/bin/postgres.exe "-D" ".tools/postgres-data" "-p" "5432"
