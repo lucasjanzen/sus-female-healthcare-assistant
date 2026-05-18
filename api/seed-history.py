@@ -11,9 +11,15 @@ PRÉ-REQUISITOS:
     - .env configurado com DATABASE_URL e SECRET_SALT
 
 O script é idempotente — pode ser rodado múltiplas vezes sem duplicar dados.
+
+Mapeamento dos casos de teste:
+    Ana Silva      → Caso 3: ginecológica SEM problemas (VERDE → VERDE → VERDE)
+    Maria Oliveira → Caso 2: ginecológica COM violência doméstica (AMARELO → LARANJA → VERMELHO)
+    Julia Santos   → Caso 1: pré-natal COM depressão perinatal (VERDE → AMARELO → LARANJA)
 """
 
 import hashlib
+import json
 import os
 import uuid
 from datetime import date, datetime, timedelta
@@ -115,6 +121,7 @@ def inserir_consulta(
     score_geral: int,
     resumo_ia: str,
     encaminhamentos: list[str],
+    indicadores: list[dict],
 ):
     aberta_em = dt_passada(dias_atras)
 
@@ -139,13 +146,15 @@ def inserir_consulta(
             estado_id, tipo_consulta, status,
             dum, ig_semanas, ig_dias,
             triagem_concluida, triagem_concluida_em,
-            assumida_em, aberta_em, encerrada_em
+            assumida_em, aberta_em, encerrada_em,
+            analise_revisada, encaminhado
         ) VALUES (
             :id, :pid, :prof, :med, :ubs,
             :estado, :tipo, 'ENCERRADA',
             :dum, :ig_s, :ig_d,
             true, :aberta,
-            :aberta, :aberta, :aberta
+            :aberta, :aberta, :aberta,
+            true, :enc
         )
     """),
         {
@@ -160,6 +169,7 @@ def inserir_consulta(
             "ig_s": ig_semanas,
             "ig_d": ig_dias,
             "aberta": aberta_em,
+            "enc": len(encaminhamentos) > 0,
         },
     )
 
@@ -221,18 +231,17 @@ def inserir_consulta(
     )
 
     # consulta_resultado
-    import json
-
-    indicadores = _indicadores_por_faixa(faixa_risco)
     conn.execute(
         text("""
         INSERT INTO consulta_resultado (
             id, id_consulta, score_geral, faixa_risco,
             indicadores, resumo_ia,
+            sumario_estruturado, texto_clinico, fontes_utilizadas,
             calculado_em, confirmado, confirmado_em
         ) VALUES (
             :id, :ic, :score, :faixa,
             CAST(:ind AS jsonb), :resumo,
+            CAST(:sumario AS jsonb), :texto, CAST(:fontes AS jsonb),
             :em, true, :em
         )
     """),
@@ -243,6 +252,27 @@ def inserir_consulta(
             "faixa": faixa_risco,
             "ind": json.dumps(indicadores, ensure_ascii=False),
             "resumo": resumo_ia,
+            "sumario": json.dumps(
+                {
+                    "indicadores": indicadores,
+                    "score_geral": score_geral,
+                    "faixa_risco": faixa_risco,
+                    "pontos_atencao": [],
+                    "encaminhamentos_sugeridos": encaminhamentos,
+                    "contexto_historico": "Histórico gerado por seed de testes.",
+                    "modo_fallback": False,
+                },
+                ensure_ascii=False,
+            ),
+            "texto": resumo_ia,
+            "fontes": json.dumps(
+                {
+                    "relato": True,
+                    "transcricao": False,
+                    "sentimento_voz": False,
+                    "historico": False,
+                }
+            ),
             "em": aberta_em,
         },
     )
@@ -274,182 +304,79 @@ def inserir_consulta(
     )
 
 
-def _indicadores_por_faixa(faixa: str) -> list[dict]:
-    base = {
-        "VERDE": [],
-        "AMARELO": [
-            {
-                "tipo": "ANSIEDADE",
-                "nivel": "BAIXO",
-                "evidencias": ["relatou preocupação com o trabalho"],
-                "recomendacao": "Monitorar nas próximas consultas",
-            }
-        ],
-        "LARANJA": [
-            {
-                "tipo": "DEPRESSAO",
-                "nivel": "MODERADO",
-                "evidencias": ["choro frequente", "relato de tristeza persistente"],
-                "recomendacao": "Encaminhamento para acompanhamento psicológico",
-            },
-            {
-                "tipo": "ISOLAMENTO_SOCIAL",
-                "nivel": "MODERADO",
-                "evidencias": ["mencionou estar se afastando de amigos"],
-                "recomendacao": "Avaliar rede de apoio",
-            },
-        ],
-        "VERMELHO": [
-            {
-                "tipo": "DEPRESSAO",
-                "nivel": "ALTO",
-                "evidencias": [
-                    "sem vontade de sair da cama",
-                    "pensamentos negativos frequentes",
-                ],
-                "recomendacao": "Encaminhamento urgente para CAPS",
-            },
-            {
-                "tipo": "VIOLENCIA_DOMESTICA",
-                "nivel": "ALTO",
-                "evidencias": [
-                    "hesitação ao falar do parceiro",
-                    "relatou medo em casa",
-                ],
-                "recomendacao": "Acionar protocolo de violência doméstica",
-            },
-        ],
-    }
-    return base.get(faixa, [])
-
-
 # -------------------------------------------------------
-# DADOS DE TESTE POR PACIENTE
+# CASO 3 — ANA SILVA — Ginecológica SEM problemas
 # -------------------------------------------------------
 
 
 def seed_ana(conn, paciente_id, enfermeiro_id, medico_id):
     """
-    Ana Silva — grávida, pré-natal, histórico de risco crescente.
-    Contexto ideal para testar detecção de depressão perinatal.
+    Ana Silva — consultas ginecológicas de rotina, sem indicadores de risco.
+    Contexto para validar ausência de falsos positivos.
     """
-    print("  Ana Silva (pré-natal, risco crescente):")
-    dum = data_passada(140)  # ~20 semanas atrás
-
-    consultas = [
-        dict(
-            dias_atras=120,
-            peso_kg=62.5,
-            pa_sistolica=110,
-            pa_diastolica=70,
-            dum=dum,
-            tipo_consulta="PRENATAL",
-            relato_texto=(
-                "Paciente refere estar bem de modo geral. Pequenas náuseas "
-                "no primeiro trimestre já cederam. Dormindo bem. Marido presente."
-            ),
-            faixa_risco="VERDE",
-            score_geral=10,
-            resumo_ia="Paciente sem indicadores de risco nesta consulta.",
-            encaminhamentos=[],
-        ),
-        dict(
-            dias_atras=90,
-            peso_kg=64.0,
-            pa_sistolica=115,
-            pa_diastolica=72,
-            dum=dum,
-            tipo_consulta="PRENATAL",
-            relato_texto=(
-                "Paciente relata cansaço intenso e dificuldade para dormir. "
-                "Mencionou preocupação com as finanças da família após redução "
-                "de renda do marido. Chorou durante a consulta."
-            ),
-            faixa_risco="AMARELO",
-            score_geral=35,
-            resumo_ia=(
-                "Paciente apresenta sinais iniciais de sobrecarga emocional "
-                "associados a estressor socioeconômico. Recomenda-se atenção "
-                "nas próximas consultas."
-            ),
-            encaminhamentos=["ASSISTENCIA_SOCIAL"],
-        ),
-        dict(
-            dias_atras=60,
-            peso_kg=65.2,
-            pa_sistolica=118,
-            pa_diastolica=75,
-            dum=dum,
-            tipo_consulta="PRENATAL",
-            relato_texto=(
-                "Paciente verbaliza sentir-se sozinha. Marido passou a trabalhar "
-                "fora e está ausente durante a semana. Relata choro sem motivo "
-                "aparente quase todos os dias. Diz não sentir vontade de sair "
-                "de casa nem de falar com amigas."
-            ),
-            faixa_risco="LARANJA",
-            score_geral=58,
-            resumo_ia=(
-                "Paciente apresenta indicadores moderados de depressão perinatal "
-                "e isolamento social. Ausência de rede de apoio imediata é fator "
-                "de risco relevante. Recomenda-se encaminhamento para "
-                "acompanhamento psicológico e avaliação do suporte social."
-            ),
-            encaminhamentos=["PSICOLOGIA", "ASSISTENCIA_SOCIAL"],
-        ),
-    ]
-
-    for c in consultas:
-        inserir_consulta(conn, paciente_id, enfermeiro_id, medico_id, **c)
-
-
-def seed_maria(conn, paciente_id, enfermeiro_id, medico_id):
-    """
-    Maria Oliveira — consultas ginecológicas, histórico de ansiedade.
-    Contexto para testar detecção de ansiedade sem contexto gestacional.
-    """
-    print("  Maria Oliveira (ginecológica, ansiedade):")
+    print("  Ana Silva (ginecológica, sem problemas):")
 
     consultas = [
         dict(
             dias_atras=180,
-            peso_kg=68.0,
-            pa_sistolica=120,
-            pa_diastolica=78,
+            peso_kg=62.0,
+            pa_sistolica=112,
+            pa_diastolica=72,
             dum=None,
             tipo_consulta="GINECOLOGICA",
             relato_texto=(
-                "Paciente sem queixas específicas. Veio para consulta de rotina. "
-                "Relata estar bem no trabalho e na vida pessoal."
+                "Paciente veio para consulta de rotina anual. Sem queixas. "
+                "Refere estar bem no trabalho e na vida pessoal. "
+                "Relacionamento estável. Dorme bem, alimentação adequada."
             ),
             faixa_risco="VERDE",
-            score_geral=8,
-            resumo_ia="Consulta de rotina sem indicadores de risco.",
+            score_geral=5,
+            resumo_ia="Paciente sem indicadores de risco nesta consulta. Consulta de rotina dentro da normalidade.",
             encaminhamentos=[],
+            indicadores=[],
         ),
         dict(
             dias_atras=90,
-            peso_kg=69.5,
-            pa_sistolica=128,
-            pa_diastolica=82,
+            peso_kg=62.5,
+            pa_sistolica=110,
+            pa_diastolica=70,
             dum=None,
             tipo_consulta="GINECOLOGICA",
             relato_texto=(
-                "Paciente relata dificuldade para dormir há 3 semanas. "
-                "Nervosa com situação no emprego — possível demissão. "
-                "Coração acelerado com frequência, sensação de sufocamento. "
-                "Não consegue parar de pensar nos problemas."
+                "Retorno de rotina. Paciente relata vida estável. "
+                "Pratica caminhada três vezes por semana. "
+                "Sem queixas ginecológicas. Humor preservado."
             ),
-            faixa_risco="LARANJA",
-            score_geral=62,
-            resumo_ia=(
-                "Paciente apresenta sintomas compatíveis com ansiedade de "
-                "intensidade moderada a elevada, associados a estressor "
-                "ocupacional. Pressão arterial levemente elevada pode estar "
-                "relacionada ao quadro ansioso. Recomenda-se avaliação "
-                "psicológica e acompanhamento da PA."
+            faixa_risco="VERDE",
+            score_geral=8,
+            resumo_ia="Paciente em bom estado geral. Nenhum indicador psicossocial identificado.",
+            encaminhamentos=[],
+            indicadores=[],
+        ),
+        dict(
+            dias_atras=30,
+            peso_kg=63.0,
+            pa_sistolica=114,
+            pa_diastolica=74,
+            dum=None,
+            tipo_consulta="GINECOLOGICA",
+            relato_texto=(
+                "Consulta de acompanhamento. Paciente relata leve cansaço "
+                "por excesso de trabalho nos últimos dias, porém sem impacto "
+                "significativo no bem-estar. Sem alterações no humor. Dorme bem."
             ),
-            encaminhamentos=["PSICOLOGIA"],
+            faixa_risco="VERDE",
+            score_geral=12,
+            resumo_ia="Paciente apresenta cansaço pontual relacionado ao trabalho, sem indicadores de risco psicossocial.",
+            encaminhamentos=[],
+            indicadores=[
+                {
+                    "tipo": "OUTRO",
+                    "nivel": "BAIXO",
+                    "evidencias": ["cansaço pontual por excesso de trabalho"],
+                    "recomendacao": "Monitorar nas próximas consultas",
+                },
+            ],
         ),
     ]
 
@@ -457,79 +384,265 @@ def seed_maria(conn, paciente_id, enfermeiro_id, medico_id):
         inserir_consulta(conn, paciente_id, enfermeiro_id, medico_id, **c)
 
 
-def seed_julia(conn, paciente_id, enfermeiro_id, medico_id):
+# -------------------------------------------------------
+# CASO 2 — MARIA OLIVEIRA — Ginecológica COM violência doméstica
+# -------------------------------------------------------
+
+
+def seed_maria(conn, paciente_id, enfermeiro_id, medico_id):
     """
-    Julia Santos — pré-natal, histórico de risco crítico.
-    Contexto para testar detecção de violência doméstica + depressão.
+    Maria Oliveira — consultas ginecológicas com sinais progressivos
+    de violência doméstica. Contexto para testar detecção de VD.
     """
-    print("  Julia Santos (pré-natal, risco crítico):")
-    dum = data_passada(200)  # ~28 semanas atrás
+    print("  Maria Oliveira (ginecológica, violência doméstica progressiva):")
 
     consultas = [
         dict(
-            dias_atras=150,
-            peso_kg=55.0,
-            pa_sistolica=105,
-            pa_diastolica=65,
-            dum=dum,
-            tipo_consulta="PRENATAL",
+            dias_atras=210,
+            peso_kg=67.0,
+            pa_sistolica=118,
+            pa_diastolica=76,
+            dum=None,
+            tipo_consulta="GINECOLOGICA",
             relato_texto=(
-                "Primeira consulta de pré-natal. Paciente jovem, gestação não "
-                "planejada. Relata apoio do companheiro. Sem queixas relevantes."
+                "Primeira consulta na UBS. Paciente chegou quieta. "
+                "Sem queixas específicas. Quando perguntada sobre a vida em casa, "
+                "disse que estava tudo bem mas desviou o olhar. "
+                "Não quis desenvolver o assunto."
             ),
-            faixa_risco="VERDE",
-            score_geral=12,
-            resumo_ia="Primeira consulta sem indicadores de risco.",
+            faixa_risco="AMARELO",
+            score_geral=28,
+            resumo_ia=(
+                "Paciente demonstrou comportamento evasivo ao ser questionada "
+                "sobre a vida doméstica. Recomenda-se atenção nas próximas consultas."
+            ),
             encaminhamentos=[],
+            indicadores=[
+                {
+                    "tipo": "VIOLENCIA_DOMESTICA",
+                    "nivel": "BAIXO",
+                    "evidencias": [
+                        "comportamento evasivo ao falar sobre a vida em casa"
+                    ],
+                    "recomendacao": "Monitorar nas próximas consultas",
+                },
+            ],
         ),
         dict(
-            dias_atras=90,
-            peso_kg=54.2,
+            dias_atras=120,
+            peso_kg=65.5,
+            pa_sistolica=122,
+            pa_diastolica=80,
+            dum=None,
+            tipo_consulta="GINECOLOGICA",
+            relato_texto=(
+                "Paciente retornou com hematoma no braço, atribuiu a uma queda. "
+                "Apresentou-se nervosa durante toda a consulta. "
+                "Ao ser perguntada sobre o companheiro, disse que ele "
+                "'às vezes perde a paciência'. Peso abaixo do esperado."
+            ),
+            faixa_risco="LARANJA",
+            score_geral=62,
+            resumo_ia=(
+                "Paciente apresenta sinais sugestivos de violência doméstica. "
+                "Hematoma com justificativa inconsistente e referência ao "
+                "comportamento agressivo do companheiro são alertas importantes. "
+                "Encaminhamento para serviço social recomendado."
+            ),
+            encaminhamentos=["SERVICO_SOCIAL", "CVR"],
+            indicadores=[
+                {
+                    "tipo": "VIOLENCIA_DOMESTICA",
+                    "nivel": "MODERADO",
+                    "evidencias": [
+                        "hematoma com justificativa inconsistente",
+                        "referência ao companheiro perdendo a paciência",
+                    ],
+                    "recomendacao": "Encaminhamento para serviço social e CVR",
+                },
+                {
+                    "tipo": "ISOLAMENTO_SOCIAL",
+                    "nivel": "BAIXO",
+                    "evidencias": [
+                        "paciente evitou contato visual",
+                        "respostas curtas e evasivas",
+                    ],
+                    "recomendacao": "Avaliar rede de apoio na próxima consulta",
+                },
+            ],
+        ),
+        dict(
+            dias_atras=45,
+            peso_kg=64.0,
+            pa_sistolica=128,
+            pa_diastolica=84,
+            dum=None,
+            tipo_consulta="GINECOLOGICA",
+            relato_texto=(
+                "Paciente chegou com óculos escuros. Ao retirar, apresentou "
+                "equimose periorbital. Disse que bateu o rosto na porta. "
+                "Ficou em silêncio por longos períodos. Quando perguntada "
+                "diretamente se estava segura em casa, respondeu "
+                "'preciso ir embora logo' sem dar explicação."
+            ),
+            faixa_risco="VERMELHO",
+            score_geral=88,
+            resumo_ia=(
+                "Paciente apresenta indicadores críticos de violência doméstica. "
+                "Equimose periorbital com justificativa implausível, comportamento "
+                "de fuga e recusa em responder sobre segurança em casa configuram "
+                "situação de alto risco. Protocolo de violência doméstica deve "
+                "ser acionado imediatamente."
+            ),
+            encaminhamentos=["CVR", "DELEGACIA_MULHER", "ASSISTENCIA_SOCIAL"],
+            indicadores=[
+                {
+                    "tipo": "VIOLENCIA_DOMESTICA",
+                    "nivel": "ALTO",
+                    "evidencias": [
+                        "equimose periorbital com justificativa implausível",
+                        "comportamento de fuga durante a consulta",
+                        "recusa em responder sobre segurança em casa",
+                    ],
+                    "recomendacao": "Acionar protocolo de violência doméstica imediatamente",
+                },
+                {
+                    "tipo": "DEPRESSAO",
+                    "nivel": "MODERADO",
+                    "evidencias": [
+                        "longos períodos de silêncio",
+                        "ausência de expressão emocional",
+                    ],
+                    "recomendacao": "Acompanhamento psicológico após garantir segurança",
+                },
+            ],
+        ),
+    ]
+
+    for c in consultas:
+        inserir_consulta(conn, paciente_id, enfermeiro_id, medico_id, **c)
+
+
+# -------------------------------------------------------
+# CASO 1 — JULIA SANTOS — Pré-natal COM depressão perinatal
+# -------------------------------------------------------
+
+
+def seed_julia(conn, paciente_id, enfermeiro_id, medico_id):
+    """
+    Julia Santos — pré-natal com sinais progressivos de depressão perinatal
+    e isolamento social. Contexto para testar detecção de depressão gestacional.
+    """
+    print("  Julia Santos (pré-natal, depressão perinatal progressiva):")
+    dum = data_passada(168)  # ~24 semanas atrás
+
+    consultas = [
+        dict(
+            dias_atras=120,
+            peso_kg=58.0,
             pa_sistolica=108,
             pa_diastolica=68,
             dum=dum,
             tipo_consulta="PRENATAL",
             relato_texto=(
-                "Paciente demonstrou hesitação ao responder sobre a relação com "
-                "o companheiro. Relatou que ele 'às vezes perde a paciência' mas "
-                "não quis detalhar. Apresentou-se cabisbaixa durante toda a "
-                "consulta. Peso abaixo do esperado para a IG."
+                "Primeira consulta pré-natal. Paciente jovem, gestação planejada. "
+                "Está animada com a gravidez. Refere apoio do marido e da família. "
+                "Sem queixas."
             ),
-            faixa_risco="LARANJA",
-            score_geral=65,
-            resumo_ia=(
-                "Paciente apresenta comportamento sugestivo de situação de "
-                "violência doméstica. Hesitação ao falar do companheiro e "
-                "resposta evasiva são sinais de alerta. Perda de peso para a IG "
-                "também é preocupante. Recomenda-se abordagem individualizada "
-                "e encaminhamento para serviço social."
-            ),
-            encaminhamentos=["SERVICO_SOCIAL", "CVR"],
+            faixa_risco="VERDE",
+            score_geral=8,
+            resumo_ia="Primeira consulta sem indicadores de risco. Gestante em bom estado emocional com suporte familiar adequado.",
+            encaminhamentos=[],
+            indicadores=[],
         ),
         dict(
-            dias_atras=30,
-            peso_kg=53.8,
+            dias_atras=70,
+            peso_kg=59.5,
             pa_sistolica=112,
             pa_diastolica=70,
             dum=dum,
             tipo_consulta="PRENATAL",
             relato_texto=(
-                "Paciente chegou à consulta com hematoma visível no braço. "
-                "Ao ser questionada, atribuiu a uma queda mas mostrou-se "
-                "visivelmente nervosa. Relatou não dormir bem, medo constante "
-                "e que 'as coisas em casa estão difíceis'. Não quis elaborar "
-                "mais. Peso continua abaixo do esperado. Choro durante a consulta."
+                "Paciente refere dificuldade para dormir desde a última semana. "
+                "Acorda de madrugada com preocupações sobre o parto e se vai "
+                "ser uma boa mãe. Chora com facilidade. "
+                "Marido trabalha muito e está pouco presente."
             ),
-            faixa_risco="VERMELHO",
-            score_geral=85,
+            faixa_risco="AMARELO",
+            score_geral=38,
             resumo_ia=(
-                "Paciente apresenta indicadores críticos de violência doméstica "
-                "e depressão. Hematoma com justificativa inconsistente, medo "
-                "verbalizado e perda de peso progressiva configuram situação de "
-                "alto risco. Protocolo de violência doméstica deve ser acionado "
-                "imediatamente. Encaminhamento urgente para CVR e CAPS."
+                "Paciente apresenta sinais iniciais de ansiedade gestacional "
+                "e insegurança em relação à maternidade. Ausência crescente "
+                "do suporte do companheiro é fator de atenção."
             ),
-            encaminhamentos=["CVR", "CAPS", "DELEGACIA_MULHER"],
+            encaminhamentos=[],
+            indicadores=[
+                {
+                    "tipo": "ANSIEDADE",
+                    "nivel": "BAIXO",
+                    "evidencias": [
+                        "dificuldade para dormir",
+                        "preocupações frequentes sobre o parto",
+                    ],
+                    "recomendacao": "Monitorar nas próximas consultas",
+                },
+                {
+                    "tipo": "DEPRESSAO",
+                    "nivel": "BAIXO",
+                    "evidencias": [
+                        "choro com facilidade",
+                        "insegurança sobre a maternidade",
+                    ],
+                    "recomendacao": "Atenção ao suporte emocional",
+                },
+            ],
+        ),
+        dict(
+            dias_atras=30,
+            peso_kg=59.0,
+            pa_sistolica=116,
+            pa_diastolica=72,
+            dum=dum,
+            tipo_consulta="PRENATAL",
+            relato_texto=(
+                "Paciente chegou cabisbaixa. Refere que passou as últimas semanas "
+                "praticamente sem sair de casa. Parou de responder mensagens "
+                "de amigas. Marido viajou a trabalho por 15 dias e ela ficou "
+                "sozinha. Chora todo dia, sem motivo claro. Disse que sente "
+                "que não vai dar conta de cuidar do bebê. "
+                "Perda de peso apesar de estar em período de ganho esperado."
+            ),
+            faixa_risco="LARANJA",
+            score_geral=65,
+            resumo_ia=(
+                "Paciente apresenta indicadores moderados de depressão perinatal "
+                "e isolamento social. Perda de peso atípica para o período "
+                "gestacional reforça o quadro. Encaminhamento para acompanhamento "
+                "psicológico recomendado."
+            ),
+            encaminhamentos=["PSICOLOGIA", "ASSISTENCIA_SOCIAL"],
+            indicadores=[
+                {
+                    "tipo": "DEPRESSAO",
+                    "nivel": "MODERADO",
+                    "evidencias": [
+                        "choro diário sem motivo aparente",
+                        "isolamento em casa por semanas",
+                        "sentimento de incapacidade para cuidar do bebê",
+                    ],
+                    "recomendacao": "Encaminhamento para acompanhamento psicológico",
+                },
+                {
+                    "tipo": "ISOLAMENTO_SOCIAL",
+                    "nivel": "MODERADO",
+                    "evidencias": [
+                        "parou de responder amigas",
+                        "ficou sozinha por 15 dias",
+                        "não sai de casa",
+                    ],
+                    "recomendacao": "Avaliar e fortalecer rede de apoio",
+                },
+            ],
         ),
     ]
 
@@ -569,11 +682,17 @@ def main():
 
     print("\n[OK] Historico gerado com sucesso.")
     print("\nPacientes disponiveis para teste:")
-    print("  Ana Silva      - pre-natal, risco crescente (VERDE > AMARELO > LARANJA)")
-    print("  Maria Oliveira - ginecologica, ansiedade    (VERDE > LARANJA)")
-    print("  Julia Santos   - pre-natal, risco critico  (VERDE > LARANJA > VERMELHO)")
     print(
-        "\nA próxima consulta de cada paciente terá histórico rico para a LLM processar.\n"
+        "  Ana Silva      - caso 3: ginecologica sem problemas   (VERDE  > VERDE  > VERDE)"
+    )
+    print(
+        "  Maria Oliveira - caso 2: violencia domestica          (AMARELO > LARANJA > VERMELHO)"
+    )
+    print(
+        "  Julia Santos   - caso 1: pre-natal depressao perinatal (VERDE  > AMARELO > LARANJA)"
+    )
+    print(
+        "\nA proxima consulta de cada paciente tera historico rico para a LLM processar.\n"
     )
 
 

@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.exception_handlers import validation_exception_handler
-from app.db.session import Base, engine
 from app.models import audit_acessos, consulta, paciente, user  # noqa: F401
 from app.routers import admin_paciente as admin_paciente_router
 from app.routers import analise as analise_router
@@ -13,8 +12,6 @@ from app.routers import consulta as consulta_router
 from app.routers import fila as fila_router
 from app.routers import paciente as paciente_router
 from app.routers import speech as speech_router
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="CASF API",
