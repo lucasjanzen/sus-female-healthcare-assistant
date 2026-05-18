@@ -1,47 +1,56 @@
 # CASF — Roteiro de Teste
 # Paciente: Maria Oliveira
-# Tipo: Ginecológica
-# Indicadores esperados: Ansiedade (ALTO) + Isolamento Social (MODERADO)
-# Faixa esperada: LARANJA / VERMELHO
+# Caso: 2 — Ginecológica com violência doméstica
+# Indicadores esperados: Violência Doméstica (ALTO) + Depressão (MODERADO) + Isolamento Social (ALTO)
+# Faixa esperada: VERMELHO
 
 MÉDICO:
-Boa tarde, Maria. Como você está?
+Boa tarde, Maria. Vejo que você está com manga longa hoje. Posso examinar seu braço para aferir a pressão?
 
 PACIENTE:
-Não tô bem não, doutor. Fui mandada embora do trabalho faz duas semanas e desde aí tô um caos.
+Pode.
 
 MÉDICO:
-Me conta o que está sentindo.
+Maria, estou vendo algumas marcas aqui. O que aconteceu?
 
 PACIENTE:
-Não consigo dormir. Fico acordada até de manhã com a cabeça a mil. Fico pensando nas contas, no que vai acontecer, se vou conseguir outro emprego. Não consigo desligar.
+(pausa)
+Eu bato muito nos móveis. Sou desajeitada mesmo.
 
 MÉDICO:
-Além do sono, está sentindo mais alguma coisa?
+Entendo. Essas marcas têm datas diferentes, algumas parecem mais antigas. Você tem se machucado com frequência?
 
 PACIENTE:
-O coração dispara do nada, mesmo quando tô parada. Aí fico com medo de passar mal, aí fico com mais medo ainda, é um ciclo que não para.
+É. Sou descuidada.
 
 MÉDICO:
-Você tem saído de casa, conversado com pessoas?
+Maria, preciso te fazer uma pergunta importante e quero que você saiba que tudo que você me disser fica aqui. Alguém em casa está te machucando?
 
 PACIENTE:
-Parei de sair. Fico com medo de passar mal na rua longe de casa. Já cancelei uns encontros com amigas. Elas ligam mas eu não atendo.
+(pausa longa)
+Não. Meu marido cuida de mim.
 
 MÉDICO:
-Você está se sentindo sozinha com isso tudo?
+Você disse que ele cuida de você. Como é a vida de vocês em casa?
 
 PACIENTE:
-Completamente. Minha família é tudo longe, não tenho ninguém aqui perto pra me ajudar. Tenho que resolver tudo sozinha e não tô conseguindo.
+Normal. Ele gosta que eu fique em casa. É mais seguro assim.
 
 MÉDICO:
-Entendo, Maria. O que você está descrevendo são sintomas de ansiedade intensa. Isso tem tratamento e você não precisa passar por isso sozinha.
+Você tem conseguido sair, ver amigas, família?
 
 PACIENTE:
-Achei que fosse frescura minha, que eu tinha que me controlar.
+Não muito. Ele prefere que eu fique em casa. Eu entendo ele.
 
 MÉDICO:
-Não é frescura. É uma condição real que precisa de cuidado. Vou te encaminhar para a psicóloga do centro, tá?
+E você está dormindo bem, se alimentando?
 
 PACIENTE:
-Tá bom. Espero que ajude porque assim eu não tô conseguindo viver.
+Mais ou menos. Não tenho muita fome. Fico preocupada à toa.
+
+MÉDICO:
+Maria, eu quero que você saiba que existe ajuda disponível e que você pode confiar em mim. Você está segura?
+
+PACIENTE:
+(pausa longa)
+Preciso ir embora logo.

@@ -1,60 +1,43 @@
 # CASF — Roteiro de Teste
 # Paciente: Julia Santos
-# Tipo: Pré-natal
-# Indicadores esperados: Violência Doméstica (ALTO) + Depressão (MODERADO)
+# Caso: 1 — Pré-natal com depressão perinatal
+# Indicadores esperados: Depressão (ALTO) + Isolamento Social (ALTO)
 # Faixa esperada: VERMELHO
 
 MÉDICO:
-Boa tarde, Julia. Como você está?
+Boa tarde, Julia. Sua mãe me disse que você está passando por um momento difícil. Pode me contar como você está se sentindo?
 
 PACIENTE:
-Tô bem.
+Não tô bem. Não consigo fazer nada. Fico deitada o dia todo sem vontade de levantar. Nem comer eu tô conseguindo.
 
 MÉDICO:
-Você parece um pouco quieta hoje. Tá tudo bem em casa?
+Você está dormindo?
 
 PACIENTE:
-Tá sim. É que meu marido tá muito estressado com o trabalho. É difícil pra ele também.
+Não. Fico acordada de madrugada, fico pensando em coisa ruim, que eu não vou conseguir cuidar do bebê, que não vou ser uma boa mãe.
 
 MÉDICO:
-Entendo. Julia, eu notei uma marca no seu pulso. O que aconteceu?
-
-PACIENTE:
-(pausa)
-Fui sem querer. Bati numa porta.
-
-MÉDICO:
-Tá bom. Julia, preciso te perguntar uma coisa com cuidado. Você está se sentindo segura em casa?
+Você me disse que tem pensamentos de que seria melhor não estar aqui. Pode me falar mais sobre isso?
 
 PACIENTE:
 (pausa longa)
-Tô sim.
+Às vezes passa pela cabeça que seria mais fácil assim. Mas aí o bebê mexe e eu fico. É por causa dele que eu fico.
 
 MÉDICO:
-Você tem conseguido comer bem, dormir?
+Obrigado por confiar em mim com isso. Você tem apoio em casa além da sua mãe?
 
 PACIENTE:
-Não tenho muito apetite. Fico no quarto bastante quando ele tá em casa. É mais tranquilo assim.
+Meu marido voltou mas a gente não tá bem. Ele não entende o que tô passando. Diz que é frescura, que minha mãe passou por isso e ficou bem.
 
 MÉDICO:
-Você falou que fica no quarto quando ele está em casa. Por quê é mais tranquilo assim?
+Suas amigas, você tem falado com alguém?
+
+PACIENTE:
+Não. Parei de responder as mensagens. Não tenho energia pra fingir que tô bem.
+
+MÉDICO:
+Julia, o que você está sentindo tem nome e tem tratamento. Você não está sendo fraca, você está adoecendo e precisa de ajuda. Vou te encaminhar para um acompanhamento especializado agora, tá bem?
 
 PACIENTE:
 (pausa)
-Ele fica irritado fácil. Às vezes é melhor não aparecer muito.
-
-MÉDICO:
-Julia, eu quero que você saiba que o que você me conta aqui fica entre a gente e que eu estou aqui pra te ajudar. Você está com medo dele?
-
-PACIENTE:
-(pausa longa)
-Às vezes.
-
-MÉDICO:
-Obrigado por confiar em mim. Isso que você está descrevendo é muito sério e você não precisa passar por isso sozinha. Existe ajuda disponível e vou te conectar com ela agora, tá?
-
-PACIENTE:
-Ele não pode saber que eu falei isso.
-
-MÉDICO:
-Ele não vai saber. Isso é sigiloso. Você fez a coisa certa em falar.
+Tá bom. Eu só quero me sentir melhor.
