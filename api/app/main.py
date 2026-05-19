@@ -1,3 +1,5 @@
+import celery_app  # noqa: F401 — inicializa o app Celery com broker Redis antes dos shared_tasks
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
