@@ -30,6 +30,10 @@ export class AnalisesService {
     return this.api.post<void>(`${this.base}/${idConsulta}/revisar`, {});
   }
 
+  reprocessar(idConsulta: string): Observable<void> {
+    return this.api.post<void>(`${this.base}/${idConsulta}/reprocessar`, {});
+  }
+
   encaminhar(idConsulta: string, dados: EncaminharRequest): Observable<void> {
     return this.api.post<void>(`${this.base}/${idConsulta}/encaminhar`, dados);
   }

@@ -19,8 +19,9 @@ class AnaliseFilaItem(BaseModel):
     score_geral: int
     faixa_risco: str
     indicadores_criticos: list[str]
-    analise_concluida_em: datetime
-    tem_erro: bool
+    analise_concluida_em: Optional[datetime] = None
+    tem_erro: bool = False
+    em_processamento: bool = False
 
 
 class AnaliseFilaTotais(BaseModel):

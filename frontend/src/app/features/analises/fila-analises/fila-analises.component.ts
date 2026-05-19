@@ -35,6 +35,7 @@ export class FilaAnalisesComponent implements OnInit, OnDestroy {
   readonly items = signal<AnaliseFilaItem[]>([]);
   readonly carregando = signal(false);
   readonly revisandoId = signal<string | null>(null);
+  readonly reprocessandoId = signal<string | null>(null);
   readonly atualizadoEm = signal<Date | null>(null);
 
   private polling?: number;
@@ -45,14 +46,27 @@ export class FilaAnalisesComponent implements OnInit, OnDestroy {
     () => this.items().filter((i) => i.faixaRisco === 'LARANJA' || i.faixaRisco === 'VERMELHO').length,
   );
 
-  readonly vermelho = computed(() => this.items().filter((i) => i.faixaRisco === 'VERMELHO'));
-  readonly laranja = computed(() => this.items().filter((i) => i.faixaRisco === 'LARANJA'));
-  readonly amarelo = computed(() => this.items().filter((i) => i.faixaRisco === 'AMARELO'));
-  readonly verde = computed(() => this.items().filter((i) => i.faixaRisco === 'VERDE'));
+  readonly emProcessamento = computed(() => this.items().filter((i) => i.emProcessamento));
+  readonly vermelho = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'VERMELHO'));
+  readonly laranja = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'LARANJA'));
+  readonly amarelo = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'AMARELO'));
+  readonly verde = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'VERDE'));
 
   ngOnInit(): void {
     this.carregar();
-    this.polling = window.setInterval(() => this.carregar(), 60000);
+    this.polling = window.setInterval(() => {
+      this.carregar();
+      this._ajustarPolling();
+    }, 15000);
+  }
+
+  private _ajustarPolling(): void {
+    const intervalo = this.emProcessamento().length > 0 ? 10000 : 60000;
+    window.clearInterval(this.polling);
+    this.polling = window.setInterval(() => {
+      this.carregar();
+      this._ajustarPolling();
+    }, intervalo);
   }
 
   ngOnDestroy(): void {
@@ -149,6 +163,20 @@ export class FilaAnalisesComponent implements OnInit, OnDestroy {
       VERMELHO: 'Risco Crítico',
     };
     return mapa[faixa];
+  }
+
+  reprocessar(item: AnaliseFilaItem): void {
+    this.reprocessandoId.set(item.idConsulta);
+    this.analisesService.reprocessar(item.idConsulta).subscribe({
+      next: () => {
+        this.reprocessandoId.set(null);
+        this.notification.sucesso('Análise reenfileirada para processamento.', 3000);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.reprocessandoId.set(null);
+        this.notification.erro(extrairMensagemErro(err, 'Erro ao reprocessar análise'));
+      },
+    });
   }
 
   formatarIndicador(tipo: string): string {

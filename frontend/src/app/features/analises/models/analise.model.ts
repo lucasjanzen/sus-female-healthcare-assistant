@@ -12,8 +12,9 @@ export interface AnaliseFilaItem {
   scoreGeral: number;
   faixaRisco: FaixaRisco;
   indicadoresCriticos: string[];
-  analiseConcluidaEm: string;
+  analiseConcluidaEm?: string;
   temErro: boolean;
+  emProcessamento: boolean;
 }
 
 export interface AnaliseFilaTotais {

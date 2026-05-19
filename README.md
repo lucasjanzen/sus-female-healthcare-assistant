@@ -144,28 +144,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-**3. Crie o arquivo `api/.env`** apontando para `localhost`:
-
-```env
-DATABASE_URL=postgresql://sfha:sfha@localhost:5432/sfha_db
-SECRET_KEY=troque-por-uma-string-aleatoria-longa-e-segura
-SECRET_SALT=troque-por-uma-string-aleatoria-longa-e-segura
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_HOURS=8
-CORS_ORIGIN=http://localhost:4200
-CELERY_BROKER_URL=redis://localhost:6379/0
-
-# Azure AI (obrigatório para análise clínica)
-AZURE_SPEECH_KEY=
-AZURE_SPEECH_REGION=
-AZURE_LANGUAGE_ENDPOINT=
-AZURE_LANGUAGE_KEY=
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_API_KEY=
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
-AZURE_OPENAI_API_VERSION=2024-02-01
-AZURE_STORAGE_CONNECTION_STRING=
-```
+**3. Crie o arquivo `api/.env`** apontando para `localhost` seguindo `api/.env.example`:
 
 > **Por que `api/.env` e não o `.env` raiz?**
 > O `.env` raiz usa `db:5432` e `sfha_redis:6379` (hostnames do Docker Compose). Fora do Docker, use `localhost`.
@@ -180,7 +159,7 @@ task dev
 
 ```bash
 cd api
-celery -A celery_app worker --loglevel=info
+task worker
 ```
 
 > O worker é necessário para processar as análises IA após o encerramento das consultas. Sem ele, as consultas ficam aguardando na fila.
@@ -190,6 +169,8 @@ celery -A celery_app worker --loglevel=info
 | Comando | Descrição |
 |---------|-----------|
 | `task dev` | Sobe o servidor com hot-reload |
+| `task worker` | Sobe o Celery worker (análises IA) |
+| `task migrate` | Aplica migrações do banco (`alembic upgrade head`) |
 | `task seed` | Insere usuários e pacientes de teste |
 | `task seed-history` | Insere histórico de consultas encerradas (requer `task seed`) |
 | `task format` | Formata todos os arquivos Python com ruff |

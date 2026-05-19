@@ -83,10 +83,11 @@
 
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
 
-  &--vermelho { color: #991b1b; }
-  &--laranja  { color: #9a3412; }
-  &--amarelo  { color: #854d0e; }
-  &--verde    { color: #166534; }
+  &--vermelho    { color: #991b1b; }
+  &--laranja     { color: #9a3412; }
+  &--amarelo     { color: #854d0e; }
+  &--verde       { color: #166534; }
+  &--processando { color: #1565c0; gap: 10px; }
 }
 
 .analise-card {
@@ -95,6 +96,11 @@
 
   &.card-destaque {
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+
+  &--processando {
+    border-left-color: #90caf9;
+    opacity: 0.85;
   }
 }
 

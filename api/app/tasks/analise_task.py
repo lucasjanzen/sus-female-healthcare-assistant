@@ -86,11 +86,19 @@ def processar_analise(
         db.commit()
         logger.info("Análise concluída para consulta %s", id_consulta)
 
+        # Blob deletado somente após commit bem-sucedido
+        if blob_name:
+            from app.services.blob_service import delete_audio
+            delete_audio(blob_name)
+            logger.info("Blob %s deletado após análise concluída", blob_name)
+
     except Exception as exc:
         logger.error("Falha na análise para consulta %s: %s", id_consulta, exc)
         try:
+            # Se ainda há tentativas, propaga Retry sem deletar o blob
             self.retry(exc=exc)
         except self.MaxRetriesExceededError:
+            # Todas as tentativas esgotadas: salva erro e só agora deleta o blob
             try:
                 consulta = (
                     db.query(ConsultaIdentidade)
@@ -102,8 +110,9 @@ def processar_analise(
                 db.commit()
             except Exception:
                 pass
+            if blob_name:
+                from app.services.blob_service import delete_audio
+                delete_audio(blob_name)
+                logger.info("Blob %s deletado após esgotar tentativas", blob_name)
     finally:
         db.close()
-        if blob_name:
-            from app.services.blob_service import delete_audio
-            delete_audio(blob_name)

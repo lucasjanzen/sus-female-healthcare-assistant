@@ -19,13 +19,51 @@
     <div class="loading-center">
       <mat-spinner diameter="36" />
     </div>
-  } @else if (total() === 0) {
+  } @else if (total() === 0 && emProcessamento().length === 0) {
     <div class="empty-state">
       <mat-icon class="empty-icon">check_circle</mat-icon>
       <p>Nenhuma análise pendente de revisão.</p>
     </div>
   } @else {
     <div class="fila-lista">
+
+      @if (emProcessamento().length > 0) {
+        <div class="grupo-header grupo-header--processando">
+          <mat-spinner diameter="16" />
+          Em Processamento ({{ emProcessamento().length }})
+        </div>
+        @for (item of emProcessamento(); track item.idConsulta) {
+          <mat-card class="analise-card analise-card--processando">
+            <mat-card-content class="card-content">
+              <div class="col-risco">
+                <mat-spinner diameter="24" />
+              </div>
+              <div class="col-info">
+                <div class="paciente-nome">{{ item.pacienteNome }}</div>
+                <div class="muted">
+                  {{ item.tipoConsulta }}
+                  @if (item.igSemanas !== undefined) { · {{ item.igSemanas }}s IG }
+                  · Analisando...
+                </div>
+              </div>
+              <div class="col-acoes">
+                <button
+                  mat-icon-button
+                  title="Reprocessar análise"
+                  [disabled]="reprocessandoId() === item.idConsulta"
+                  (click)="reprocessar(item)"
+                >
+                  @if (reprocessandoId() === item.idConsulta) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>replay</mat-icon>
+                  }
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      }
 
       @if (vermelho().length > 0) {
         <div class="grupo-header grupo-header--vermelho">

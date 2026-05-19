@@ -109,11 +109,41 @@ def listar_fila(
             )
         )
 
+    # Consultas em processamento (ENCERRADA, sem analise_concluida_em e sem erro)
+    consultas_processando = (
+        db.query(ConsultaIdentidade)
+        .filter(
+            ConsultaIdentidade.status == "ENCERRADA",
+            ConsultaIdentidade.analise_concluida_em.is_(None),
+            ConsultaIdentidade.analise_erro.is_(None),
+            ConsultaIdentidade.analise_revisada.is_(False),
+        )
+        .all()
+    )
+    for consulta in consultas_processando:
+        paciente = db.get(Paciente, consulta.paciente_id)
+        items.append(
+            AnaliseFilaItem(
+                id_consulta=consulta.id_consulta,
+                paciente_nome=paciente.nome if paciente else "—",
+                tipo_consulta=consulta.tipo_consulta,
+                ig_semanas=consulta.ig_semanas,
+                data_consulta=consulta.aberta_em.date(),
+                score_geral=0,
+                faixa_risco="VERDE",
+                indicadores_criticos=[],
+                analise_concluida_em=None,
+                tem_erro=False,
+                em_processamento=True,
+            )
+        )
+
     faixa_ordem = {"VERMELHO": 0, "LARANJA": 1, "AMARELO": 2, "VERDE": 3}
     items.sort(
         key=lambda x: (
+            1 if x.em_processamento else 0,
             faixa_ordem.get(x.faixa_risco, 4),
-            x.analise_concluida_em,
+            x.analise_concluida_em or datetime.now(timezone.utc),
         )
     )
     return items
@@ -232,6 +262,28 @@ def obter_resultado_analise(
         encaminhado=consulta.encaminhado,
         encaminhado_em=consulta.encaminhado_em,
     )
+
+
+@router.post("/{id_consulta}/reprocessar", status_code=200)
+def reprocessar_analise(
+    id_consulta: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("MEDICO", "ENFERMEIRO")),
+):
+    consulta = db.get(ConsultaIdentidade, id_consulta)
+    if not consulta:
+        raise HTTPException(status_code=404, detail="Consulta não encontrada")
+    if consulta.status != "ENCERRADA":
+        raise HTTPException(status_code=409, detail="Consulta não está encerrada")
+    if consulta.analise_concluida_em is not None:
+        raise HTTPException(status_code=409, detail="Análise já concluída")
+
+    consulta.analise_erro = None
+    db.commit()
+
+    from app.tasks.analise_task import processar_analise
+    processar_analise.delay(str(id_consulta), None, "audio/webm")
+    return {"mensagem": "Reprocessamento enfileirado."}
 
 
 @router.post("/{id_consulta}/revisar", status_code=200)
