@@ -149,7 +149,11 @@ export class DetalheAnaliseComponent implements OnInit {
   formatarData(dataStr?: string): string {
     if (!dataStr) return '—';
     return new Date(dataStr).toLocaleDateString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 }

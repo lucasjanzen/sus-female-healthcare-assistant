@@ -90,6 +90,7 @@ class RelatoUpdate(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     relato_texto: Optional[str] = None
+    parecer_medico: Optional[str] = None
 
     @field_validator("relato_texto")
     @classmethod

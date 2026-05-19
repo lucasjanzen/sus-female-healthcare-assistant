@@ -44,4 +44,30 @@ app.include_router(speech_router.router, prefix="/speech", tags=["Speech"])
 
 @app.get("/health", tags=["Status"])
 def health_check():
-    return {"status": "ok"}
+    from sqlalchemy import text
+    from app.db.session import SessionLocal
+    checks: dict[str, str] = {}
+
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        checks["db"] = "ok"
+    except Exception as exc:
+        checks["db"] = f"error: {exc}"
+
+    try:
+        import celery_app as _celery_module
+        ping = _celery_module.celery_app.control.ping(timeout=1)
+        checks["celery"] = "ok" if ping else "no workers"
+    except Exception as exc:
+        checks["celery"] = f"error: {exc}"
+
+    all_ok = all(v == "ok" for v in checks.values())
+    from fastapi import Response
+    status_code = 200 if all_ok else 503
+    return Response(
+        content=__import__("json").dumps({"status": "ok" if all_ok else "degraded", **checks}),
+        media_type="application/json",
+        status_code=status_code,
+    )

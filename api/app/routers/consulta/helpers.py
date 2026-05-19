@@ -46,6 +46,24 @@ def _consulta_ou_404(id_consulta: UUID, db: Session) -> ConsultaIdentidade:
     return consulta
 
 
+def _exigir_em_atendimento_do_medico(
+    id_consulta: UUID, medico_id: UUID, db: Session
+) -> ConsultaIdentidade:
+    """Retorna a consulta somente se estiver EM_ATENDIMENTO e pertencer ao médico."""
+    consulta = _consulta_ou_404(id_consulta, db)
+    if consulta.status != "EM_ATENDIMENTO":
+        raise HTTPException(
+            status_code=409,
+            detail="Consulta não está em atendimento",
+        )
+    if consulta.medico_id != medico_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Consulta pertence a outro médico",
+        )
+    return consulta
+
+
 def _triagem_resumo(triagem: ConsultaTriagem | None) -> TriagemResumo | None:
     if not triagem:
         return None

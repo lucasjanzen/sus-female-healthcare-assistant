@@ -52,6 +52,7 @@ class ConsultaIdentidade(Base):
     encaminhado = Column(Boolean, nullable=False, default=False)
     encaminhado_em = Column(DateTime(timezone=True), nullable=True)
     encaminhado_por = Column(UUID(as_uuid=True), nullable=True)
+    observacao_encaminhamento = Column(Text, nullable=True)
 
 
 class ConsultaTriagem(Base):

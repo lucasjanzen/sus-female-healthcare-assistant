@@ -8,8 +8,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { NotificationService } from '../../../core/services/notification.service';
-import { extrairMensagemErro } from '../../../core/utils/http-error.utils';
+import { NotificationService } from 'app/core/services/notification.service';
+import { extrairMensagemErro } from 'app/core/utils/http-error.utils';
 import { AnalisesService } from '../services/analises.service';
 import { AnaliseFilaItem, FaixaRisco } from '../models/analise.model';
 
@@ -43,14 +43,23 @@ export class FilaAnalisesComponent implements OnInit, OnDestroy {
 
   readonly total = computed(() => this.items().length);
   readonly criticos = computed(
-    () => this.items().filter((i) => i.faixaRisco === 'LARANJA' || i.faixaRisco === 'VERMELHO').length,
+    () =>
+      this.items().filter((i) => i.faixaRisco === 'LARANJA' || i.faixaRisco === 'VERMELHO').length,
   );
 
   readonly emProcessamento = computed(() => this.items().filter((i) => i.emProcessamento));
-  readonly vermelho = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'VERMELHO'));
-  readonly laranja = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'LARANJA'));
-  readonly amarelo = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'AMARELO'));
-  readonly verde = computed(() => this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'VERDE'));
+  readonly vermelho = computed(() =>
+    this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'VERMELHO'),
+  );
+  readonly laranja = computed(() =>
+    this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'LARANJA'),
+  );
+  readonly amarelo = computed(() =>
+    this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'AMARELO'),
+  );
+  readonly verde = computed(() =>
+    this.items().filter((i) => !i.emProcessamento && i.faixaRisco === 'VERDE'),
+  );
 
   ngOnInit(): void {
     this.carregar();
@@ -180,6 +189,9 @@ export class FilaAnalisesComponent implements OnInit, OnDestroy {
   }
 
   formatarIndicador(tipo: string): string {
-    return tipo.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+    return tipo
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 }

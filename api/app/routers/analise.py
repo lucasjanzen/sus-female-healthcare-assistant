@@ -318,6 +318,8 @@ def encaminhar_paciente(
     consulta.encaminhado = True
     consulta.encaminhado_em = agora
     consulta.encaminhado_por = current_user.id
+    if payload.observacao is not None:
+        consulta.observacao_encaminhamento = payload.observacao
 
     if not consulta.analise_revisada:
         consulta.analise_revisada = True

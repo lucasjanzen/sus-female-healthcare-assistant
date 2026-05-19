@@ -13,7 +13,7 @@ from app.models.user import User
 from app.schemas.analise import EncerramentoSimplesOut
 from app.tasks.analise_task import processar_analise
 
-from .helpers import _consulta_ou_404
+from .helpers import _exigir_em_atendimento_do_medico
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -31,9 +31,7 @@ async def encerrar_consulta(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
-    consulta = _consulta_ou_404(id_consulta, db)
-    if consulta.status == "ENCERRADA":
-        raise HTTPException(status_code=409, detail="Consulta já encerrada")
+    consulta = _exigir_em_atendimento_do_medico(id_consulta, current_user.id, db)
 
     consulta.status = "ENCERRADA"
     consulta.encerrada_em = datetime.now(timezone.utc)

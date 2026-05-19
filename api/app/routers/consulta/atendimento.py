@@ -19,6 +19,7 @@ from .helpers import (
     _build_relato_out,
     _build_resultado_out,
     _consulta_ou_404,
+    _exigir_em_atendimento_do_medico,
 )
 
 router = APIRouter()
@@ -37,7 +38,7 @@ def criar_relato(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
-    _consulta_ou_404(id_consulta, db)
+    _exigir_em_atendimento_do_medico(id_consulta, current_user.id, db)
     relato = (
         db.query(ConsultaRelato)
         .filter(ConsultaRelato.id_consulta == id_consulta)
@@ -67,7 +68,7 @@ def atualizar_relato(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
-    _consulta_ou_404(id_consulta, db)
+    _exigir_em_atendimento_do_medico(id_consulta, current_user.id, db)
     relato = (
         db.query(ConsultaRelato)
         .filter(ConsultaRelato.id_consulta == id_consulta)
@@ -78,6 +79,8 @@ def atualizar_relato(
         db.add(relato)
     if payload.relato_texto is not None:
         relato.relato_texto = payload.relato_texto
+    if payload.parecer_medico is not None:
+        relato.parecer_medico = payload.parecer_medico
     relato.atualizado_em = datetime.now(timezone.utc)
     db.commit()
     db.refresh(relato)

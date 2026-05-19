@@ -11,16 +11,10 @@ export class ResultadoService {
   private readonly base = `${environment.apiUrl}/consulta`;
   private readonly cache = new Map<string, ResultadoIAOut>();
 
-  analisar(idConsulta: string): Observable<ResultadoIAOut> {
+  reprocessar(idConsulta: string): Observable<ResultadoIAOut> {
     return this.http
-      .post<ResultadoIAOut>(`${this.base}/${idConsulta}/analisar`, {})
+      .post<ResultadoIAOut>(`${environment.apiUrl}/analises/${idConsulta}/reprocessar`, {})
       .pipe(tap((r) => { this.cache.set(idConsulta, r); this.evictIfNeeded(); }));
-  }
-
-  enviarComAudio(idConsulta: string, audioBlob: Blob): Observable<{ status: string; mensagem: string }> {
-    const f = new FormData();
-    f.append('audio', audioBlob, 'consulta.webm');
-    return this.http.post<{ status: string; mensagem: string }>(`${this.base}/${idConsulta}/analisar`, f);
   }
 
   obter(idConsulta: string): Observable<ResultadoIAOut> {
@@ -35,9 +29,9 @@ export class ResultadoService {
       .pipe(tap((r) => { this.cache.set(idConsulta, r); this.evictIfNeeded(); }));
   }
 
-  confirmar(idConsulta: string): Observable<ResultadoIAOut> {
+  revisar(idConsulta: string): Observable<ResultadoIAOut> {
     return this.http
-      .post<ResultadoIAOut>(`${this.base}/${idConsulta}/resultado/confirmar`, {})
+      .post<ResultadoIAOut>(`${environment.apiUrl}/analises/${idConsulta}/revisar`, {})
       .pipe(tap((r) => { this.cache.set(idConsulta, r); this.evictIfNeeded(); }));
   }
 
