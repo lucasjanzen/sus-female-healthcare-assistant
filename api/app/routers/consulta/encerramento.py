@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
@@ -24,9 +25,10 @@ router = APIRouter()
     status_code=200,
     response_model_by_alias=True,
 )
-def encerrar_consulta(
+async def encerrar_consulta(
     id_consulta: UUID,
     background_tasks: BackgroundTasks,
+    audio: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
 ):
@@ -40,7 +42,13 @@ def encerrar_consulta(
     consulta.analise_erro = None
     db.commit()
 
-    background_tasks.add_task(processar_analise, str(id_consulta))
+    audio_bytes: Optional[bytes] = None
+    content_type = "audio/webm"
+    if audio:
+        audio_bytes = await audio.read()
+        content_type = audio.content_type or "audio/webm"
+
+    background_tasks.add_task(processar_analise, str(id_consulta), audio_bytes, content_type)
 
     return EncerramentoSimplesOut(
         id_consulta=id_consulta,

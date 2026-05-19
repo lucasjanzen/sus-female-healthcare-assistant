@@ -13,7 +13,11 @@ export interface EncerramentoSimplesOut {
 export class EncerramentoService {
   private readonly api = inject(ApiService);
 
-  encerrar(idConsulta: string): Observable<EncerramentoSimplesOut> {
-    return this.api.post<EncerramentoSimplesOut>(`/consulta/${idConsulta}/encerrar`, {});
+  encerrar(idConsulta: string, audioBlob?: Blob | null): Observable<EncerramentoSimplesOut> {
+    const formData = new FormData();
+    if (audioBlob) {
+      formData.append('audio', audioBlob, 'recording.webm');
+    }
+    return this.api.post<EncerramentoSimplesOut>(`/consulta/${idConsulta}/encerrar`, formData);
   }
 }

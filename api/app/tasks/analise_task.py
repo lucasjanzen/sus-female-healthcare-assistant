@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 
 from app.db.session import SessionLocal
 from app.models.consulta import ConsultaIdentidade, ConsultaRelato, ConsultaResultado
@@ -23,21 +24,29 @@ def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
     return result
 
 
-def processar_analise(id_consulta_str: str, tentativa: int = 0) -> None:
+def processar_analise(
+    id_consulta_str: str,
+    audio_bytes: Optional[bytes] = None,
+    content_type: str = "audio/webm",
+    tentativa: int = 0,
+) -> None:
     """Processa a análise de IA para uma consulta encerrada."""
     from uuid import UUID
     id_consulta = UUID(id_consulta_str)
     db = SessionLocal()
     try:
-        relato = (
-            db.query(ConsultaRelato)
-            .filter(ConsultaRelato.id_consulta == id_consulta)
-            .first()
-        )
-        relato_texto = relato.relato_texto if relato else ""
+        transcricao = ""
+        sentimento_voz = None
+
+        if audio_bytes:
+            from app.services.azure_service import transcrever_e_analisar_voz
+            resultado_voz = transcrever_e_analisar_voz(audio_bytes, content_type)
+            transcricao = resultado_voz.get("transcricao", "")
+            sentimento_voz = resultado_voz.get("sentimento_voz")
+            logger.info("Transcrição obtida para consulta %s (%d chars)", id_consulta, len(transcricao))
 
         resultado_llm = analise_llm_service.analisar_com_llm(
-            id_consulta, db, "", None
+            id_consulta, db, transcricao, sentimento_voz
         )
 
         resultado = (
@@ -49,7 +58,7 @@ def processar_analise(id_consulta_str: str, tentativa: int = 0) -> None:
             resultado = ConsultaResultado(id_consulta=id_consulta, indicadores=[])
             db.add(resultado)
 
-        resultado.sentimento_voz = None
+        resultado.sentimento_voz = sentimento_voz
         resultado.score_geral = int(resultado_llm["score_geral"])
         resultado.faixa_risco = resultado_llm["faixa_risco"]
         resultado.resumo_ia = resultado_llm["resumo_ia"]

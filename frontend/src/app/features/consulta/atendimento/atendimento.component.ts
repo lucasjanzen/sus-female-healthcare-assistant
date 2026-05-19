@@ -191,7 +191,8 @@ export class AtendimentoComponent implements OnInit, OnDestroy {
     if (!id) return;
     this.salvarRelato();
     this.encerrando.set(true);
-    this.encerramentoService.encerrar(id).subscribe({
+    const audioBlob = this.recordingService.getAudioBlob();
+    this.encerramentoService.encerrar(id, audioBlob).subscribe({
       next: () => {
         this.encerrando.set(false);
         this.encerrado.set(true);
