@@ -215,23 +215,22 @@ O blob do áudio é deletado apenas no `finally` da última tentativa — se o w
 
 ## Como rodar localmente
 
-Quatro processos precisam estar rodando simultaneamente:
+Três processos precisam estar rodando simultaneamente:
 
 ```bash
-# Terminal 1 — PostgreSQL
-docker-compose up -d db
+# Terminal 1 — PostgreSQL + Redis
+docker-compose up -d db redis
 
-# Terminal 2 — Redis
-docker-compose up -d redis
-
-# Terminal 3 — API FastAPI
+# Terminal 2 — API FastAPI
 cd api && task dev
 
-# Terminal 4 — Celery Worker
-cd api && celery -A celery_app worker --loglevel=info
+# Terminal 3 — Celery Worker
+cd api && task worker
 ```
 
-Via Docker Compose (recomendado):
+> **Windows:** `task worker` já inclui `--pool=solo`, necessário para evitar erros de permissão do multiprocessing no Windows (`PermissionError WinError 5`). Em Linux/macOS o pool padrão (prefork) é usado automaticamente.
+
+Via Docker Compose (recomendado para produção local):
 
 ```bash
 docker-compose up --build

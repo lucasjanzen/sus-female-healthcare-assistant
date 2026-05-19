@@ -331,7 +331,7 @@ pode revisá-la a qualquer momento, sem interromper as consultas em andamento.
 - Dentro da mesma faixa: mais antiga primeiro
 - Exibe todas as consultas não revisadas, independente do dia
 - Escopo restrito à mesma UBS do profissional logado
-- Atualização automática a cada 60 segundos
+- Atualização automática adaptativa: a cada **10 segundos** enquanto há itens em processamento; a cada **60 segundos** quando a fila está estável
 
 ### 9.2 Visualização da fila
 
@@ -347,9 +347,11 @@ Cada item exibe:
 | Indicadores críticos | Chips com os indicadores classificados como ALTO |
 
 Cards com faixa LARANJA ou VERMELHO são destacados com borda lateral colorida.
-A fila é separada visualmente por grupos de faixa:
+A fila é separada visualmente por grupos:
 
-> **— Risco Crítico (2) —** → **— Risco Elevado (3) —** → **— Atenção (5) —** → ...
+> **— Em Processamento (1) —** → **— Risco Crítico (2) —** → **— Risco Elevado (3) —** → **— Atenção (5) —** → ...
+
+O grupo **Em Processamento** aparece no topo sempre que o Celery worker ainda não concluiu a análise (consulta encerrada, aguardando resultado). Esses cards exibem um spinner e não têm score.
 
 > 📷 _[Print: fila de análises com cards ordenados por score e separadores de faixa]_
 
@@ -372,6 +374,7 @@ Ao clicar em qualquer item da fila, abre a tela de detalhe com:
 |---|---|
 | **Paciente Encaminhado** | Registra que a paciente foi encaminhada. Solicita observação opcional. Remove da fila. |
 | **Revisar sem encaminhar** | Marca como revisada sem encaminhamento. Remove da fila. |
+| **Reprocessar** (ícone replay) | Disponível apenas em cards do grupo "Em Processamento". Reenfileira a análise no Celery — útil quando a task foi perdida (worker indisponível no momento do encerramento). Roda apenas com o texto do relato médico, sem o áudio original. |
 | **Voltar** | Retorna para a fila sem registrar nenhuma ação. |
 
 Após qualquer ação, a análise sai da fila principal e fica disponível

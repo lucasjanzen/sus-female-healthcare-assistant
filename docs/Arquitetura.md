@@ -175,7 +175,11 @@ POST /auth/login
 | GET/PATCH | `/consulta/{id}/atendimento` | MEDICO, ENFERMEIRO | Atendimento |
 | POST | `/consulta/{id}/encerrar` | MEDICO, ENFERMEIRO | Encerramento + análise |
 | POST | `/speech/transcribe` | MEDICO, ENFERMEIRO | Transcrição de áudio |
-| GET | `/analises/*` | MEDICO, ENFERMEIRO | Resultados de análise |
+| GET | `/analises/fila` | MEDICO, ENFERMEIRO | Lista fila de análises pendentes |
+| GET | `/analises/{id}/resultado` | MEDICO, ENFERMEIRO | Resultado detalhado de uma análise |
+| POST | `/analises/{id}/revisar` | MEDICO, ENFERMEIRO | Marca análise como revisada |
+| POST | `/analises/{id}/reprocessar` | MEDICO, ENFERMEIRO | Reenfileira análise travada no Celery |
+| POST | `/analises/{id}/encaminhar` | MEDICO, ENFERMEIRO | Registra encaminhamento da paciente |
 | GET | `/fila/*` | MEDICO, ENFERMEIRO | Fila de atendimento |
 | GET | `/health` | — | Health check |
 
