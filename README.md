@@ -1,4 +1,4 @@
-# CASF - Centro de Assistência à Saúde Feminina
+# CASF — Centro de Assistência à Saúde Feminina
 
 Assistente para auxiliar nas consultas médicas realizadas pelo SUS em mulheres, buscando detectar sinais precoces de depressão pós-parto, ansiedade gestacional e violência doméstica.
 
@@ -12,40 +12,52 @@ Assistente para auxiliar nas consultas médicas realizadas pelo SUS em mulheres,
 
 ---
 
-## Inteligência Artificial (Azure AI)
-
-A análise psicossocial e a transcrição de áudio das consultas utilizam dois serviços do Azure AI. Ambos são **opcionais**: quando não configurados, o sistema usa detecção local por palavras-chave (fallback automático).
+## Serviços Azure necessários
 
 | Serviço | Finalidade |
 |---------|-----------|
-| **Azure AI Speech** | Transcreve o áudio da consulta em texto (pt-BR) |
-| **Azure AI Language** | Analisa sentimento do relato para calibrar o nível de risco |
+| **Azure AI Speech** | Transcreve o áudio da consulta em texto com diarização (pt-BR) |
+| **Azure AI Language** | Analisa sentimento do relato da paciente |
+| **Azure OpenAI (GPT-4o)** | Análise clínica: scores de risco, indicadores e encaminhamento |
+| **Azure Blob Storage** | Armazena o áudio temporariamente durante o processamento assíncrono |
 
 ### Como obter as credenciais
 
 **Azure AI Speech**
-1. Acesse [portal.azure.com](https://portal.azure.com) → **Criar recurso** → **Azure AI services** → **Speech service**
+1. Portal Azure → **Criar recurso** → **Azure AI services** → **Speech service**
 2. Após criar, vá em **Keys and Endpoint**
 3. Copie a **Key 1** e a **Region** (ex: `brazilsouth`)
 
 **Azure AI Language**
-1. Acesse [portal.azure.com](https://portal.azure.com) → **Criar recurso** → **Azure AI services** → **Language service**
+1. Portal Azure → **Criar recurso** → **Azure AI services** → **Language service**
 2. Após criar, vá em **Keys and Endpoint**
-3. Copie a **Key 1** e o **Endpoint** (ex: `https://<nome>.cognitiveservices.azure.com/`)
+3. Copie a **Key 1** e o **Endpoint**
 
-### Configuração
+**Azure OpenAI**
+1. Portal Azure → **Azure OpenAI** → seu recurso → **Keys and Endpoint**
+2. Copie a **Key 1**, o **Endpoint** e o nome do **Deployment** (ex: `gpt-4o`)
 
-Adicione as variáveis abaixo no arquivo `api/.env`:
+**Azure Blob Storage**
+1. Portal Azure → **Storage Account** → seu recurso → **Access keys**
+2. Copie a **Connection string** da Key 1
+3. O container `casf-audio-temp` é criado automaticamente pelo sistema
+
+### Configuração no `api/.env`
 
 ```env
 AZURE_SPEECH_KEY=<sua chave>
 AZURE_SPEECH_REGION=brazilsouth
 
-AZURE_LANGUAGE_ENDPOINT=https://<nome-do-recurso>.cognitiveservices.azure.com/
+AZURE_LANGUAGE_ENDPOINT=https://<nome>.cognitiveservices.azure.com/
 AZURE_LANGUAGE_KEY=<sua chave>
-```
 
-> Deixe as variáveis em branco para usar o fallback local. Os logs da API indicam qual modo está ativo (`"Azure Speech nao configurado"` ou `"Sentimento Azure obtido"`).
+AZURE_OPENAI_ENDPOINT=https://<nome>.openai.azure.com/
+AZURE_OPENAI_API_KEY=<sua chave>
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
+AZURE_OPENAI_API_VERSION=2024-02-01
+
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net
+```
 
 ---
 
@@ -54,10 +66,11 @@ AZURE_LANGUAGE_KEY=<sua chave>
 ### 1. Configure as variáveis de ambiente
 
 ```bash
-cp .env.example .env
+cp api/.env.example api/.env
+# Edite api/.env com suas credenciais Azure e chaves secretas
 ```
 
-> **Importante:** Altere `SECRET_KEY` para uma string aleatória segura antes de usar em produção.
+> **Importante:** Altere `SECRET_KEY` e `SECRET_SALT` para strings aleatórias seguras antes de usar em produção.
 
 ### 2. Suba os serviços
 
@@ -65,24 +78,22 @@ cp .env.example .env
 docker-compose up --build
 ```
 
-### 3. Popule o banco com dados de teste
+Serviços iniciados: `db` (PostgreSQL), `redis`, `api` (FastAPI), `worker` (Celery), `frontend` (Angular/Nginx).
+
+### 3. Aplique as migrações e popule o banco
 
 Em outro terminal, após os serviços subirem:
 
 ```bash
+# Aplica as migrações do banco de dados
+docker-compose exec api alembic upgrade head
+
 # Usuários e pacientes base (obrigatório)
 docker-compose exec api python seed.py
 
 # Histórico de consultas encerradas (opcional — habilita análise LLM com contexto histórico)
 docker-compose exec api python seed-history.py
 ```
-
-> **Desenvolvimento local (sem o container `api`):** com o venv ativado, use os atalhos do taskipy:
-> ```bash
-> cd api
-> task seed          # usuários e pacientes
-> task seed-history  # histórico de consultas (requer seed antes)
-> ```
 
 ### 4. Acesse a aplicação
 
@@ -105,11 +116,11 @@ docker-compose exec api python seed-history.py
 
 ## Permissões por Perfil
 
-| Perfil | Acessa /home | Botão Nova Consulta |
-|--------|:---:|:---:|
-| MEDICO | ✓ | ✓ |
-| ENFERMEIRO | ✓ | ✓ |
-| ADMIN | ✓ | — |
+| Perfil | Consultas | Pacientes | Análises | Admin |
+|--------|:---------:|:---------:|:--------:|:-----:|
+| MEDICO | ✓ | leitura | ✓ | — |
+| ENFERMEIRO | ✓ | leitura | ✓ | — |
+| ADMIN | — | ✓ | — | ✓ |
 
 ---
 
@@ -117,48 +128,62 @@ docker-compose exec api python seed-history.py
 
 ### Backend (FastAPI)
 
-**1. Suba apenas o banco de dados via Docker:**
+**1. Suba o banco de dados e o Redis via Docker:**
 
 ```bash
-docker-compose up -d db
+docker-compose up -d db redis
 ```
-
-O PostgreSQL ficará disponível em `localhost:5432` com usuário `sfha`, senha `sfha` e banco `sfha_db`.
 
 **2. Instale as dependências Python:**
 
 ```bash
 cd api
 python -m venv .venv
-# source .venv/bin/activate        # Linux/macOS
 .venv\Scripts\activate             # Windows
+# source .venv/bin/activate        # Linux/macOS
 pip install -r requirements.txt
 ```
 
-**3. Crie o arquivo `api/.env`** com a URL apontando para `localhost` (diferente do Docker, que usa o hostname `db`):
+**3. Crie o arquivo `api/.env`** apontando para `localhost`:
 
 ```env
 DATABASE_URL=postgresql://sfha:sfha@localhost:5432/sfha_db
 SECRET_KEY=troque-por-uma-string-aleatoria-longa-e-segura
+SECRET_SALT=troque-por-uma-string-aleatoria-longa-e-segura
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_HOURS=8
 CORS_ORIGIN=http://localhost:4200
+CELERY_BROKER_URL=redis://localhost:6379/0
 
-# Azure AI (opcional — deixe em branco para usar fallback local)
+# Azure AI (obrigatório para análise clínica)
 AZURE_SPEECH_KEY=
 AZURE_SPEECH_REGION=
 AZURE_LANGUAGE_ENDPOINT=
 AZURE_LANGUAGE_KEY=
+AZURE_OPENAI_ENDPOINT=
+AZURE_OPENAI_API_KEY=
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
+AZURE_OPENAI_API_VERSION=2024-02-01
+AZURE_STORAGE_CONNECTION_STRING=
 ```
 
 > **Por que `api/.env` e não o `.env` raiz?**
-> O `.env` raiz usa `db:5432` (hostname do serviço Docker Compose). Quando o backend roda fora do Docker, o hostname `db` não existe — use `localhost:5432`, que é a porta exposta pelo container.
+> O `.env` raiz usa `db:5432` e `sfha_redis:6379` (hostnames do Docker Compose). Fora do Docker, use `localhost`.
 
-**4. Inicie o servidor** (com venv ativado):
+**4. Inicie a API** (com venv ativado):
 
 ```bash
 task dev
 ```
+
+**5. Inicie o worker Celery** (em outro terminal, com venv ativado):
+
+```bash
+cd api
+celery -A celery_app worker --loglevel=info
+```
+
+> O worker é necessário para processar as análises IA após o encerramento das consultas. Sem ele, as consultas ficam aguardando na fila.
 
 #### Scripts disponíveis (`api/`)
 
@@ -170,8 +195,6 @@ task dev
 | `task format` | Formata todos os arquivos Python com ruff |
 | `task lint` | Lint + auto-fix com ruff |
 | `task check` | Verifica formatação e lint sem alterar arquivos (CI) |
-
-> Requer `taskipy` e `ruff` instalados: `pip install -r requirements.txt`
 
 ### Frontend (Angular 21)
 
@@ -190,7 +213,7 @@ Acesse em http://localhost:4200.
 | `npm start` | Sobe o servidor de desenvolvimento |
 | `npm run build` | Build de produção |
 | `npm test` | Executa os testes unitários |
-| `npm run format` | Formata todos os arquivos TS, HTML e SCSS com Prettier |
+| `npm run format` | Formata arquivos TS, HTML e SCSS com Prettier |
 
 ---
 
@@ -198,38 +221,64 @@ Acesse em http://localhost:4200.
 
 ```
 sus-female-healthcare-assistant/
-├── api/                        # Backend FastAPI
+├── api/                              # Backend FastAPI + Celery
+│   ├── celery_app.py                 # Instância Celery (broker Redis)
 │   ├── app/
 │   │   ├── core/
-│   │   │   ├── config.py       # Settings (pydantic-settings)
-│   │   │   ├── security.py     # bcrypt + JWT
-│   │   │   └── dependencies.py # get_current_user, require_role
+│   │   │   ├── config.py             # Settings (pydantic-settings)
+│   │   │   ├── security.py           # bcrypt + JWT HS256
+│   │   │   └── dependencies.py       # get_current_user, require_role
 │   │   ├── db/
-│   │   │   └── session.py      # Engine e SessionLocal
-│   │   ├── models/
-│   │   │   └── user.py         # SQLAlchemy model (tabela: usuarios)
+│   │   │   └── session.py            # Engine e SessionLocal
+│   │   ├── models/                   # ORM: usuarios, pacientes, consultas, audit
+│   │   ├── schemas/                  # Pydantic: auth, paciente, consulta, analise
 │   │   ├── routers/
-│   │   │   └── auth.py         # POST /auth/login, GET /auth/me
-│   │   ├── schemas/
-│   │   │   └── auth.py         # Pydantic schemas
-│   │   └── main.py
-│   ├── seed.py                 # Usuários e pacientes de teste
-│   ├── seed-history.py         # Histórico de consultas encerradas (requer seed.py)
+│   │   │   ├── auth.py               # POST /auth/login, GET /auth/me
+│   │   │   ├── paciente.py           # GET /pacientes
+│   │   │   ├── admin_paciente.py     # GET/POST /admin/pacientes
+│   │   │   ├── fila.py               # GET /fila
+│   │   │   ├── analise.py            # GET /analises
+│   │   │   ├── speech.py             # GET /speech/token
+│   │   │   └── consulta/
+│   │   │       ├── triagem.py        # GET/PATCH /consulta/{id}/triagem
+│   │   │       ├── atendimento.py    # GET/PATCH /consulta/{id}/atendimento
+│   │   │       └── encerramento.py   # POST /consulta/{id}/encerrar
+│   │   ├── services/
+│   │   │   ├── analise_llm_service.py  # Azure OpenAI (GPT-4o)
+│   │   │   ├── azure_service.py        # Azure Speech + Azure Language
+│   │   │   ├── blob_service.py         # Azure Blob Storage (áudio temp)
+│   │   │   └── encerramento_service.py # Geração de PDF
+│   │   └── tasks/
+│   │       ├── analise_task.py         # @shared_task Celery: transcrição + LLM
+│   │       └── consulta_timeout.py     # Fecha consultas abertas > 4h
+│   ├── alembic/                      # Migrações do banco
+│   ├── seed.py                       # Usuários e pacientes de teste
+│   ├── seed-history.py               # Histórico de consultas
 │   └── requirements.txt
 │
-├── frontend/                   # Frontend Angular 21
-│   └── src/
-│       └── app/
-│           ├── core/
-│           │   ├── auth/       # AuthService, AuthGuard, RoleGuard, Interceptor
-│           │   ├── models/     # Interfaces TypeScript
-│           │   └── services/   # ApiService base
-│           └── features/
-│               ├── auth/login/ # Tela de login
-│               └── home/       # Tela home
+├── frontend/                         # Frontend Angular 21
+│   └── src/app/
+│       ├── core/
+│       │   ├── auth/                 # AuthService, authGuard, roleGuard, interceptor
+│       │   ├── models/               # Interfaces TypeScript
+│       │   └── services/             # ApiService e serviços de feature
+│       ├── features/
+│       │   ├── auth/                 # Tela de login
+│       │   ├── home/                 # Dashboard
+│       │   ├── consulta/             # Fluxo nova consulta (MatStepper 4 etapas)
+│       │   ├── fila/                 # Fila de atendimento
+│       │   ├── analises/             # Resultados de análise IA
+│       │   └── admin/                # Gestão de pacientes e usuários
+│       └── shared/layout/            # Shell autenticado (sidebar, header)
 │
-├── docker-compose.yml
-├── .env.example
+├── docs/                             # Documentação técnica
+│   ├── Arquitetura.md
+│   ├── AudioAssincrono.md
+│   ├── AzureDeploy.md
+│   └── FluxoAtendimento.md
+│
+├── docker-compose.yml                # db, redis, api, worker, frontend
+├── api/.env.example
 └── README.md
 ```
 
@@ -237,11 +286,22 @@ sus-female-healthcare-assistant/
 
 ## Endpoints da API
 
-| Método | Rota | Descrição | Auth |
-|--------|------|-----------|------|
-| POST | `/auth/login` | Autenticação | — |
-| GET | `/auth/me` | Dados do usuário logado | Bearer |
-| GET | `/health` | Status da API | — |
+| Método | Rota | Perfil | Descrição |
+|--------|------|--------|-----------|
+| POST | `/auth/login` | — | Autenticação |
+| GET | `/auth/me` | Qualquer | Dados do usuário logado |
+| GET | `/health` | — | Status da API |
+| GET | `/pacientes` | MEDICO, ENFERMEIRO | Lista pacientes |
+| POST | `/pacientes` | ADMIN | Cria paciente |
+| GET | `/admin/pacientes` | ADMIN | Lista pacientes (admin) |
+| GET | `/consulta/pacientes/buscar` | MEDICO, ENFERMEIRO | Busca por nome/CPF/CNS |
+| POST | `/consulta/iniciar` | MEDICO, ENFERMEIRO | Inicia nova consulta |
+| GET/PATCH | `/consulta/{id}/triagem` | MEDICO, ENFERMEIRO | Triagem (peso, PA) |
+| GET/PATCH | `/consulta/{id}/atendimento` | MEDICO, ENFERMEIRO | Relato e notas clínicas |
+| POST | `/consulta/{id}/encerrar` | MEDICO, ENFERMEIRO | Encerra consulta e inicia análise IA |
+| GET | `/fila` | MEDICO, ENFERMEIRO | Fila de atendimento |
+| GET | `/analises` | MEDICO, ENFERMEIRO | Resultados de análise IA |
+| GET | `/speech/token` | MEDICO, ENFERMEIRO | Token Azure Speech (STT no browser) |
 
 ### Exemplo de login
 
@@ -258,3 +318,39 @@ Resposta:
   "token_type": "bearer"
 }
 ```
+
+---
+
+## Fluxo de Análise IA
+
+Ao encerrar uma consulta, a análise ocorre de forma assíncrona — o médico não precisa aguardar:
+
+```
+Encerrar consulta
+      ↓
+Se áudio gravado → upload para Azure Blob Storage
+      ↓
+processar_analise.delay() → enfileira no Redis (< 1s)
+      ↓ (em background)
+Celery Worker:
+  ├── Se áudio: Azure Speech (transcrição) → Azure Language (sentimento)
+  └── Azure OpenAI GPT-4o (análise clínica)
+      ↓
+Resultado salvo no banco → aparece na Fila de Análises
+```
+
+A análise usa o relato textual do médico + transcrição do áudio (se presente) + histórico das últimas 5 consultas da paciente.
+
+---
+
+## Segurança e LGPD
+
+| Requisito | Implementação |
+|-----------|---------------|
+| Autenticação | JWT HS256, TTL 8h |
+| Senhas | bcrypt (passlib) |
+| CPF | Nunca armazenado — apenas SHA-256 HMAC com `SECRET_SALT` |
+| Áudio | Nunca persiste no banco — deletado do Blob após análise |
+| Auditoria | Tabela `audit_acessos` com trigger imutável (sem UPDATE/DELETE) |
+| Autorização | `require_role()` por endpoint |
+| Container | Executa como usuário não-root (`appuser`) |

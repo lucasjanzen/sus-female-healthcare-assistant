@@ -4,7 +4,7 @@ from uuid import UUID
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import require_role
@@ -27,7 +27,6 @@ router = APIRouter()
 )
 async def encerrar_consulta(
     id_consulta: UUID,
-    background_tasks: BackgroundTasks,
     audio: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("MEDICO")),
@@ -42,13 +41,16 @@ async def encerrar_consulta(
     consulta.analise_erro = None
     db.commit()
 
-    audio_bytes: Optional[bytes] = None
+    blob_name: Optional[str] = None
     content_type = "audio/webm"
     if audio:
-        audio_bytes = await audio.read()
         content_type = audio.content_type or "audio/webm"
+        ext = ".webm" if "webm" in content_type else ".wav"
+        blob_name = f"{id_consulta}{ext}"
+        from app.services.blob_service import upload_audio
+        upload_audio(blob_name, await audio.read())
 
-    background_tasks.add_task(processar_analise, str(id_consulta), audio_bytes, content_type)
+    processar_analise.delay(str(id_consulta), blob_name, content_type)
 
     return EncerramentoSimplesOut(
         id_consulta=id_consulta,

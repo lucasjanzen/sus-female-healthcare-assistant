@@ -2,13 +2,13 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
+from celery import shared_task
+
 from app.db.session import SessionLocal
-from app.models.consulta import ConsultaIdentidade, ConsultaRelato, ConsultaResultado
+from app.models.consulta import ConsultaIdentidade, ConsultaResultado
 import app.services.analise_llm_service as analise_llm_service
 
 logger = logging.getLogger(__name__)
-
-MAX_RETRIES = 2
 
 
 def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
@@ -24,11 +24,12 @@ def _llm_indicadores_para_ia(indicadores_llm: list) -> list:
     return result
 
 
+@shared_task(bind=True, max_retries=2, default_retry_delay=60)
 def processar_analise(
+    self,
     id_consulta_str: str,
-    audio_bytes: Optional[bytes] = None,
+    blob_name: Optional[str] = None,
     content_type: str = "audio/webm",
-    tentativa: int = 0,
 ) -> None:
     """Processa a análise de IA para uma consulta encerrada."""
     from uuid import UUID
@@ -38,8 +39,10 @@ def processar_analise(
         transcricao = ""
         sentimento_voz = None
 
-        if audio_bytes:
+        if blob_name:
+            from app.services.blob_service import download_audio
             from app.services.azure_service import transcrever_e_analisar_voz
+            audio_bytes = download_audio(blob_name)
             resultado_voz = transcrever_e_analisar_voz(audio_bytes, content_type)
             transcricao = resultado_voz.get("transcricao", "")
             sentimento_voz = resultado_voz.get("sentimento_voz")
@@ -84,21 +87,23 @@ def processar_analise(
         logger.info("Análise concluída para consulta %s", id_consulta)
 
     except Exception as exc:
-        logger.error("Falha na análise para consulta %s (tentativa %d): %s", id_consulta, tentativa, exc)
+        logger.error("Falha na análise para consulta %s: %s", id_consulta, exc)
         try:
-            consulta = (
-                db.query(ConsultaIdentidade)
-                .filter(ConsultaIdentidade.id_consulta == id_consulta)
-                .first()
-            )
-            if consulta:
-                if tentativa < MAX_RETRIES:
-                    # A próxima tentativa será disparada pelo caller
-                    pass
-                else:
+            self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            try:
+                consulta = (
+                    db.query(ConsultaIdentidade)
+                    .filter(ConsultaIdentidade.id_consulta == id_consulta)
+                    .first()
+                )
+                if consulta:
                     consulta.analise_erro = str(exc)[:500]
-            db.commit()
-        except Exception:
-            pass
+                db.commit()
+            except Exception:
+                pass
     finally:
         db.close()
+        if blob_name:
+            from app.services.blob_service import delete_audio
+            delete_audio(blob_name)

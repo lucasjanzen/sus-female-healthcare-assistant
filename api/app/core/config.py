@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     azure_openai_deployment_name: str = "gpt-4o"
     azure_openai_api_version: str = "2024-02-01"
 
+    # Azure Blob Storage (áudio temporário durante análise)
+    azure_storage_connection_string: str = ""
+
+    # Celery + Redis
+    celery_broker_url: str = "redis://localhost:6379/0"
+
     @model_validator(mode="after")
     def validar_segredos(self) -> "Settings":
         if self.secret_key == _DEFAULT_SECRET_KEY:
