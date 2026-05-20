@@ -231,9 +231,36 @@ openssl rand -hex 32
 
 ## 7. Autenticar no GHCR e subir os containers
 
+O build das imagens deve ser feito **localmente** — a VM tem recursos limitados e o build do frontend pode levar mais de 50 minutos. Fazendo o build local e publicando no GHCR, o deploy na VM se resume a um `pull` de poucos minutos.
+
+### 7.1 Localmente — build e push das imagens
+
+Gere o token em: **github.com → Settings → Developer settings → Personal access tokens → Classic**
+com permissões: `write:packages` e `read:packages`.
+
 ```bash
-# Autenticar no GitHub Container Registry
+# Autenticar no GHCR
 echo "SEU_TOKEN_GITHUB" | docker login ghcr.io -u SEU_USUARIO_GITHUB --password-stdin
+
+# Build das imagens
+docker build -t ghcr.io/SEU_USUARIO/sfha-api:latest ./api
+docker build -t ghcr.io/SEU_USUARIO/sfha-frontend:latest ./frontend
+
+# Push para o GHCR
+docker push ghcr.io/SEU_USUARIO/sfha-api:latest
+docker push ghcr.io/SEU_USUARIO/sfha-frontend:latest
+```
+
+> **Atenção:** antes do build, garanta que `api/.dockerignore` e `frontend/.dockerignore` contenham `.env` para não vazar credenciais nas imagens.
+
+### 7.2 Na VM — pull e subir os containers
+
+```bash
+# Autenticar no GHCR (só na primeira vez)
+echo "SEU_TOKEN_GITHUB" | docker login ghcr.io -u SEU_USUARIO_GITHUB --password-stdin
+
+# Baixar as imagens prontas do GHCR
+docker compose -f docker-compose.prod.yml pull
 
 # Subir os containers
 docker compose -f docker-compose.prod.yml up -d
