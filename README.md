@@ -44,21 +44,6 @@ Assistente para auxiliar nas consultas médicas realizadas pelo SUS em mulheres,
 
 ### Configuração no `api/.env`
 
-```env
-AZURE_SPEECH_KEY=<sua chave>
-AZURE_SPEECH_REGION=brazilsouth
-
-AZURE_LANGUAGE_ENDPOINT=https://<nome>.cognitiveservices.azure.com/
-AZURE_LANGUAGE_KEY=<sua chave>
-
-AZURE_OPENAI_ENDPOINT=https://<nome>.openai.azure.com/
-AZURE_OPENAI_API_KEY=<sua chave>
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
-AZURE_OPENAI_API_VERSION=2024-02-01
-
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net
-```
-
 ---
 
 ## Início Rápido com Docker
@@ -75,7 +60,7 @@ cp api/.env.example api/.env
 ### 2. Suba os serviços
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 Serviços iniciados: `db` (PostgreSQL), `redis`, `api` (FastAPI), `worker` (Celery), `frontend` (Angular/Nginx).
@@ -86,13 +71,13 @@ Em outro terminal, após os serviços subirem:
 
 ```bash
 # Aplica as migrações do banco de dados
-docker-compose exec api alembic upgrade head
+docker compose exec api alembic upgrade head
 
 # Usuários e pacientes base (obrigatório)
-docker-compose exec api python seed.py
+docker compose exec api python seed.py
 
 # Histórico de consultas encerradas (opcional — habilita análise LLM com contexto histórico)
-docker-compose exec api python seed-history.py
+docker compose exec api python seed-history.py
 ```
 
 ### 4. Acesse a aplicação
@@ -131,7 +116,7 @@ docker-compose exec api python seed-history.py
 **1. Suba o banco de dados e o Redis via Docker:**
 
 ```bash
-docker-compose up -d db redis
+docker compose up -d db redis
 ```
 
 **2. Instale as dependências Python:**

@@ -6,7 +6,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    # Porta NÃO exposta publicamente — apenas acessível internamente
     expose:
       - "5432"
     volumes:
@@ -21,7 +20,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: sfha_redis
-    # Porta NÃO exposta publicamente — apenas acessível internamente
     expose:
       - "6379"
     healthcheck:
@@ -32,8 +30,7 @@ services:
     restart: unless-stopped
 
   api:
-    build:
-      context: ./api
+    image: ghcr.io/lucasjanzen/sfha-api:latest
     container_name: sfha_api
     expose:
       - "8000"
@@ -44,12 +41,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # Sem volume de bind mount — código já está dentro da imagem
     restart: unless-stopped
 
   worker:
-    build:
-      context: ./api
+    image: ghcr.io/lucasjanzen/sfha-api:latest
     container_name: sfha_worker
     command: celery -A celery_app worker --loglevel=info --concurrency=2
     env_file:
@@ -62,8 +57,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
+    image: ghcr.io/lucasjanzen/sfha-frontend:latest
     container_name: sfha_frontend
     ports:
       - "80:80"

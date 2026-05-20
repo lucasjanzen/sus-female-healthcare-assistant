@@ -300,7 +300,7 @@ Consulta encerrada
 
 ## 6. Infraestrutura Docker (Desenvolvimento/Local)
 
-### docker-compose.yml
+### docker compose.yml
 
 | Serviço | Imagem | Porta | Depende de |
 |---|---|---|---|
@@ -330,9 +330,9 @@ healthcheck:
 ### Comandos Essenciais
 
 ```bash
-docker-compose up --build                        # inicia tudo
-docker-compose exec api alembic upgrade head     # aplica migrações
-docker-compose exec api python seed.py           # popula dados de teste
+docker compose up --build                        # inicia tudo
+docker compose exec api alembic upgrade head     # aplica migrações
+docker compose exec api python seed.py           # popula dados de teste
 ```
 
 ---

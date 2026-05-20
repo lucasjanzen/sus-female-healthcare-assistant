@@ -1,0 +1,11 @@
+# api/.dockerignore
+.env
+*.env
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.coverage
+*.egg-info
+.git
+.gitignore

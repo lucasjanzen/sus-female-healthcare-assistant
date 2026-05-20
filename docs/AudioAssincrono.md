@@ -219,7 +219,7 @@ Três processos precisam estar rodando simultaneamente:
 
 ```bash
 # Terminal 1 — PostgreSQL + Redis
-docker-compose up -d db redis
+docker compose up -d db redis
 
 # Terminal 2 — API FastAPI
 cd api && task dev
@@ -233,7 +233,7 @@ cd api && task worker
 Via Docker Compose (recomendado para produção local):
 
 ```bash
-docker-compose up --build
+docker compose up --build
 # Sobe: db, redis, api, worker, frontend
 ```
 
