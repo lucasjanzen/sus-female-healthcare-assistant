@@ -1,0 +1,260 @@
+========================================
+CASF — CASOS DE TESTE PARA APRESENTAÇÃO
+========================================
+
+Três casos completos cobrindo os principais cenários do sistema.
+Cada caso inclui: dados de triagem, relato para digitar e roteiro de áudio.
+
+Para executar:
+    1. python seed.py              (usuários e pacientes)
+    2. python seed_historico.py    (histórico das consultas anteriores)
+    3. Executar os casos abaixo na ordem indicada
+
+
+========================================
+CASO 1 — PRÉ-NATAL COM DEPRESSÃO PERINATAL
+Paciente: Julia Santos
+CPF: 999.888.777-66
+Tipo: PRENATAL
+Resultado esperado: VERMELHO (score 80–95)
+Indicadores esperados: Depressão (ALTO) + Isolamento Social (ALTO)
+Encaminhamentos esperados: CAPS, PSICOLOGIA
+========================================
+
+HISTÓRICO DA PACIENTE (gerado pelo seed):
+    Consulta 1 — 120 dias atrás: VERDE  (score 8)  — primeira consulta, sem problemas
+    Consulta 2 —  70 dias atrás: AMARELO (score 38) — insônia, choro fácil, marido ausente
+    Consulta 3 —  30 dias atrás: LARANJA (score 65) — isolamento, perda de peso, incapacidade
+
+A IA deve reconhecer a PROGRESSÃO do risco e considerar o histórico na análise.
+
+----------------------------------------
+DADOS DE TRIAGEM (Enfermeiro)
+----------------------------------------
+
+    DUM:                    calcular para ~28 semanas atrás da data atual
+    Peso atual (kg):        58.5
+    PA Sistólica (mmHg):    118
+    PA Diastólica (mmHg):   74
+
+----------------------------------------
+PARECER MÉDICO (digitar no campo)
+----------------------------------------
+
+Paciente compareceu à consulta acompanhada da mãe, que a trouxe por 
+estar preocupada com o estado emocional da filha. Julia chegou em 
+silêncio, evitou contato visual durante boa parte da consulta. 
+Relatou que nas últimas semanas mal consegue se levantar da cama. 
+Chora sem motivo aparente várias vezes ao dia. Disse que parou de 
+comer direito porque não tem fome e que o bebê mexendo às vezes é a 
+única coisa que a anima. Verbalizou que tem pensamentos de que seria 
+melhor não estar aqui, mas que não faria nada por causa do bebê. 
+Marido retornou da viagem mas a relação está tensa. Sem rede de apoio 
+além da mãe. Dormindo menos de 4 horas por noite. Peso novamente 
+abaixo do esperado para a idade gestacional.
+
+
+----------------------------------------
+RESULTADO ESPERADO NA FILA DE ANÁLISES
+----------------------------------------
+
+    Score:          85–95 / 100
+    Faixa:          VERMELHO
+    Indicadores:
+        Depressão         ALTO  — ideação, incapacidade, choro diário, insônia
+        Isolamento Social ALTO  — afastamento de amigas, falta de apoio do marido
+    Contexto histórico considerado: progressão de 3 consultas anteriores
+    Encaminhamentos sugeridos: CAPS, PSICOLOGIA
+    Texto clínico: deve mencionar a ideação e a progressão do quadro
+
+
+========================================
+CASO 2 — GINECOLÓGICA COM VIOLÊNCIA DOMÉSTICA
+Paciente: Maria Oliveira
+CPF: 555.666.777-88
+Tipo: GINECOLOGICA
+Resultado esperado: VERMELHO (score 82–95)
+Indicadores esperados: Violência Doméstica (ALTO) + Depressão (MODERADO)
+Encaminhamentos esperados: CVR, DELEGACIA_MULHER, CAPS
+========================================
+
+HISTÓRICO DA PACIENTE (gerado pelo seed):
+    Consulta 1 — 210 dias atrás: AMARELO (score 28) — evasiva sobre vida doméstica
+    Consulta 2 — 120 dias atrás: LARANJA (score 62) — hematoma, referência ao companheiro
+    Consulta 3 —  45 dias atrás: VERMELHO (score 88) — equimose periorbital, comportamento de fuga
+
+A IA deve reconhecer o PADRÃO CRESCENTE de violência doméstica ao longo das consultas.
+
+----------------------------------------
+DADOS DE TRIAGEM (Enfermeiro)
+----------------------------------------
+
+    Tipo:                   GINECOLOGICA (sem DUM)
+    Peso atual (kg):        63.0
+    PA Sistólica (mmHg):    132
+    PA Diastólica (mmHg):   86
+
+----------------------------------------
+PARECER MÉDICO (digitar no campo)
+----------------------------------------
+
+Paciente chegou com manga longa em dia de calor. Ao examinar o braço 
+para aferir a pressão, foram visíveis múltiplas equimoses em diferentes 
+estágios de cicatrização — algumas recentes, outras mais antigas. 
+Atribuiu ao "bater nos móveis com frequência". Durante toda a consulta 
+manteve postura fechada, braços cruzados, respostas monossilábicas. 
+Quando questionada sobre como estava em casa, disse "normal" e mudou 
+de assunto. Ao ser perguntada diretamente se alguém a machucava, fez 
+uma pausa longa, olhou para a porta e disse que não. Mencionou que 
+o marido "tem cuidado" dela. Relatou não dormir bem há semanas, 
+sem apetite, sem vontade de sair de casa. Disse que parou de ver 
+as amigas porque o marido prefere que fique em casa.
+
+----------------------------------------
+RESULTADO ESPERADO NA FILA DE ANÁLISES
+----------------------------------------
+
+    Score:          85–95 / 100
+    Faixa:          VERMELHO
+    Indicadores:
+        Violência Doméstica   ALTO  — equimoses múltiplas, isolamento imposto, pausa ao ser questionada
+        Depressão             MODERADO — insônia, sem apetite, sem vontade de sair
+        Isolamento Social     ALTO  — impedida de ver amigas e família pelo companheiro
+    Contexto histórico considerado: padrão progressivo de 3 consultas anteriores
+    Encaminhamentos sugeridos: CVR, DELEGACIA_MULHER, CAPS
+    Texto clínico: deve mencionar o padrão histórico de violência e o isolamento imposto
+
+
+========================================
+CASO 3 — GINECOLÓGICA SEM PROBLEMAS
+Paciente: Ana Silva
+CPF: 111.222.333-44
+Tipo: GINECOLOGICA
+Resultado esperado: VERDE (score 0–20)
+Indicadores esperados: nenhum relevante
+Encaminhamentos esperados: nenhum
+========================================
+
+HISTÓRICO DA PACIENTE (gerado pelo seed):
+    Consulta 1 — 180 dias atrás: VERDE (score 5)  — rotina, sem queixas
+    Consulta 2 —  90 dias atrás: VERDE (score 8)  — retorno estável
+    Consulta 3 —  30 dias atrás: VERDE (score 12) — cansaço pontual, sem risco
+
+A IA deve confirmar a AUSÊNCIA de indicadores e a estabilidade do histórico.
+
+----------------------------------------
+DADOS DE TRIAGEM (Enfermeiro)
+----------------------------------------
+
+    Tipo:                   GINECOLOGICA (sem DUM)
+    Peso atual (kg):        63.5
+    PA Sistólica (mmHg):    112
+    PA Diastólica (mmHg):   72
+
+----------------------------------------
+PARECER MÉDICO (digitar no campo)
+----------------------------------------
+
+Paciente veio para consulta ginecológica de rotina anual. Chegou 
+sorridente, comunicativa. Refere estar bem no trabalho — foi 
+promovida recentemente e está animada com os novos desafios. 
+Relacionamento estável há 3 anos, companheiro presente e apoiador. 
+Dorme bem, 7 a 8 horas por noite. Alimentação equilibrada, pratica 
+caminhada três vezes por semana. Sem queixas ginecológicas. Sem 
+sintomas de ansiedade ou alteração de humor. Rede de apoio sólida 
+com família e amigas próximas. Paciente demonstrou boa compreensão 
+das orientações preventivas e se mostrou engajada com o autocuidado.
+
+----------------------------------------
+ROTEIRO DE ÁUDIO (gravar durante a consulta)
+----------------------------------------
+
+MÉDICO:
+Boa tarde, Ana. Como você está?
+
+PACIENTE:
+Muito bem, obrigada! Vim fazer a consulta anual de rotina.
+
+MÉDICO:
+Ótimo. Como tem sido sua vida ultimamente, no trabalho, em casa?
+
+PACIENTE:
+Tá ótimo. Recebi uma promoção no mês passado, tô muito animada. 
+O trabalho tá puxado mas é uma coisa boa, sabe? Me sinto realizada.
+
+MÉDICO:
+Que bom. E em casa, com seu companheiro?
+
+PACIENTE:
+Tudo bem. A gente tá junto há três anos, é uma relação muito 
+tranquila. Ele é muito parceiro, me apoia muito.
+
+MÉDICO:
+Você tem conseguido descansar, dormir bem?
+
+PACIENTE:
+Sim, durmo umas 7, 8 horas. Faço caminhada três vezes por semana, 
+isso me ajuda muito a relaxar.
+
+MÉDICO:
+Tem sentido ansiedade, tristeza, alguma mudança de humor?
+
+PACIENTE:
+Não, nada disso. Tô bem mesmo. Talvez um cansaço normal do dia 
+a dia, mas nada preocupante.
+
+MÉDICO:
+Tem alguma queixa ginecológica, algo que queira me relatar?
+
+PACIENTE:
+Não, nenhuma. Vim mesmo para o preventivo de rotina.
+
+----------------------------------------
+RESULTADO ESPERADO NA FILA DE ANÁLISES
+----------------------------------------
+
+    Score:          5–15 / 100
+    Faixa:          VERDE
+    Indicadores:    nenhum com nivel MODERADO ou ALTO
+    Contexto histórico: histórico consistentemente verde reforça ausência de risco
+    Encaminhamentos sugeridos: nenhum
+    Texto clínico: deve confirmar ausência de indicadores e recomendar retorno de rotina
+
+    IMPORTANTE PARA APRESENTAÇÃO:
+    Este caso demonstra que o sistema não gera falsos positivos em
+    pacientes saudáveis — a fila de análises mostrará este caso no
+    final da lista (score mais baixo), abaixo dos casos críticos.
+
+
+========================================
+ROTEIRO DE APRESENTAÇÃO SUGERIDO
+========================================
+
+1. Mostrar a tela de login — entrar como Enfermeiro
+2. Iniciar Caso 1 (Julia Santos) — mostrar busca de paciente, triagem
+3. Entrar como Médico — assumir da fila, mostrar histórico de peso
+4. Registrar parecer do Caso 1, gravar áudio, encerrar
+5. Iniciar Caso 2 (Maria Oliveira) como Enfermeiro
+6. Médico assume, registra parecer, grava áudio, encerra
+7. Iniciar Caso 3 (Ana Silva) como Enfermeiro
+8. Médico assume, registra parecer, grava áudio, encerra
+9. Aguardar processamento da IA (ou mostrar fila já processada do seed)
+10. Abrir a Fila de Análises — mostrar ordenação por score
+    → Caso 1 e 2 aparecem no topo (VERMELHO)
+    → Caso 3 aparece no final (VERDE)
+11. Clicar no Caso 2 (Maria) — mostrar painel de resultado com indicadores
+    → destacar as evidências de violência doméstica no histórico
+    → clicar "Paciente Encaminhada"
+12. Clicar no Caso 1 (Julia) — mostrar ideação e progressão histórica
+    → clicar "Paciente Encaminhada"
+13. Clicar no Caso 3 (Ana) — mostrar ausência de alertas
+    → clicar "Revisar sem encaminhar"
+14. Mostrar que a fila ficou vazia após as revisões
+
+
+========================================
+ORDEM DE EXECUÇÃO DOS SEEDS
+========================================
+
+    python seed.py              # usuários e pacientes (se ainda não executado)
+    python seed_historico.py    # histórico ajustado para os casos de teste
