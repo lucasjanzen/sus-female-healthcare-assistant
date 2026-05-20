@@ -169,22 +169,28 @@ def _resumo(
 
 
 def _calcular_voice_modifier(sentimento_voz: Optional[dict]) -> int:
-    """Modificador de score ponderado por número de trechos do paciente."""
+    """Modificador de score baseado no sentimento vocal da paciente."""
     if not sentimento_voz:
         return 0
-    trechos = sentimento_voz.get("_por_trecho_interno", [])
-    n = len(trechos)
-    if n == 0:
-        return 0
-    confianca = min(n / 5.0, 1.0)
-    negativo = sentimento_voz["scores"]["negativo"]
+    negativo = sentimento_voz.get("scores", {}).get("negativo", 0)
     if negativo > 0.8:
-        modificador_bruto = 15
-    elif negativo > 0.6:
-        modificador_bruto = 10
-    else:
-        modificador_bruto = 0
-    return round(modificador_bruto * confianca)
+        return 15
+    if negativo > 0.6:
+        return 10
+    return 0
+
+
+def analisar_texto(texto: str) -> tuple[int, list[IndicadorIA], str]:
+    """
+    Análise local por palavras-chave.  Retorna (score, indicadores, resumo).
+    Usada como fallback quando o LLM está indisponível.
+    """
+    texto_norm = _normalizar(texto)
+    indicadores = _detectar(texto_norm, "TEXTO_LOCAL")
+    score = min(sum(PESOS[i.tipo][i.nivel] for i in indicadores), 100)
+    faixa, mensagem = _faixa(score)
+    resumo = _resumo(indicadores, faixa, mensagem)
+    return score, indicadores, resumo
 
 
 async def analisar(

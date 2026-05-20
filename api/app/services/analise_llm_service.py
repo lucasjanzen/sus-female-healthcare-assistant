@@ -12,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.services import analise_service_legacy as legacy
+from app.services import analise_service as analise_kw
 
 logger = logging.getLogger(__name__)
 
@@ -324,10 +324,9 @@ def analisar_com_llm(
 def _fallback_local(ctx: dict, prompt_completo: str = "") -> dict:
     """Fallback baseado em palavras-chave quando o GPT-4o está indisponível."""
     texto = f"{ctx['relato_texto']} {ctx['transcricao']}".strip()
-    from app.services.analise_service import calcular_faixa
 
-    score, indicadores, resumo = legacy.analisar_texto(texto)
-    faixa = calcular_faixa(score)
+    score, indicadores, resumo = analise_kw.analisar_texto(texto)
+    faixa = analise_kw.calcular_faixa(score)
 
     sumario = {
         "indicadores": [i.model_dump() for i in indicadores],
